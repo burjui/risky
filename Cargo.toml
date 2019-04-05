@@ -5,3 +5,4 @@ authors = ["Artem Borisovskiy <bytefu@gmail.com>"]
 description = "RISC-V instruction encoding library"
 license = "BSD-3-Clause"
 edition = "2018"
+repository = "https://gitlab.com/bytefu/risky"
