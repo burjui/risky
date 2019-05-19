@@ -1,6 +1,6 @@
 [package]
 name = "risky"
-version = "0.2.0"
+version = "0.2.1"
 authors = ["Artem Borisovskiy <bytefu@gmail.com>"]
 description = "RISC-V instruction encoding library"
 license = "BSD-3-Clause"
