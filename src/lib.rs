@@ -345,6 +345,6 @@ fn check_range<T>(function_name: &'static str, value_name: &'static str, value: 
         Ok(())
     } else {
         Err(format!("{}: {} = {} (0x{:08x}) is out of range: {} .. {} (0x{:08x} .. (0x{:08x}))",
-            function_name, value_name, value, value, range.start, range.start, range.end, range.end))
+            function_name, value_name, value, value, range.start, range.end, range.start, range.end))
     }
 }
