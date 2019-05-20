@@ -311,11 +311,11 @@ fn check_register(function_name: &'static str, register: u8) -> Result<()> {
 }
 
 fn check_imm_i_s(function_name: &'static str, imm: i16) -> Result<()> {
-    check_range(function_name, "imm", imm, -(1 << 12) .. 1 << 12)
+    check_range(function_name, "imm", imm, -(1 << 11) .. 1 << 11)
 }
 
 fn check_imm_b(function_name: &'static str, imm: i16) -> Result<()> {
-    check_range(function_name, "imm", imm, -(1 << 13) .. 1 << 13)
+    check_range(function_name, "imm", imm, -(1 << 12) .. 1 << 12)
         .and_then(|()| match imm & 1 {
             0 => Ok(()),
             _ => Err(format!("imm = {} (0x{:08x}) is not a multiple of 2", imm, imm))
@@ -323,7 +323,7 @@ fn check_imm_b(function_name: &'static str, imm: i16) -> Result<()> {
 }
 
 fn check_imm_j(function_name: &'static str, imm: i32) -> Result<()> {
-    check_range(function_name, "imm", imm, -(1 << 21) .. 1 << 21)
+    check_range(function_name, "imm", imm, -(1 << 20) .. 1 << 20)
         .and_then(|()| match imm & 1 {
             0 => Ok(()),
             _ => Err(format!("imm = {} (0x{:08x}) is not a multiple of 2", imm, imm))
