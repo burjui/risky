@@ -1,8 +1,6 @@
 [package]
 name = "risky"
-version = "0.3.0"
-authors = ["Artem Borisovskiy <bytefu@gmail.com>"]
+version = "0.4.0"
 description = "RISC-V instruction encoding library"
-license = "BSD-3-Clause"
-edition = "2018"
-repository = "https://gitlab.com/bytefu/risky"
+edition = "2021"
+authors = ["Artem Borisovsky <bytefu@gmail.com>"]
