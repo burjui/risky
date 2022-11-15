@@ -4,3 +4,6 @@ version = "0.4.0"
 description = "RISC-V instruction encoding library"
 edition = "2021"
 authors = ["Artem Borisovsky <bytefu@gmail.com>"]
+
+[dependencies]
+bitvec = "1.0.1"
