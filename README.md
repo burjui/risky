@@ -1,13 +1,12 @@
 risky
 =====
 RISC-V instruction encoding library. The following instruction sets are implemented at the moment:
-* RV32I base instruction set
-* RV32M standard extension
-
-No compressed 16-bit instructions yet. The library is still in development, so there is more to come.
+- RV32I base instruction set
+- Zicsr standard extension
+- M standard extension
 
 The code is based on the official RISC-V documentation, which is distributed under
-[Creative Commons Attribution 4.0 International License (CC-BY 4.0)](https://creativecommons.org/licenses/by/4.0/).
+[Creative Commons Attribution 4.0 International License (CC-BY 4.0)](https://creativecommons.org/licenses/by/4.0/):
 
 > ["The RISC-V Instruction Set Manual, Volume I: User-Level ISA, Document Version 20191214-draft"](https://github.com/riscv/riscv-isa-manual),
 Editors Andrew Waterman and Krste Asanović, RISC-V International, December 2019.
