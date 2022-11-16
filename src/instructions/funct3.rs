@@ -1,6 +1,10 @@
 use std::{error::Error, fmt::Display};
 
-pub(crate) struct Funct3(pub(crate) u8);
+use bitvec::order::Lsb0;
+use bitvec::slice::BitSlice;
+use bitvec::view::BitView;
+
+pub(crate) struct Funct3(u8);
 
 impl Funct3 {
     // RV32I
@@ -59,6 +63,10 @@ impl Funct3 {
     pub(crate) const DIVU: Funct3 = Funct3(0b101);
     pub(crate) const REM: Funct3 = Funct3(0b110);
     pub(crate) const REMU: Funct3 = Funct3(0b111);
+
+    pub(crate) fn view_bits(&self) -> &BitSlice<u8, Lsb0> {
+        &self.0.view_bits()[0..3]
+    }
 }
 
 #[derive(Debug)]

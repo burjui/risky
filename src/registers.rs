@@ -6,24 +6,30 @@ Based on the following document:
 Editors Kito Cheng and Jessica Clarke, RISC-V International, November 2022.
 */
 
+use bitvec::order::Lsb0;
+use bitvec::{slice::BitSlice, view::BitView};
 use std::fmt::{Display, Write};
 
-/// Number of registers in `RV32` architecture
-pub const REGISTER_COUNT: usize = 32;
+/// Number of `RISC-V` registers
+pub const NUMBER_OF_REGISTERS: usize = 32;
 
-/// Represents an `RV32` register
+/// Represents a `RISC-V` register
 #[derive(Debug, PartialEq, Eq, Hash, Clone, Copy)]
 #[repr(transparent)]
-pub struct Register(pub(crate) u8);
+pub struct Register(u8);
 
 impl Register {
     /// Returns a register corresponding to `index`, if `index` < [REGISTER_COUNT]
     pub const fn new(index: usize) -> Result<Self, &'static str> {
-        if index < REGISTER_COUNT {
+        if index < NUMBER_OF_REGISTERS {
             Ok(Self(index as u8))
         } else {
             Err("register index is greater than 31")
         }
+    }
+
+    pub(crate) fn view_bits(&self) -> &BitSlice<u8, Lsb0> {
+        &self.0.view_bits()[0..5]
     }
 }
 

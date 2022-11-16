@@ -11,9 +11,13 @@ Editors Andrew Waterman and Krste Asanović, RISC-V International, December 2019
 
 mod funct3;
 mod funct7;
+mod immediates;
+
 use self::funct3::Funct3;
 use self::funct7::Funct7;
+use self::immediates::Uimm5;
 use crate::registers::*;
+use bitvec::slice::BitSlice;
 use bitvec::view::BitView;
 use bitvec::{field::BitField, order::Lsb0};
 use std::collections::HashSet;
@@ -52,7 +56,7 @@ pub fn jal(rd: Register, imm: i32) -> u32 {
 /// (pc+4) is written to the register `rd`. Register [X0] can be used as the destination if the result is not
 /// required.
 pub fn jalr(rd: Register, rs1: Register, imm: i16) -> u32 {
-    i_instruction(opcode::JALR, rd, Funct3::JALR, rs1.0, imm)
+    i_instruction(opcode::JALR, rd, Funct3::JALR, ITypeRs1::Register(rs1), imm)
 }
 
 /// *(RV32I, B-format)*<br/>
@@ -125,35 +129,35 @@ pub fn bgeu(imm: i16, rs1: Register, rs2: Register) -> u32 {
 /// `LB` instruction copies a 8-bit value from memory to the register `rd`, sign-extending it to
 /// 32&nbsp;bits. The effective address is obtained by adding register `rs1` to the sign-extended 12-bit offset `imm`.
 pub fn lb(rd: Register, rs1: Register, imm: i16) -> u32 {
-    i_instruction(opcode::LOAD, rd, Funct3::LB, rs1.0, imm)
+    i_instruction(opcode::LOAD, rd, Funct3::LB, ITypeRs1::Register(rs1), imm)
 }
 
 /// *(RV32I, I-format)*<br/>
 /// `LBU` instruction copies a 8-bit from memory to the register `rd`, zero-extending it to
 /// 32&nbsp;bits. The effective address is obtained by adding register `rs1` to the sign-extended 12-bit offset `imm`.
 pub fn lbu(rd: Register, rs1: Register, imm: i16) -> u32 {
-    i_instruction(opcode::LOAD, rd, Funct3::LBU, rs1.0, imm)
+    i_instruction(opcode::LOAD, rd, Funct3::LBU, ITypeRs1::Register(rs1), imm)
 }
 
 /// *(RV32I, I-format)*<br/>
 /// `LH` instruction copies a 16-bit value from memory to the register `rd`, sign-extending it to
 /// 32&nbsp;bits. The effective address is obtained by adding register `rs1` to the sign-extended 12-bit offset `imm`.
 pub fn lh(rd: Register, rs1: Register, imm: i16) -> u32 {
-    i_instruction(opcode::LOAD, rd, Funct3::LH, rs1.0, imm)
+    i_instruction(opcode::LOAD, rd, Funct3::LH, ITypeRs1::Register(rs1), imm)
 }
 
 /// *(RV32I, I-format)*<br/>
 /// `LHU` instruction copies a 16-bit value from memory to the register `rd`, zero-extending it to
 /// 32&nbsp;bits. The effective address is obtained by adding register `rs1` to the sign-extended 12-bit offset `imm`.
 pub fn lhu(rd: Register, rs1: Register, imm: i16) -> u32 {
-    i_instruction(opcode::LOAD, rd, Funct3::LHU, rs1.0, imm)
+    i_instruction(opcode::LOAD, rd, Funct3::LHU, ITypeRs1::Register(rs1), imm)
 }
 
 /// *(RV32I, I-format)*<br/>
 /// `LW` instruction copies a 32-bit value from memory to the register `rd`.
 /// The effective address is obtained by adding register `rs1` to the sign-extended 12-bit offset `imm`.
 pub fn lw(rd: Register, rs1: Register, imm: i16) -> u32 {
-    i_instruction(opcode::LOAD, rd, Funct3::LW, rs1.0, imm)
+    i_instruction(opcode::LOAD, rd, Funct3::LW, ITypeRs1::Register(rs1), imm)
 }
 
 /// *(RV32I, S-format)*<br/>
@@ -183,7 +187,13 @@ pub fn sw(rs1: Register, imm: i16, rs2: Register) -> u32 {
 /// Note, `ADDI rd, rs1, 0` is equivalent to pseudoinstruction [MV](mv)&nbsp;`rd, rs1`,
 /// and `ADDI x0, x0, 0` is equivalent to pseudoinstruction [NOP](nop).
 pub fn addi(rd: Register, rs1: Register, imm: i16) -> u32 {
-    i_instruction(opcode::OP_IMM, rd, Funct3::ADDI, rs1.0, imm)
+    i_instruction(
+        opcode::OP_IMM,
+        rd,
+        Funct3::ADDI,
+        ITypeRs1::Register(rs1),
+        imm,
+    )
 }
 
 /// *(RV32I, I-format)*<br/>
@@ -205,7 +215,13 @@ pub fn nop() -> u32 {
 /// `SLTI` (set less than immediate) places the value 1 in the register `rd` if register `rs1` is less than the
 /// sign-extended immediate when both are treated as signed numbers, else 0 is written to `rd`.
 pub fn slti(rd: Register, rs1: Register, imm: i16) -> u32 {
-    i_instruction(opcode::OP_IMM, rd, Funct3::SLTI, rs1.0, imm)
+    i_instruction(
+        opcode::OP_IMM,
+        rd,
+        Funct3::SLTI,
+        ITypeRs1::Register(rs1),
+        imm,
+    )
 }
 
 /// *(RV32I, I-format)*<br/>
@@ -214,7 +230,13 @@ pub fn slti(rd: Register, rs1: Register, imm: i16) -> u32 {
 /// `SLTIU rd, rs1, 1` sets `rd` to 1 if `rs1` = 0, otherwise sets `rd` to 0, and is equivalent to pseudoinstruction
 /// [SEQZ](seqz)&nbsp;`rd, rs`).
 pub fn sltiu(rd: Register, rs1: Register, imm: i16) -> u32 {
-    i_instruction(opcode::OP_IMM, rd, Funct3::SLTIU, rs1.0, imm)
+    i_instruction(
+        opcode::OP_IMM,
+        rd,
+        Funct3::SLTIU,
+        ITypeRs1::Register(rs1),
+        imm,
+    )
 }
 
 /// *(RV32I, I-format)*<br/>
@@ -242,21 +264,39 @@ pub fn not(rd: Register, rs1: Register) -> u32 {
 }
 
 fn xori_impl(rd: Register, rs1: Register, imm: i16) -> u32 {
-    i_instruction(opcode::OP_IMM, rd, Funct3::XORI, rs1.0, imm)
+    i_instruction(
+        opcode::OP_IMM,
+        rd,
+        Funct3::XORI,
+        ITypeRs1::Register(rs1),
+        imm,
+    )
 }
 
 /// *(RV32I, I-format)*<br/>
 /// `ORI` performs OR bitwise logical operation on register `rs1` and the sign-extended 12-bit immediate `imm`
 /// and places the result in the register `rd`.
 pub fn ori(rd: Register, rs1: Register, imm: i16) -> u32 {
-    i_instruction(opcode::OP_IMM, rd, Funct3::ORI, rs1.0, imm)
+    i_instruction(
+        opcode::OP_IMM,
+        rd,
+        Funct3::ORI,
+        ITypeRs1::Register(rs1),
+        imm,
+    )
 }
 
 /// *(RV32I, I-format)*<br/>
 /// `ANDI` performs AND bitwise logical operation on register `rs1` and the sign-extended 12-bit immediate `imm`
 /// and places the result in the register `rd`.
 pub fn andi(rd: Register, rs1: Register, imm: i16) -> u32 {
-    i_instruction(opcode::OP_IMM, rd, Funct3::ANDI, rs1.0, imm)
+    i_instruction(
+        opcode::OP_IMM,
+        rd,
+        Funct3::ANDI,
+        ITypeRs1::Register(rs1),
+        imm,
+    )
 }
 
 /// *(RV32I, I-format)*<br/>
@@ -268,7 +308,7 @@ pub fn slli(rd: Register, rs1: Register, shamt: u8) -> u32 {
         opcode::OP_IMM,
         rd,
         Funct3::SLLI,
-        rs1.0,
+        ITypeRs1::Register(rs1),
         i16::from(shamt & 0x1F),
     )
 }
@@ -282,7 +322,7 @@ pub fn srli(rd: Register, rs1: Register, shamt: u8) -> u32 {
         opcode::OP_IMM,
         rd,
         Funct3::SRLI,
-        rs1.0,
+        ITypeRs1::Register(rs1),
         i16::from(shamt & 0x1F),
     )
 }
@@ -296,7 +336,7 @@ pub fn srai(rd: Register, rs1: Register, shamt: u8) -> u32 {
         opcode::OP_IMM,
         rd,
         Funct3::SRAI,
-        rs1.0,
+        ITypeRs1::Register(rs1),
         i16::from(shamt & 0x1F) | 0b0100000 << 5,
     )
 }
@@ -396,7 +436,7 @@ pub fn and(rd: Register, rs1: Register, rs2: Register) -> u32 {
 /// [CSRRS](csrrs), [CSRR](csrr), [CSRS](csrs), [CSRRC](csrrc), [CSRC](csrc),
 /// [CSRRWI](csrrwi), [CSRRSI](csrrsi), [CSRSI](csrsi), [CSRRCI](csrrci), [CSRCI](csrci)
 pub fn csrrw(rd: Register, rs1: Register, csr: u16) -> u32 {
-    csr_instruction(rd, rs1.0, csr, Funct3::CSRRW)
+    csr_instruction(rd, ITypeRs1::Register(rs1), csr, Funct3::CSRRW)
 }
 
 /// *(RV32 Zicsr, I-format)*<br/>
@@ -446,7 +486,7 @@ pub fn csrs(rs1: Register, csr: u16) -> u32 {
 }
 
 fn csrrs_impl(rd: Register, rs1: Register, csr: u16) -> u32 {
-    csr_instruction(rd, rs1.0, csr, Funct3::CSRRS)
+    csr_instruction(rd, ITypeRs1::Register(rs1), csr, Funct3::CSRRS)
 }
 
 /// *(RV32 Zicsr, I-format)*<br/>
@@ -484,7 +524,7 @@ pub fn csrc(rs1: Register, csr: u16) -> u32 {
 }
 
 fn csrrc_impl(rd: Register, rs1: Register, csr: u16) -> u32 {
-    csr_instruction(rd, rs1.0, csr, Funct3::CSRRC)
+    csr_instruction(rd, ITypeRs1::Register(rs1), csr, Funct3::CSRRC)
 }
 
 /// *(RV32 Zicsr, I-format)*<br/>
@@ -496,8 +536,8 @@ fn csrrc_impl(rd: Register, rs1: Register, csr: u16) -> u32 {
 /// Similar instructions and pseudoinstructions for accessing CSRs:
 /// [CSRRW](csrrw), [CSRRS](csrrs), [CSRR](csrr), [CSRS](csrs), [CSRRC](csrrc),
 /// [CSRC](csrc), [CSRRSI](csrrsi), [CSRSI](csrsi), [CSRRCI](csrrci), [CSRCI](csrci)
-pub fn csrrwi(rd: Register, uimm: u8, csr: u16) -> u32 {
-    csr_instruction(rd, uimm, csr, Funct3::CSRRWI)
+pub fn csrrwi(rd: Register, uimm: Uimm5, csr: u16) -> u32 {
+    csr_instruction(rd, ITypeRs1::Uimm5(uimm), csr, Funct3::CSRRWI)
 }
 
 /// *(RV32I, I-format)*<br/>
@@ -510,7 +550,7 @@ pub fn csrrwi(rd: Register, uimm: u8, csr: u16) -> u32 {
 /// Similar instructions and pseudoinstructions for accessing CSRs:
 /// [CSRRW](csrrw), [CSRRS](csrrs), [CSRR](csrr), [CSRS](csrs), [CSRRC](csrrc),
 /// [CSRC](csrc), [CSRRWI](csrrwi), [CSRSI](csrsi), [CSRRCI](csrrci), [CSRCI](csrci)
-pub fn csrrsi(rd: Register, uimm: u8, csr: u16) -> u32 {
+pub fn csrrsi(rd: Register, uimm: Uimm5, csr: u16) -> u32 {
     csrrsi_impl(rd, uimm, csr)
 }
 
@@ -524,12 +564,12 @@ pub fn csrrsi(rd: Register, uimm: u8, csr: u16) -> u32 {
 /// Similar instructions and pseudoinstructions for accessing CSRs:
 /// [CSRRW](csrrw), [CSRRS](csrrs), [CSRR](csrr), [CSRS](csrs), [CSRRC](csrrc),
 /// [CSRC](csrc), [CSRRWI](csrrwi), [CSRRSI](csrrsi),  [CSRRCI](csrrci), [CSRCI](csrci)
-pub fn csrsi(uimm: u8, csr: u16) -> u32 {
+pub fn csrsi(uimm: Uimm5, csr: u16) -> u32 {
     csrrsi_impl(X0, uimm, csr)
 }
 
-fn csrrsi_impl(rd: Register, uimm: u8, csr: u16) -> u32 {
-    csr_instruction(rd, uimm, csr, Funct3::CSRRSI)
+fn csrrsi_impl(rd: Register, uimm: Uimm5, csr: u16) -> u32 {
+    csr_instruction(rd, ITypeRs1::Uimm5(uimm), csr, Funct3::CSRRSI)
 }
 
 /// *(RV32 Zicsr, I-format)*<br/>
@@ -542,7 +582,7 @@ fn csrrsi_impl(rd: Register, uimm: u8, csr: u16) -> u32 {
 /// Similar instructions and pseudoinstructions for accessing CSRs:
 /// [CSRRW](csrrw), [CSRRS](csrrs), [CSRR](csrr), [CSRS](csrs), [CSRRC](csrrc),
 /// [CSRC](csrc), [CSRRWI](csrrwi), [CSRRSI](csrrsi), [CSRSI](csrsi), [CSRCI](csrci)
-pub fn csrrci(rd: Register, uimm: u8, csr: u16) -> u32 {
+pub fn csrrci(rd: Register, uimm: Uimm5, csr: u16) -> u32 {
     csrrci_impl(rd, uimm, csr)
 }
 
@@ -556,12 +596,12 @@ pub fn csrrci(rd: Register, uimm: u8, csr: u16) -> u32 {
 /// Similar instructions and pseudoinstructions for accessing CSRs:
 /// [CSRRW](csrrw), [CSRRS](csrrs), [CSRR](csrr), [CSRS](csrs), [CSRRC](csrrc),
 /// [CSRC](csrc), [CSRRWI](csrrwi), [CSRRSI](csrrsi), [CSRSI](csrsi), [CSRRCI](csrrci)
-pub fn csrci(uimm: u8, csr: u16) -> u32 {
+pub fn csrci(uimm: Uimm5, csr: u16) -> u32 {
     csrrci_impl(X0, uimm, csr)
 }
 
-fn csrrci_impl(rd: Register, uimm: u8, csr: u16) -> u32 {
-    csr_instruction(rd, uimm, csr, Funct3::CSRRCI)
+fn csrrci_impl(rd: Register, mask: Uimm5, csr: u16) -> u32 {
+    csr_instruction(rd, ITypeRs1::Uimm5(mask), csr, Funct3::CSRRCI)
 }
 
 /// *(RV32 Zicsr, I-format specialized)*<br/>
@@ -577,7 +617,7 @@ fn csrrci_impl(rd: Register, uimm: u8, csr: u16) -> u32 {
 ///               | source/dest |  uimm  | CSRRSI | dest | SYSTEM |
 ///               | source/dest |  uimm  | CSRRCI | dest | SYSTEM |
 /// ```
-fn csr_instruction(rd: Register, mask: u8, csr: u16, funct3: Funct3) -> u32 {
+fn csr_instruction(rd: Register, mask: ITypeRs1, csr: u16, funct3: Funct3) -> u32 {
     i_instruction(
         opcode::SYSTEM,
         rd,
@@ -621,7 +661,13 @@ fn fence_impl(fm: u8, predecessor: &str, successor: &str) -> u32 {
     let pred = parse_fence_mask(predecessor).unwrap();
     let succ = parse_fence_mask(successor).unwrap();
     let imm = i16::from(succ | (pred << 4)) | (i16::from(fm) << 8);
-    i_instruction(opcode::MISC_MEM, X0, Funct3::FENCE, X0.0, imm)
+    i_instruction(
+        opcode::MISC_MEM,
+        X0,
+        Funct3::FENCE,
+        ITypeRs1::Register(X0),
+        imm,
+    )
 }
 
 // TODO: remove HashSet
@@ -656,7 +702,13 @@ fn fence_flag_error(kind: &'static str, flag_name: char, mask_str: &str) -> Stri
 /// (execution environment interface) will define how parameters for the service request are passed,
 /// but usually these will be in defined locations in the integer register file.
 pub fn ecall() -> u32 {
-    i_instruction(opcode::SYSTEM, X0, Funct3::ECALL, X0.0, 0b0000_0000_0000)
+    i_instruction(
+        opcode::SYSTEM,
+        X0,
+        Funct3::ECALL,
+        ITypeRs1::Register(X0),
+        0b0000_0000_0000,
+    )
 }
 
 /// *(RV32I, I-format)*<br/>
@@ -673,7 +725,13 @@ pub fn ecall() -> u32 {
 /// srai x0, x0, 7      # NOP encoding the semihosting call number 7
 /// ```
 pub fn ebreak() -> u32 {
-    i_instruction(opcode::SYSTEM, X0, Funct3::EBREAK, X0.0, 0b0000_0000_0001)
+    i_instruction(
+        opcode::SYSTEM,
+        X0,
+        Funct3::EBREAK,
+        ITypeRs1::Register(X0),
+        0b0000_0000_0001,
+    )
 }
 
 // RV32M Standard Extension
@@ -861,12 +919,26 @@ fn r_instruction(
     let mut instruction = 0;
     let bits = instruction.view_bits_mut::<Lsb0>();
     bits[0..=6].store(opcode);
-    bits[7..=11].store(rd.0);
-    bits[12..=14].store(funct3.0);
-    bits[15..=19].store(rs1.0);
-    bits[20..=24].store(rs2.0);
-    bits[25..=31].store(funct7.0);
+    bits[7..=11].clone_from_bitslice(rd.view_bits());
+    bits[12..=14].clone_from_bitslice(funct3.view_bits());
+    bits[15..=19].clone_from_bitslice(rs1.view_bits());
+    bits[20..=24].clone_from_bitslice(rs2.view_bits());
+    bits[25..=31].clone_from_bitslice(funct7.view_bits());
     instruction
+}
+
+enum ITypeRs1 {
+    Register(Register),
+    Uimm5(Uimm5),
+}
+
+impl ITypeRs1 {
+    fn view_bits(&self) -> &BitSlice<u8, Lsb0> {
+        match self {
+            ITypeRs1::Register(register) => register.view_bits(),
+            ITypeRs1::Uimm5(uimm) => uimm.view_bits(),
+        }
+    }
 }
 
 fn i_instruction(
@@ -875,15 +947,15 @@ fn i_instruction(
     funct3: Funct3,
     // `rs1` has to be u8, because there are specialized variants of I-format
     // that use rs1 as immediate
-    rs1: u8,  // TODO maybe an enum Register | Uimm5
+    rs1: ITypeRs1,
     imm: i16, // TODO make it u16 or an enum for specialized variants
 ) -> u32 {
     let mut instruction = 0;
     let bits = instruction.view_bits_mut::<Lsb0>();
     bits[0..=6].store(opcode);
-    bits[7..=11].store(rd.0);
-    bits[12..=14].store(funct3.0);
-    bits[15..=19].store(rs1);
+    bits[7..=11].clone_from_bitslice(rd.view_bits());
+    bits[12..=14].clone_from_bitslice(funct3.view_bits());
+    bits[15..=19].clone_from_bitslice(rs1.view_bits());
     bits[20..=31].store(imm);
     instruction
 }
@@ -895,9 +967,9 @@ fn s_instruction(opcode: u8, imm: i16, funct3: Funct3, rs1: Register, rs2: Regis
     let imm_bits = imm.view_bits::<Lsb0>();
     bits[0..=6].store(opcode);
     bits[7..=11].copy_from_bitslice(&imm_bits[0..=4]);
-    bits[12..=14].store(funct3.0);
-    bits[15..=19].store(rs1.0);
-    bits[20..=24].store(rs2.0);
+    bits[12..=14].clone_from_bitslice(funct3.view_bits());
+    bits[15..=19].clone_from_bitslice(rs1.view_bits());
+    bits[20..=24].clone_from_bitslice(rs2.view_bits());
     bits[25..=31].copy_from_bitslice(&imm_bits[5..=11]);
     instruction
 }
@@ -905,15 +977,15 @@ fn s_instruction(opcode: u8, imm: i16, funct3: Funct3, rs1: Register, rs2: Regis
 fn b_instruction(opcode: u8, imm: i16, funct3: Funct3, rs1: Register, rs2: Register) -> u32 {
     let mut instruction = 0;
     let bits = instruction.view_bits_mut::<Lsb0>();
-    let imm = imm as u32;
+    let imm = imm as u16;
     let imm_bits = imm.view_bits::<Lsb0>();
     bits[0..=6].store(opcode);
     bits.set(7, imm_bits[11]);
-    bits[8..=11].copy_from_bitslice(&imm_bits[1..=4]);
-    bits[12..=14].store(funct3.0);
-    bits[15..=19].store(rs1.0);
-    bits[20..=24].store(rs2.0);
-    bits[25..=30].copy_from_bitslice(&imm_bits[5..=10]);
+    bits[8..=11].clone_from_bitslice(&imm_bits[1..=4]);
+    bits[12..=14].clone_from_bitslice(funct3.view_bits());
+    bits[15..=19].clone_from_bitslice(rs1.view_bits());
+    bits[20..=24].clone_from_bitslice(rs2.view_bits());
+    bits[25..=30].clone_from_bitslice(&imm_bits[5..=10]);
     bits.set(31, imm_bits[12]);
     instruction
 }
@@ -922,7 +994,7 @@ fn u_instruction(opcode: u8, rd: Register, imm: i32) -> u32 {
     let mut instruction = 0;
     let bits = instruction.view_bits_mut::<Lsb0>();
     bits[0..=6].store(opcode);
-    bits[7..=11].store(rd.0);
+    bits[7..=11].clone_from_bitslice(rd.view_bits());
     bits[12..=31].store(imm);
     instruction
 }
@@ -933,7 +1005,7 @@ fn j_instruction(opcode: u8, rd: Register, imm: i32) -> u32 {
     let imm = imm as u32;
     let imm_bits = imm.view_bits::<Lsb0>();
     bits[0..=6].store(opcode);
-    bits[7..=11].store(rd.0);
+    bits[7..=11].clone_from_bitslice(rd.view_bits());
     bits[12..=19].copy_from_bitslice(&imm_bits[12..=19]);
     bits.set(20, imm_bits[11]);
     bits[21..=30].copy_from_bitslice(&imm_bits[1..=10]);

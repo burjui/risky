@@ -1,6 +1,8 @@
+use bitvec::order::Lsb0;
+use bitvec::{slice::BitSlice, view::BitView};
 use std::{error::Error, fmt::Display};
 
-pub(crate) struct Funct7(pub(crate) u8);
+pub(crate) struct Funct7(u8);
 
 impl Funct7 {
     // RV32I
@@ -15,6 +17,10 @@ impl Funct7 {
     pub(crate) const SLL: Funct7 = Funct7(0b0000000);
     pub(crate) const SRL: Funct7 = Funct7(0b0000000);
     pub(crate) const MULDIV: Funct7 = Funct7(0b0000001);
+
+    pub(crate) fn view_bits(&self) -> &BitSlice<u8, Lsb0> {
+        &self.0.view_bits()[0..7]
+    }
 }
 
 #[derive(Debug)]
@@ -24,7 +30,7 @@ impl Display for Funct7Error {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
             f,
-            "invalid funct3 value, must be 7 bits wide: {} (0b{:08b})",
+            "invalid funct7 value, must be 7 bits wide: {} (0b{:08b})",
             self.0, self.0
         )
     }
