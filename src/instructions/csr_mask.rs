@@ -2,18 +2,18 @@ use bitvec::order::Lsb0;
 use bitvec::{slice::BitSlice, view::BitView};
 use std::{error::Error, fmt::Display};
 
-pub struct Uimm5(u8);
+pub struct CsrMask(u8);
 
-impl Uimm5 {
+impl CsrMask {
     pub(crate) fn view_bits(&self) -> &BitSlice<u8, Lsb0> {
         &self.0.view_bits()[0..5]
     }
 }
 
 #[derive(Debug)]
-pub struct Uimm5Error(u8);
+pub struct CsrMaskError(u8);
 
-impl Display for Uimm5Error {
+impl Display for CsrMaskError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
             f,
@@ -23,16 +23,16 @@ impl Display for Uimm5Error {
     }
 }
 
-impl Error for Uimm5Error {}
+impl Error for CsrMaskError {}
 
-impl TryFrom<u8> for Uimm5 {
-    type Error = Uimm5Error;
+impl TryFrom<u8> for CsrMask {
+    type Error = CsrMaskError;
 
     fn try_from(value: u8) -> Result<Self, Self::Error> {
         if value <= 0b11111 {
-            Ok(Uimm5(value))
+            Ok(CsrMask(value))
         } else {
-            Err(Uimm5Error(value))
+            Err(CsrMaskError(value))
         }
     }
 }

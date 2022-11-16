@@ -9,18 +9,19 @@ Document Version 20191214-draft"](https://github.com/riscv/riscv-isa-manual),
 Editors Andrew Waterman and Krste Asanović, RISC-V International, December 2019.
 */
 
+mod csr_mask;
+mod fence_mask;
 mod funct3;
 mod funct7;
-mod immediates;
 
+use self::csr_mask::CsrMask;
+use self::fence_mask::{FenceMask, FENCE_MASK_RW};
 use self::funct3::Funct3;
 use self::funct7::Funct7;
-use self::immediates::Uimm5;
 use crate::registers::*;
 use bitvec::slice::BitSlice;
 use bitvec::view::BitView;
 use bitvec::{field::BitField, order::Lsb0};
-use std::collections::HashSet;
 
 // RV32I Base Instruction Set
 
@@ -536,7 +537,7 @@ fn csrrc_impl(rd: Register, rs1: Register, csr: u16) -> u32 {
 /// Similar instructions and pseudoinstructions for accessing CSRs:
 /// [CSRRW](csrrw), [CSRRS](csrrs), [CSRR](csrr), [CSRS](csrs), [CSRRC](csrrc),
 /// [CSRC](csrc), [CSRRSI](csrrsi), [CSRSI](csrsi), [CSRRCI](csrrci), [CSRCI](csrci)
-pub fn csrrwi(rd: Register, uimm: Uimm5, csr: u16) -> u32 {
+pub fn csrrwi(rd: Register, uimm: CsrMask, csr: u16) -> u32 {
     csr_instruction(rd, ITypeRs1::Uimm5(uimm), csr, Funct3::CSRRWI)
 }
 
@@ -550,7 +551,7 @@ pub fn csrrwi(rd: Register, uimm: Uimm5, csr: u16) -> u32 {
 /// Similar instructions and pseudoinstructions for accessing CSRs:
 /// [CSRRW](csrrw), [CSRRS](csrrs), [CSRR](csrr), [CSRS](csrs), [CSRRC](csrrc),
 /// [CSRC](csrc), [CSRRWI](csrrwi), [CSRSI](csrsi), [CSRRCI](csrrci), [CSRCI](csrci)
-pub fn csrrsi(rd: Register, uimm: Uimm5, csr: u16) -> u32 {
+pub fn csrrsi(rd: Register, uimm: CsrMask, csr: u16) -> u32 {
     csrrsi_impl(rd, uimm, csr)
 }
 
@@ -564,11 +565,11 @@ pub fn csrrsi(rd: Register, uimm: Uimm5, csr: u16) -> u32 {
 /// Similar instructions and pseudoinstructions for accessing CSRs:
 /// [CSRRW](csrrw), [CSRRS](csrrs), [CSRR](csrr), [CSRS](csrs), [CSRRC](csrrc),
 /// [CSRC](csrc), [CSRRWI](csrrwi), [CSRRSI](csrrsi),  [CSRRCI](csrrci), [CSRCI](csrci)
-pub fn csrsi(uimm: Uimm5, csr: u16) -> u32 {
+pub fn csrsi(uimm: CsrMask, csr: u16) -> u32 {
     csrrsi_impl(X0, uimm, csr)
 }
 
-fn csrrsi_impl(rd: Register, uimm: Uimm5, csr: u16) -> u32 {
+fn csrrsi_impl(rd: Register, uimm: CsrMask, csr: u16) -> u32 {
     csr_instruction(rd, ITypeRs1::Uimm5(uimm), csr, Funct3::CSRRSI)
 }
 
@@ -582,7 +583,7 @@ fn csrrsi_impl(rd: Register, uimm: Uimm5, csr: u16) -> u32 {
 /// Similar instructions and pseudoinstructions for accessing CSRs:
 /// [CSRRW](csrrw), [CSRRS](csrrs), [CSRR](csrr), [CSRS](csrs), [CSRRC](csrrc),
 /// [CSRC](csrc), [CSRRWI](csrrwi), [CSRRSI](csrrsi), [CSRSI](csrsi), [CSRCI](csrci)
-pub fn csrrci(rd: Register, uimm: Uimm5, csr: u16) -> u32 {
+pub fn csrrci(rd: Register, uimm: CsrMask, csr: u16) -> u32 {
     csrrci_impl(rd, uimm, csr)
 }
 
@@ -596,11 +597,11 @@ pub fn csrrci(rd: Register, uimm: Uimm5, csr: u16) -> u32 {
 /// Similar instructions and pseudoinstructions for accessing CSRs:
 /// [CSRRW](csrrw), [CSRRS](csrrs), [CSRR](csrr), [CSRS](csrs), [CSRRC](csrrc),
 /// [CSRC](csrc), [CSRRWI](csrrwi), [CSRRSI](csrrsi), [CSRSI](csrsi), [CSRRCI](csrrci)
-pub fn csrci(uimm: Uimm5, csr: u16) -> u32 {
+pub fn csrci(uimm: CsrMask, csr: u16) -> u32 {
     csrrci_impl(X0, uimm, csr)
 }
 
-fn csrrci_impl(rd: Register, mask: Uimm5, csr: u16) -> u32 {
+fn csrrci_impl(rd: Register, mask: CsrMask, csr: u16) -> u32 {
     csr_instruction(rd, ITypeRs1::Uimm5(mask), csr, Funct3::CSRRCI)
 }
 
@@ -638,7 +639,7 @@ fn csr_instruction(rd: Register, mask: ITypeRs1, csr: u16, funct3: Funct3) -> u3
 ///
 /// Note, [FENCE.TSO](fence_tso) instruction is encoded as a `FENCE` instruction with `fm` = 1000
 /// (refer to the instruction manual for this field), `predecessor` = "rw", and `successor` = "rw".
-pub fn fence(predecessor: &'static str, successor: &'static str) -> u32 {
+pub fn fence(predecessor: FenceMask, successor: FenceMask) -> u32 {
     fence_impl(0b0000, predecessor, successor)
 }
 
@@ -646,7 +647,7 @@ pub fn fence(predecessor: &'static str, successor: &'static str) -> u32 {
 /// `FENCE.TSO` instruction is encoded as a [FENCE](fence) instruction with `fm` = 1000
 /// (refer to the instruction manual for this field), `predecessor` = "rw", and `successor` = "rw".
 pub fn fence_tso() -> u32 {
-    fence_impl(0b1000, "rw", "rw")
+    fence_impl(0b1000, FENCE_MASK_RW, FENCE_MASK_RW)
 }
 
 /// *(RV32I, I-format specialized)*<br/>
@@ -657,43 +658,18 @@ pub fn fence_tso() -> u32 {
 /// Bit count     |  4    | 1  1  1  1  | 1  1  1  1  |   5   |   3    |  5   |   7      |
 /// Description   |  FM   | predecessor |  successor  |   0   | FENCE  |  0   | MISC_MEM |
 /// ```
-fn fence_impl(fm: u8, predecessor: &str, successor: &str) -> u32 {
-    let pred = parse_fence_mask(predecessor).unwrap();
-    let succ = parse_fence_mask(successor).unwrap();
-    let imm = i16::from(succ | (pred << 4)) | (i16::from(fm) << 8);
+fn fence_impl(fm: u8, predecessor: FenceMask, successor: FenceMask) -> u32 {
+    let mut imm = 0u16;
+    let imm_bits = imm.view_bits_mut::<Lsb0>();
+    imm_bits[0..4].clone_from_bitslice(predecessor.view_bits());
+    imm_bits[4..8].clone_from_bitslice(successor.view_bits());
+    imm_bits[8..12].store(fm);
     i_instruction(
         opcode::MISC_MEM,
         X0,
         Funct3::FENCE,
         ITypeRs1::Register(X0),
-        imm,
-    )
-}
-
-// TODO: remove HashSet
-fn parse_fence_mask(mask_str: &str) -> Result<u8> {
-    let mut chars_processed = HashSet::new();
-    let mut mask = 0;
-    for flag_name in mask_str.chars() {
-        if chars_processed.contains(&flag_name) {
-            return Err(fence_flag_error("unknown", flag_name, mask_str));
-        }
-        chars_processed.insert(flag_name);
-        mask |= match flag_name {
-            'i' => 1 << 3,
-            'o' => 1 << 2,
-            'r' => 1 << 1,
-            'w' => 1,
-            _ => return Err(fence_flag_error("invalid", flag_name, mask_str)),
-        };
-    }
-    Ok(mask)
-}
-
-fn fence_flag_error(kind: &'static str, flag_name: char, mask_str: &str) -> String {
-    format!(
-        "{} fence flag name `{}' in fence mask `{}'",
-        kind, flag_name, mask_str
+        imm as i16,
     )
 }
 
@@ -906,8 +882,6 @@ mod opcode {
     );
 }
 
-type Result<T> = core::result::Result<T, String>;
-
 fn r_instruction(
     opcode: u8,
     rd: Register,
@@ -929,7 +903,7 @@ fn r_instruction(
 
 enum ITypeRs1 {
     Register(Register),
-    Uimm5(Uimm5),
+    Uimm5(CsrMask),
 }
 
 impl ITypeRs1 {
