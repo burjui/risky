@@ -10,14 +10,13 @@ Editors Andrew Waterman and Krste Asanović, RISC-V International, December 2019
 */
 
 mod funct3;
-
+mod funct7;
+use self::funct3::Funct3;
+use self::funct7::Funct7;
 use crate::registers::*;
 use bitvec::view::BitView;
 use bitvec::{field::BitField, order::Lsb0};
-use core::fmt;
-use std::{collections::HashSet, fmt::Display, ops::Range};
-
-use self::funct3::Funct3;
+use std::collections::HashSet;
 
 // RV32I Base Instruction Set
 
@@ -307,7 +306,7 @@ pub fn srai(rd: Register, rs1: Register, shamt: u8) -> u32 {
 /// and places the result in the register `rd`. Overflows are ignored and the low XLEN bits of results are written
 /// to the destination `rd`.
 pub fn add(rd: Register, rs1: Register, rs2: Register) -> u32 {
-    r_instruction(opcode::OP, rd, Funct3::ADD, rs1, rs2, 0b0000000)
+    r_instruction(opcode::OP, rd, Funct3::ADD, rs1, rs2, Funct7::ADD)
 }
 
 /// *(RV32I, R-format)*<br/>
@@ -315,35 +314,35 @@ pub fn add(rd: Register, rs1: Register, rs2: Register) -> u32 {
 /// and places the result in the register `rd`. Overflows are ignored and the low XLEN bits of results are written
 /// to the destination `rd`.
 pub fn sub(rd: Register, rs1: Register, rs2: Register) -> u32 {
-    r_instruction(opcode::OP, rd, Funct3::SUB, rs1, rs2, 0b0100000)
+    r_instruction(opcode::OP, rd, Funct3::SUB, rs1, rs2, Funct7::SUB)
 }
 
 /// *(RV32I, R-format)*<br/>
 /// `SLL` instruction (shift logical left) performs logical left shift on the value in register `rs1` by the shift
 /// amount held in the lower 5 bits of register `rs2` and places the result in the register `rd`.
 pub fn sll(rd: Register, rs1: Register, rs2: Register) -> u32 {
-    r_instruction(opcode::OP, rd, Funct3::SLL, rs1, rs2, 0b0000000)
+    r_instruction(opcode::OP, rd, Funct3::SLL, rs1, rs2, Funct7::SLL)
 }
 
 /// *(RV32I, R-format)*<br/>
 /// `SRL` instruction (shift logical right) performs logical right shift on the value in register `rs1` by the shift
 /// amount held in the lower 5 bits of register `rs2` and places the result in the register `rd`.
 pub fn srl(rd: Register, rs1: Register, rs2: Register) -> u32 {
-    r_instruction(opcode::OP, rd, Funct3::SRL, rs1, rs2, 0b0000000)
+    r_instruction(opcode::OP, rd, Funct3::SRL, rs1, rs2, Funct7::SRL)
 }
 
 /// *(RV32I, R-format)*<br/>
 /// `SRA` instruction (shift arithmetic right) performs right shift on the value in register `rs1` by the shift amount
 /// held in the lower 5 bits of register `rs2`, sign-extends the result and places the it in the register `rd`.
 pub fn sra(rd: Register, rs1: Register, rs2: Register) -> u32 {
-    r_instruction(opcode::OP, rd, Funct3::SRA, rs1, rs2, 0b0100000)
+    r_instruction(opcode::OP, rd, Funct3::SRA, rs1, rs2, Funct7::SRA)
 }
 
 /// *(RV32I, R-format)*<br/>
 /// `SLT` instruction (set less than) perform signed compare,
 /// writing 1 to the register `rd` if registers `rs1` < `rs2`, 0 otherwise.
 pub fn slt(rd: Register, rs1: Register, rs2: Register) -> u32 {
-    r_instruction(opcode::OP, rd, Funct3::SLT, rs1, rs2, 0b0000000)
+    r_instruction(opcode::OP, rd, Funct3::SLT, rs1, rs2, Funct7::SLT)
 }
 
 /// *(RV32I, R-format)*<br/>
@@ -352,7 +351,7 @@ pub fn slt(rd: Register, rs1: Register, rs2: Register) -> u32 {
 /// Note, `SLTU rd, x0, rs2` sets `rd` to 1 if `rs2` ≠ 0, otherwise sets `rd` to 0, and is equivalent to
 /// pseudoinstruction [SNEZ](snez)&nbsp;`rd, rs`.
 pub fn sltu(rd: Register, rs1: Register, rs2: Register) -> u32 {
-    r_instruction(opcode::OP, rd, Funct3::SLTU, rs1, rs2, 0b0000000)
+    r_instruction(opcode::OP, rd, Funct3::SLTU, rs1, rs2, Funct7::SLTU)
 }
 
 /// *(RV32I, R-format)*<br/>
@@ -366,21 +365,21 @@ pub fn snez(rd: Register, rs2: Register) -> u32 {
 /// `XOR` instruction performs XOR logical operation on registers `rs1` and `rs2`
 /// and places the result in the register `rd`.
 pub fn xor(rd: Register, rs1: Register, rs2: Register) -> u32 {
-    r_instruction(opcode::OP, rd, Funct3::XOR, rs1, rs2, 0b0000000)
+    r_instruction(opcode::OP, rd, Funct3::XOR, rs1, rs2, Funct7::XOR)
 }
 
 /// *(RV32I, R-format)*<br/>
 /// `OR` instruction performs OR logical operation on registers `rs1` and `rs2`
 /// and places the result in the register `rd`.
 pub fn or(rd: Register, rs1: Register, rs2: Register) -> u32 {
-    r_instruction(opcode::OP, rd, Funct3::OR, rs1, rs2, 0b0000000)
+    r_instruction(opcode::OP, rd, Funct3::OR, rs1, rs2, Funct7::OR)
 }
 
 /// *(RV32I, R-format)*<br/>
 /// `AND` instruction performs AND logical operation on registers `rs1` and `rs2`
 /// and places the result in the register `rd`.
 pub fn and(rd: Register, rs1: Register, rs2: Register) -> u32 {
-    r_instruction(opcode::OP, rd, Funct3::AND, rs1, rs2, 0b0000000)
+    r_instruction(opcode::OP, rd, Funct3::AND, rs1, rs2, Funct7::AND)
 }
 
 /// *(RV32 Zicsr, I-format)*<br/>
@@ -811,7 +810,7 @@ pub fn remu(rd: Register, rs1: Register, rs2: Register) -> u32 {
 ///               | MULDIV |  divisor   |   dividend   | REMU   | dest |   OP   |
 /// ```
 fn muldiv_instruction(rd: Register, rs1: Register, rs2: Register, funct3: Funct3) -> u32 {
-    r_instruction(opcode::OP, rd, funct3, rs1, rs2, 0b0000001)
+    r_instruction(opcode::OP, rd, funct3, rs1, rs2, Funct7::MULDIV)
 }
 
 // Implementation
@@ -857,7 +856,7 @@ fn r_instruction(
     funct3: Funct3,
     rs1: Register,
     rs2: Register,
-    funct7: u8,
+    funct7: Funct7,
 ) -> u32 {
     let mut instruction = 0;
     let bits = instruction.view_bits_mut::<Lsb0>();
@@ -866,7 +865,7 @@ fn r_instruction(
     bits[12..=14].store(funct3.0);
     bits[15..=19].store(rs1.0);
     bits[20..=24].store(rs2.0);
-    bits[25..=31].store(funct7);
+    bits[25..=31].store(funct7.0);
     instruction
 }
 
@@ -940,55 +939,4 @@ fn j_instruction(opcode: u8, rd: Register, imm: i32) -> u32 {
     bits[21..=30].copy_from_bitslice(&imm_bits[1..=10]);
     bits.set(31, imm_bits[20]);
     instruction
-}
-
-fn check_opcode(function_name: &'static str, opcode: u8) -> Result<()> {
-    check_range(function_name, "opcode", opcode, 0b11..1 << 7)
-}
-
-fn check_imm_i_s(function_name: &'static str, imm: i16) -> Result<()> {
-    check_range(function_name, "imm", imm, -(1 << 11)..1 << 11)
-}
-
-fn check_imm_b(function_name: &'static str, imm: i16) -> Result<()> {
-    check_range(function_name, "imm", imm, -(1 << 12)..1 << 12).and_then(|()| match imm & 1 {
-        0 => Ok(()),
-        _ => Err(format!(
-            "imm = {} (0x{:08x}) is not a multiple of 2",
-            imm, imm
-        )),
-    })
-}
-
-fn check_imm_j(function_name: &'static str, imm: i32) -> Result<()> {
-    check_range(function_name, "imm", imm, -(1 << 20)..1 << 20).and_then(|()| match imm & 1 {
-        0 => Ok(()),
-        _ => Err(format!(
-            "imm = {} (0x{:08x}) is not a multiple of 2",
-            imm, imm
-        )),
-    })
-}
-
-fn check_funct7(function_name: &'static str, funct7: u8) -> Result<()> {
-    check_range(function_name, "funct7", funct7, 0..1 << 7)
-}
-
-fn check_range<T>(
-    function_name: &'static str,
-    value_name: &'static str,
-    value: T,
-    range: Range<T>,
-) -> Result<()>
-where
-    T: PartialOrd + Display + fmt::LowerHex,
-{
-    if value >= range.start && value < range.end {
-        Ok(())
-    } else {
-        Err(format!(
-            "{}: {} = {} (0x{:08x}) is out of range: {} .. {} (0x{:x} .. 0x{:x})",
-            function_name, value_name, value, value, range.start, range.end, range.start, range.end
-        ))
-    }
 }
