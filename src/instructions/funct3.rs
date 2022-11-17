@@ -1,5 +1,3 @@
-use std::{error::Error, fmt::Display};
-
 use bitvec::order::Lsb0;
 use bitvec::slice::BitSlice;
 use bitvec::view::BitView;
@@ -66,32 +64,5 @@ impl Funct3 {
 
     pub(crate) fn view_bits(&self) -> &BitSlice<u8, Lsb0> {
         &self.0.view_bits()[0..3]
-    }
-}
-
-#[derive(Debug)]
-pub(crate) struct Funct3Error(u8);
-
-impl Display for Funct3Error {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(
-            f,
-            "invalid funct3 value, must be 3 bits wide: {} (0b{:08b})",
-            self.0, self.0
-        )
-    }
-}
-
-impl Error for Funct3Error {}
-
-impl TryFrom<u8> for Funct3 {
-    type Error = Funct3Error;
-
-    fn try_from(value: u8) -> Result<Self, Self::Error> {
-        if value <= 0b111 {
-            Ok(Funct3(value))
-        } else {
-            Err(Funct3Error(value))
-        }
     }
 }

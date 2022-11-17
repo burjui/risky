@@ -1,6 +1,5 @@
 use bitvec::order::Lsb0;
 use bitvec::{slice::BitSlice, view::BitView};
-use std::{error::Error, fmt::Display};
 
 pub(crate) struct Funct7(u8);
 
@@ -20,32 +19,5 @@ impl Funct7 {
 
     pub(crate) fn view_bits(&self) -> &BitSlice<u8, Lsb0> {
         &self.0.view_bits()[0..7]
-    }
-}
-
-#[derive(Debug)]
-pub(crate) struct Funct7Error(u8);
-
-impl Display for Funct7Error {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(
-            f,
-            "invalid funct7 value, must be 7 bits wide: {} (0b{:08b})",
-            self.0, self.0
-        )
-    }
-}
-
-impl Error for Funct7Error {}
-
-impl TryFrom<u8> for Funct7 {
-    type Error = Funct7Error;
-
-    fn try_from(value: u8) -> Result<Self, Self::Error> {
-        if value <= 0b1111111 {
-            Ok(Funct7(value))
-        } else {
-            Err(Funct7Error(value))
-        }
     }
 }
