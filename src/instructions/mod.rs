@@ -255,18 +255,6 @@ pub fn seqz(rd: Register, rs1: Register) -> u32 {
 /// places the result in register `rd`. Note, `XORI rd, rs1, -1` performs a bitwise logical inversion of the register
 /// `rs1` and is equivalent to pseudoinstruction [NOT](not)&nbsp;`rd, rs`.
 pub fn xori(rd: Register, rs1: Register, imm: i16) -> u32 {
-    xori_impl(rd, rs1, imm)
-}
-
-/// *(RV32I, I-format)*<br/>
-/// `NOT` pseudoinstruction performs bitwise logical inversion of register `rs1` and places the result in the
-/// register `rd`.<br/><br/>
-/// `NOT rd, rs1` is encoded as [XORI](xori)&nbsp;`rd, rs1, -1`.
-pub fn not(rd: Register, rs1: Register) -> u32 {
-    xori_impl(rd, rs1, -1)
-}
-
-fn xori_impl(rd: Register, rs1: Register, imm: i16) -> u32 {
     i_instruction(
         Opcode::OP_IMM,
         rd,
@@ -274,6 +262,14 @@ fn xori_impl(rd: Register, rs1: Register, imm: i16) -> u32 {
         ITypeRs1::Register(rs1),
         imm,
     )
+}
+
+/// *(RV32I, I-format)*<br/>
+/// `NOT` pseudoinstruction performs bitwise logical inversion of register `rs1` and places the result in the
+/// register `rd`.<br/><br/>
+/// `NOT rd, rs1` is encoded as [XORI](xori)&nbsp;`rd, rs1, -1`.
+pub fn not(rd: Register, rs1: Register) -> u32 {
+    xori(rd, rs1, -1)
 }
 
 /// *(RV32I, I-format)*<br/>
@@ -456,7 +452,7 @@ pub fn csrrw(rd: Register, rs1: Register, csr: u16) -> u32 {
 /// [CSRRW](csrrw), [CSRR](csrr), [CSRS](csrs), [CSRRC](csrrc), [CSRC](csrc),
 /// [CSRRWI](csrrwi), [CSRRSI](csrrsi), [CSRSI](csrsi), [CSRRCI](csrrci), [CSRCI](csrci)
 pub fn csrrs(rd: Register, rs1: Register, csr: u16) -> u32 {
-    csrrs_impl(rd, rs1, csr)
+    csr_instruction(rd, ITypeRs1::Register(rs1), csr, Funct3::CSRRS)
 }
 
 /// *(RV32 Zicsr, I-format)*<br/>
@@ -468,7 +464,7 @@ pub fn csrrs(rd: Register, rs1: Register, csr: u16) -> u32 {
 /// [CSRRW](csrrw), [CSRRS](csrrs), [CSRS](csrs), [CSRRC](csrrc), [CSRC](csrc),
 /// [CSRRWI](csrrwi), [CSRRSI](csrrsi), [CSRSI](csrsi), [CSRRCI](csrrci), [CSRCI](csrci)
 pub fn csrr(rd: Register, csr: u16) -> u32 {
-    csrrs_impl(rd, X0, csr)
+    csrrs(rd, X0, csr)
 }
 
 /// *(RV32 Zicsr, I-format)*<br/>
@@ -485,11 +481,7 @@ pub fn csrr(rd: Register, csr: u16) -> u32 {
 /// [CSRRW](csrrw), [CSRRS](csrrs), [CSRR](csrr), [CSRRC](csrrc), [CSRC](csrc),
 /// [CSRRWI](csrrwi), [CSRRSI](csrrsi), [CSRSI](csrsi), [CSRRCI](csrrci), [CSRCI](csrci)
 pub fn csrs(rs1: Register, csr: u16) -> u32 {
-    csrrs_impl(X0, rs1, csr)
-}
-
-fn csrrs_impl(rd: Register, rs1: Register, csr: u16) -> u32 {
-    csr_instruction(rd, ITypeRs1::Register(rs1), csr, Funct3::CSRRS)
+    csrrs(X0, rs1, csr)
 }
 
 /// *(RV32 Zicsr, I-format)*<br/>
@@ -506,7 +498,7 @@ fn csrrs_impl(rd: Register, rs1: Register, csr: u16) -> u32 {
 /// [CSRRW](csrrw), [CSRRS](csrrs), [CSRR](csrr), [CSRS](csrs), [CSRC](csrc),
 /// [CSRRWI](csrrwi), [CSRRSI](csrrsi), [CSRSI](csrsi), [CSRRCI](csrrci), [CSRCI](csrci)
 pub fn csrrc(rd: Register, rs1: Register, csr: u16) -> u32 {
-    csrrc_impl(rd, rs1, csr)
+    csr_instruction(rd, ITypeRs1::Register(rs1), csr, Funct3::CSRRC)
 }
 
 /// *(RV32 Zicsr, I-format)*<br/>
@@ -523,11 +515,7 @@ pub fn csrrc(rd: Register, rs1: Register, csr: u16) -> u32 {
 /// [CSRRW](csrrw), [CSRRS](csrrs), [CSRR](csrr), [CSRS](csrs), [CSRRC](csrrc),
 /// [CSRRWI](csrrwi), [CSRRSI](csrrsi), [CSRSI](csrsi), [CSRRCI](csrrci), [CSRCI](csrci)
 pub fn csrc(rs1: Register, csr: u16) -> u32 {
-    csrrc_impl(X0, rs1, csr)
-}
-
-fn csrrc_impl(rd: Register, rs1: Register, csr: u16) -> u32 {
-    csr_instruction(rd, ITypeRs1::Register(rs1), csr, Funct3::CSRRC)
+    csrrc(X0, rs1, csr)
 }
 
 /// *(RV32 Zicsr, I-format)*<br/>
@@ -554,7 +542,7 @@ pub fn csrrwi(rd: Register, uimm: CsrMask, csr: u16) -> u32 {
 /// [CSRRW](csrrw), [CSRRS](csrrs), [CSRR](csrr), [CSRS](csrs), [CSRRC](csrrc),
 /// [CSRC](csrc), [CSRRWI](csrrwi), [CSRSI](csrsi), [CSRRCI](csrrci), [CSRCI](csrci)
 pub fn csrrsi(rd: Register, uimm: CsrMask, csr: u16) -> u32 {
-    csrrsi_impl(rd, uimm, csr)
+    csr_instruction(rd, ITypeRs1::Uimm5(uimm), csr, Funct3::CSRRSI)
 }
 
 /// *(RV32 Zicsr, I-format)*<br/>
@@ -568,11 +556,7 @@ pub fn csrrsi(rd: Register, uimm: CsrMask, csr: u16) -> u32 {
 /// [CSRRW](csrrw), [CSRRS](csrrs), [CSRR](csrr), [CSRS](csrs), [CSRRC](csrrc),
 /// [CSRC](csrc), [CSRRWI](csrrwi), [CSRRSI](csrrsi),  [CSRRCI](csrrci), [CSRCI](csrci)
 pub fn csrsi(uimm: CsrMask, csr: u16) -> u32 {
-    csrrsi_impl(X0, uimm, csr)
-}
-
-fn csrrsi_impl(rd: Register, uimm: CsrMask, csr: u16) -> u32 {
-    csr_instruction(rd, ITypeRs1::Uimm5(uimm), csr, Funct3::CSRRSI)
+    csrrsi(X0, uimm, csr)
 }
 
 /// *(RV32 Zicsr, I-format)*<br/>
@@ -586,7 +570,7 @@ fn csrrsi_impl(rd: Register, uimm: CsrMask, csr: u16) -> u32 {
 /// [CSRRW](csrrw), [CSRRS](csrrs), [CSRR](csrr), [CSRS](csrs), [CSRRC](csrrc),
 /// [CSRC](csrc), [CSRRWI](csrrwi), [CSRRSI](csrrsi), [CSRSI](csrsi), [CSRCI](csrci)
 pub fn csrrci(rd: Register, uimm: CsrMask, csr: u16) -> u32 {
-    csrrci_impl(rd, uimm, csr)
+    csr_instruction(rd, ITypeRs1::Uimm5(uimm), csr, Funct3::CSRRCI)
 }
 
 /// *(RV32 Zicsr, I-format)*<br/>
@@ -600,11 +584,7 @@ pub fn csrrci(rd: Register, uimm: CsrMask, csr: u16) -> u32 {
 /// [CSRRW](csrrw), [CSRRS](csrrs), [CSRR](csrr), [CSRS](csrs), [CSRRC](csrrc),
 /// [CSRC](csrc), [CSRRWI](csrrwi), [CSRRSI](csrrsi), [CSRSI](csrsi), [CSRRCI](csrrci)
 pub fn csrci(uimm: CsrMask, csr: u16) -> u32 {
-    csrrci_impl(X0, uimm, csr)
-}
-
-fn csrrci_impl(rd: Register, mask: CsrMask, csr: u16) -> u32 {
-    csr_instruction(rd, ITypeRs1::Uimm5(mask), csr, Funct3::CSRRCI)
+    csrrci(X0, uimm, csr)
 }
 
 /// *(RV32 Zicsr, I-format specialized)*<br/>
@@ -642,14 +622,14 @@ fn csr_instruction(rd: Register, mask: ITypeRs1, csr: u16, funct3: Funct3) -> u3
 /// Note, [FENCE.TSO](fence_tso) instruction is encoded as a `FENCE` instruction with `fm` = 1000
 /// (refer to the instruction manual for this field), `predecessor` = "rw", and `successor` = "rw".
 pub fn fence(predecessor: FenceMask, successor: FenceMask) -> u32 {
-    fence_impl(0b0000, predecessor, successor)
+    fence_instruction(0b0000, predecessor, successor)
 }
 
 /// *(RV32I, I-format specialized)*<br/>
 /// `FENCE.TSO` instruction is encoded as a [FENCE](fence) instruction with `fm` = 1000
 /// (refer to the instruction manual for this field), `predecessor` = "rw", and `successor` = "rw".
 pub fn fence_tso() -> u32 {
-    fence_impl(0b1000, FENCE_MASK_RW, FENCE_MASK_RW)
+    fence_instruction(0b1000, FENCE_MASK_RW, FENCE_MASK_RW)
 }
 
 /// *(RV32I, I-format specialized)*<br/>
@@ -660,7 +640,7 @@ pub fn fence_tso() -> u32 {
 /// Bit count     |  4    | 1  1  1  1  | 1  1  1  1  |   5   |   3    |  5   |   7      |
 /// Description   |  FM   | predecessor |  successor  |   0   | FENCE  |  0   | MISC_MEM |
 /// ```
-fn fence_impl(fm: u8, predecessor: FenceMask, successor: FenceMask) -> u32 {
+fn fence_instruction(fm: u8, predecessor: FenceMask, successor: FenceMask) -> u32 {
     let mut imm = 0u16;
     let imm_bits = imm.view_bits_mut::<Lsb0>();
     imm_bits[0..4].clone_from_bitslice(predecessor.view_bits());
