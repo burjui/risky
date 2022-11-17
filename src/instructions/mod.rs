@@ -11,12 +11,14 @@ Editors Andrew Waterman and Krste Asanović, RISC-V International, December 2019
 
 mod csr_mask;
 mod fence_mask;
+mod fence_mode;
 mod funct3;
 mod funct7;
 mod opcode;
 
 use self::csr_mask::CsrMask;
 use self::fence_mask::{FenceMask, FENCE_MASK_RW};
+use self::fence_mode::FenceMode;
 use self::funct3::Funct3;
 use self::funct7::Funct7;
 use self::opcode::Opcode;
@@ -622,14 +624,18 @@ fn csr_instruction(rd: Register, mask: ITypeRs1, csr: u16, funct3: Funct3) -> u3
 /// Note, [FENCE.TSO](fence_tso) instruction is encoded as a `FENCE` instruction with `fm` = 1000
 /// (refer to the instruction manual for this field), `predecessor` = "rw", and `successor` = "rw".
 pub fn fence(predecessor: FenceMask, successor: FenceMask) -> u32 {
-    fence_instruction(0b0000, predecessor, successor)
+    fence_instruction(FenceMode::FENCE, predecessor, successor)
 }
 
 /// *(RV32I, I-format specialized)*<br/>
+/// `FENCE.TCO` orders all load operations in its predecessor set before all memory operations in its successor set,
+/// and all store operations in its predecessor set before all store operations in its successor set. This leaves
+/// non-AMO store operations in the `FENCE.TSO`'s predecessor set unordered with non-AMO loads in its successor set.
+/// <br/><br/>
 /// `FENCE.TSO` instruction is encoded as a [FENCE](fence) instruction with `fm` = 1000
 /// (refer to the instruction manual for this field), `predecessor` = "rw", and `successor` = "rw".
 pub fn fence_tso() -> u32 {
-    fence_instruction(0b1000, FENCE_MASK_RW, FENCE_MASK_RW)
+    fence_instruction(FenceMode::FENCE_TSO, FENCE_MASK_RW, FENCE_MASK_RW)
 }
 
 /// *(RV32I, I-format specialized)*<br/>
@@ -640,12 +646,12 @@ pub fn fence_tso() -> u32 {
 /// Bit count     |  4    | 1  1  1  1  | 1  1  1  1  |   5   |   3    |  5   |   7      |
 /// Description   |  FM   | predecessor |  successor  |   0   | FENCE  |  0   | MISC_MEM |
 /// ```
-fn fence_instruction(fm: u8, predecessor: FenceMask, successor: FenceMask) -> u32 {
+fn fence_instruction(fm: FenceMode, predecessor: FenceMask, successor: FenceMask) -> u32 {
     let mut imm = 0u16;
     let imm_bits = imm.view_bits_mut::<Lsb0>();
     imm_bits[0..4].clone_from_bitslice(predecessor.view_bits());
     imm_bits[4..8].clone_from_bitslice(successor.view_bits());
-    imm_bits[8..12].store(fm);
+    imm_bits[8..12].clone_from_bitslice(fm.view_bits());
     i_instruction(
         Opcode::MISC_MEM,
         X0,
