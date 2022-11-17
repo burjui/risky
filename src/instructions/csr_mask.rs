@@ -17,7 +17,7 @@ impl Display for CsrMaskError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
             f,
-            "invalid uimm5 value, must be 5 bits wide: {} (0b{:08b})",
+            "invalid csr mask value, must be 5 bits wide: {} (0b{:08b})",
             self.0, self.0
         )
     }
