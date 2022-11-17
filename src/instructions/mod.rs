@@ -847,12 +847,12 @@ fn r_instruction(
 ) -> u32 {
     let mut instruction = 0;
     let bits = instruction.view_bits_mut::<Lsb0>();
-    bits[0..=6].clone_from_bitslice(opcode.view_bits());
-    bits[7..=11].clone_from_bitslice(rd.view_bits());
-    bits[12..=14].clone_from_bitslice(funct3.view_bits());
-    bits[15..=19].clone_from_bitslice(rs1.view_bits());
-    bits[20..=24].clone_from_bitslice(rs2.view_bits());
-    bits[25..=31].clone_from_bitslice(funct7.view_bits());
+    bits[0..7].clone_from_bitslice(opcode.view_bits());
+    bits[7..12].clone_from_bitslice(rd.view_bits());
+    bits[12..15].clone_from_bitslice(funct3.view_bits());
+    bits[15..20].clone_from_bitslice(rs1.view_bits());
+    bits[20..25].clone_from_bitslice(rs2.view_bits());
+    bits[25..32].clone_from_bitslice(funct7.view_bits());
     instruction
 }
 
@@ -881,11 +881,11 @@ fn i_instruction(
 ) -> u32 {
     let mut instruction = 0;
     let bits = instruction.view_bits_mut::<Lsb0>();
-    bits[0..=6].clone_from_bitslice(opcode.view_bits());
-    bits[7..=11].clone_from_bitslice(rd.view_bits());
-    bits[12..=14].clone_from_bitslice(funct3.view_bits());
-    bits[15..=19].clone_from_bitslice(rs1.view_bits());
-    bits[20..=31].store(imm);
+    bits[0..7].clone_from_bitslice(opcode.view_bits());
+    bits[7..12].clone_from_bitslice(rd.view_bits());
+    bits[12..15].clone_from_bitslice(funct3.view_bits());
+    bits[15..20].clone_from_bitslice(rs1.view_bits());
+    bits[20..32].store(imm);
     instruction
 }
 
@@ -894,12 +894,12 @@ fn s_instruction(opcode: Opcode, imm: i16, funct3: Funct3, rs1: Register, rs2: R
     let bits = instruction.view_bits_mut::<Lsb0>();
     let imm = imm as u32;
     let imm_bits = imm.view_bits::<Lsb0>();
-    bits[0..=6].clone_from_bitslice(opcode.view_bits());
-    bits[7..=11].copy_from_bitslice(&imm_bits[0..=4]);
-    bits[12..=14].clone_from_bitslice(funct3.view_bits());
-    bits[15..=19].clone_from_bitslice(rs1.view_bits());
-    bits[20..=24].clone_from_bitslice(rs2.view_bits());
-    bits[25..=31].copy_from_bitslice(&imm_bits[5..=11]);
+    bits[0..7].clone_from_bitslice(opcode.view_bits());
+    bits[7..12].copy_from_bitslice(&imm_bits[0..5]);
+    bits[12..15].clone_from_bitslice(funct3.view_bits());
+    bits[15..20].clone_from_bitslice(rs1.view_bits());
+    bits[20..25].clone_from_bitslice(rs2.view_bits());
+    bits[25..32].copy_from_bitslice(&imm_bits[5..12]);
     instruction
 }
 
@@ -908,13 +908,13 @@ fn b_instruction(opcode: Opcode, imm: i16, funct3: Funct3, rs1: Register, rs2: R
     let bits = instruction.view_bits_mut::<Lsb0>();
     let imm = imm as u16;
     let imm_bits = imm.view_bits::<Lsb0>();
-    bits[0..=6].clone_from_bitslice(opcode.view_bits());
+    bits[0..7].clone_from_bitslice(opcode.view_bits());
     bits.set(7, imm_bits[11]);
-    bits[8..=11].clone_from_bitslice(&imm_bits[1..=4]);
-    bits[12..=14].clone_from_bitslice(funct3.view_bits());
-    bits[15..=19].clone_from_bitslice(rs1.view_bits());
-    bits[20..=24].clone_from_bitslice(rs2.view_bits());
-    bits[25..=30].clone_from_bitslice(&imm_bits[5..=10]);
+    bits[8..12].clone_from_bitslice(&imm_bits[1..5]);
+    bits[12..15].clone_from_bitslice(funct3.view_bits());
+    bits[15..20].clone_from_bitslice(rs1.view_bits());
+    bits[20..25].clone_from_bitslice(rs2.view_bits());
+    bits[25..31].clone_from_bitslice(&imm_bits[5..11]);
     bits.set(31, imm_bits[12]);
     instruction
 }
@@ -922,9 +922,9 @@ fn b_instruction(opcode: Opcode, imm: i16, funct3: Funct3, rs1: Register, rs2: R
 fn u_instruction(opcode: Opcode, rd: Register, imm: i32) -> u32 {
     let mut instruction = 0;
     let bits = instruction.view_bits_mut::<Lsb0>();
-    bits[0..=6].clone_from_bitslice(opcode.view_bits());
-    bits[7..=11].clone_from_bitslice(rd.view_bits());
-    bits[12..=31].store(imm);
+    bits[0..7].clone_from_bitslice(opcode.view_bits());
+    bits[7..12].clone_from_bitslice(rd.view_bits());
+    bits[12..32].store(imm);
     instruction
 }
 
@@ -933,11 +933,11 @@ fn j_instruction(opcode: Opcode, rd: Register, imm: i32) -> u32 {
     let bits = instruction.view_bits_mut::<Lsb0>();
     let imm = imm as u32;
     let imm_bits = imm.view_bits::<Lsb0>();
-    bits[0..=6].clone_from_bitslice(opcode.view_bits());
-    bits[7..=11].clone_from_bitslice(rd.view_bits());
-    bits[12..=19].copy_from_bitslice(&imm_bits[12..=19]);
+    bits[0..7].clone_from_bitslice(opcode.view_bits());
+    bits[7..12].clone_from_bitslice(rd.view_bits());
+    bits[12..20].copy_from_bitslice(&imm_bits[12..20]);
     bits.set(20, imm_bits[11]);
-    bits[21..=30].copy_from_bitslice(&imm_bits[1..=10]);
+    bits[21..31].copy_from_bitslice(&imm_bits[1..11]);
     bits.set(31, imm_bits[20]);
     instruction
 }
