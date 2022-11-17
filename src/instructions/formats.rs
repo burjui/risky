@@ -1,6 +1,6 @@
 use super::csr_mask::CsrMask;
 use super::{funct3::Funct3, funct7::Funct7, opcode::Opcode};
-use crate::Register;
+use crate::registers::Register;
 use bitvec::field::BitField;
 use bitvec::order::Lsb0;
 use bitvec::slice::BitSlice;

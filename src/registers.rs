@@ -19,7 +19,7 @@ pub const NUMBER_OF_REGISTERS: usize = 32;
 pub struct Register(u8);
 
 impl Register {
-    /// Returns a register corresponding to `index`, if `index` < [REGISTER_COUNT]
+    /// Returns a register corresponding to `index`, if `index` < [NUMBER_OF_REGISTERS]
     pub const fn new(index: usize) -> Result<Self, &'static str> {
         if index < NUMBER_OF_REGISTERS {
             Ok(Self(index as u8))
@@ -68,7 +68,7 @@ impl Display for Register {
     }
 }
 
-/// Returns a register corresponding to `index`, if `r` < [REGISTER_COUNT].
+/// Returns a register corresponding to `index`, if `r` < [NUMBER_OF_REGISTERS].
 #[track_caller]
 pub const fn x(index: usize) -> Result<Register, &'static str> {
     Register::new(index)
