@@ -31,7 +31,7 @@ impl<'a> TryFrom<&'a str> for FenceMask {
                 mask_bits.set(index, true)
             }
         }
-        Ok(FenceMask(mask))
+        Ok(Self(mask))
     }
 }
 

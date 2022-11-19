@@ -30,7 +30,7 @@ impl TryFrom<u8> for CsrMask {
 
     fn try_from(value: u8) -> Result<Self, Self::Error> {
         if value <= 0b11111 {
-            Ok(CsrMask(value))
+            Ok(Self(value))
         } else {
             Err(CsrMaskError(value))
         }
