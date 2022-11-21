@@ -1,6 +1,6 @@
 //! RV32I base instruction set
 
-use super::fence_mask::{FenceMask, FENCE_MASK_RW};
+use super::fence_mask::FenceMask;
 use super::fence_mode::FenceMode;
 use super::formats::{
     b_instruction, i_instruction, j_instruction, r_instruction, s_instruction, u_instruction,
@@ -430,7 +430,7 @@ pub fn fence(predecessor: FenceMask, successor: FenceMask) -> u32 {
 /// `FENCE.TSO` instruction is encoded as a [FENCE](fence) instruction with `fm` = 1000
 /// (refer to the instruction manual for this field), `predecessor` = "rw", and `successor` = "rw".
 pub fn fence_tso() -> u32 {
-    fence_instruction(FenceMode::FENCE_TSO, FENCE_MASK_RW, FENCE_MASK_RW)
+    fence_instruction(FenceMode::FENCE_TSO, FenceMask::RW, FenceMask::RW)
 }
 
 /// *(RV32I, I-format specialized)*<br/>

@@ -6,9 +6,10 @@ use std::{error::Error, fmt::Display};
 pub struct FenceMask(u8);
 
 // TODO: Implement as e.g. parse_fence_mask("rw") when const fns become able to do this
-pub(crate) const FENCE_MASK_RW: FenceMask = FenceMask(0b0011);
 
 impl FenceMask {
+    pub(crate) const RW: FenceMask = FenceMask(0b0011);
+
     pub(crate) fn view_bits(&self) -> &BitSlice<u8, Lsb0> {
         &self.0.view_bits()[0..4]
     }
