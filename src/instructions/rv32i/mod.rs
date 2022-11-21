@@ -1,17 +1,21 @@
 //! RV32I base instruction set
 
-use super::fence_mask::FenceMask;
-use super::fence_mode::FenceMode;
+mod fence_mask;
+mod fence_mode;
+
+use super::formats::funct3::Funct3;
+use super::formats::funct7::Funct7;
+pub use super::formats::j_imm::*;
+use super::formats::opcode::Opcode;
 use super::formats::{
     b_instruction, i_instruction, j_instruction, r_instruction, s_instruction, u_instruction,
     ITypeRs1,
 };
-use super::funct3::Funct3;
-use super::funct7::Funct7;
-use super::opcode::Opcode;
 use crate::registers::*;
 use bitvec::order::Lsb0;
 use bitvec::view::BitView;
+pub use fence_mask::*;
+use fence_mode::FenceMode;
 
 /// *(RV32I, U-format)*<br/>
 /// `LUI` (load upper immediate) instruction is used to build 32-bit constants. `LUI` places `imm` in the top 20 bits
@@ -29,12 +33,12 @@ pub fn auipc(rd: Register, imm: i32) -> u32 {
 }
 
 /// *(RV32I, J-format)*<br/>
-/// `JAL` (jump and link) instruction uses the J-type format, where `imm` encodes a
-/// signed offset in multiples of 2 bytes. The offset is sign-extended and added to the address of the
-/// jump instruction to form the jump target address. Jumps can therefore target a ±1&nbsp;MiB range.
-/// `JAL` stores the address of the instruction that follows the `JAL` (pc+4) into the register `rd`. The standard
-/// software calling convention uses [X1] as the return address register and x5 as an alternate link register.
-pub fn jal(rd: Register, imm: i32) -> u32 {
+/// `JAL` (jump and link) instruction uses the J-type format, where `imm` encodes a 20-bit signed offset, with the
+/// lowest bit ignored. The offset is sign-extended and added to the address of the jump instruction to form the jump
+/// target address. Jumps can therefore target a ±1&nbsp;MiB range. `JAL` stores the address of the instruction that
+/// follows the `JAL` (pc+4) into the register `rd`. The standard software calling convention uses [X1] as the return
+/// address register and x5 as an alternate link register.
+pub fn jal(rd: Register, imm: JImm) -> u32 {
     j_instruction(Opcode::JAL, rd, imm)
 }
 

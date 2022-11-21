@@ -1,12 +1,12 @@
 //! Zicsr standard extension
 
-use super::{
-    csr_mask::CsrMask,
-    formats::{i_instruction, ITypeRs1},
-    funct3::Funct3,
-    opcode::Opcode,
-};
+mod csr_mask;
+
+use super::formats::funct3::Funct3;
+use super::formats::opcode::Opcode;
+use super::formats::{i_instruction, ITypeRs1};
 use crate::registers::{Register, X0};
+pub use csr_mask::CsrMask;
 
 /// *(RV32 Zicsr, I-format)*<br/>
 /// `CSRRW` (atomic read/write CSR) instruction atomically swaps values in the CSRs and general-purpose registers.

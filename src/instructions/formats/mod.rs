@@ -1,10 +1,18 @@
-use super::csr_mask::CsrMask;
-use super::{funct3::Funct3, funct7::Funct7, opcode::Opcode};
+pub(crate) mod funct3;
+pub(crate) mod funct7;
+pub(crate) mod j_imm;
+pub(crate) mod opcode;
+
+use crate::instructions::zicsr_ext::CsrMask;
 use crate::registers::Register;
 use bitvec::field::BitField;
 use bitvec::order::Lsb0;
 use bitvec::slice::BitSlice;
 use bitvec::view::BitView;
+use funct3::Funct3;
+use funct7::Funct7;
+use j_imm::JImm;
+use opcode::Opcode;
 
 pub(crate) fn r_instruction(
     opcode: Opcode,
@@ -43,10 +51,8 @@ pub(crate) fn i_instruction(
     opcode: Opcode,
     rd: Register,
     funct3: Funct3,
-    // `rs1` has to be u8, because there are specialized variants of I-format
-    // that use rs1 as immediate
     rs1: ITypeRs1,
-    imm: i16, // TODO make it u16 or an enum for specialized variants
+    imm: i16,
 ) -> u32 {
     let mut instruction = 0;
     let bits = instruction.view_bits_mut::<Lsb0>();
@@ -109,11 +115,10 @@ pub(crate) fn u_instruction(opcode: Opcode, rd: Register, imm: i32) -> u32 {
     instruction
 }
 
-pub(crate) fn j_instruction(opcode: Opcode, rd: Register, imm: i32) -> u32 {
+pub(crate) fn j_instruction(opcode: Opcode, rd: Register, imm: JImm) -> u32 {
     let mut instruction = 0;
     let bits = instruction.view_bits_mut::<Lsb0>();
-    let imm = imm as u32;
-    let imm_bits = imm.view_bits::<Lsb0>();
+    let imm_bits = imm.view_bits();
     bits[0..7].clone_from_bitslice(opcode.view_bits());
     bits[7..12].clone_from_bitslice(rd.view_bits());
     bits[12..20].copy_from_bitslice(&imm_bits[12..20]);

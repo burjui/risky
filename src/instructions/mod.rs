@@ -11,12 +11,10 @@ Editors Andrew Waterman and Krste Asanović, RISC-V International, December 2019
 
 pub mod m_ext;
 pub mod rv32i;
-pub mod ziscr_ext;
+pub mod zicsr_ext;
 
-mod csr_mask;
-mod fence_mask;
-mod fence_mode;
+pub use m_ext::*;
+pub use rv32i::*;
+pub use zicsr_ext::*;
+
 mod formats;
-mod funct3;
-mod funct7;
-mod opcode;

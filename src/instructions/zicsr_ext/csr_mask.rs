@@ -2,6 +2,7 @@ use bitvec::order::Lsb0;
 use bitvec::{slice::BitSlice, view::BitView};
 use std::{error::Error, fmt::Display};
 
+/// Represents a CSR mask for instructions in the [Zicsr standard extension](super)
 pub struct CsrMask(u8);
 
 impl CsrMask {

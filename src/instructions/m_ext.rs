@@ -2,7 +2,7 @@
 
 use crate::registers::Register;
 
-use super::{formats::r_instruction, funct3::Funct3, funct7::Funct7, opcode::Opcode};
+use super::formats::{funct3::Funct3, funct7::Funct7, opcode::Opcode, r_instruction};
 
 /// *(RV32M, R-format)*<br/>
 /// `MUL` instruction performs an XLEN-bit×XLEN-bit multiplication of `rs1` by `rs2` and places the lower XLEN bits

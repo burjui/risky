@@ -2,6 +2,7 @@ use bitvec::order::Lsb0;
 use bitvec::{slice::BitSlice, view::BitView};
 use std::{error::Error, fmt::Display};
 
+/// Represents a mask for the [FENCE](super::fence) instruction
 #[derive(Debug, PartialEq, Eq)]
 pub struct FenceMask(u8);
 
@@ -16,18 +17,18 @@ impl FenceMask {
 }
 
 impl<'a> TryFrom<&'a str> for FenceMask {
-    type Error = FenceMaskFlagError<'a>;
+    type Error = FenceMaskParseError<'a>;
 
     fn try_from(mask_spec: &'a str) -> Result<Self, Self::Error> {
         let mut mask = 0;
         let mask_bits = &mut mask.view_bits_mut::<Lsb0>()[0..4];
         for flag in mask_spec.chars() {
             let Some(index) = "wroi".find(flag) else {
-                return Err(FenceMaskFlagError::invalid(mask_spec, flag));
+                return Err(FenceMaskParseError::invalid(mask_spec, flag));
             };
 
             if mask_bits[index] {
-                return Err(FenceMaskFlagError::duplicate(mask_spec, flag));
+                return Err(FenceMaskParseError::duplicate(mask_spec, flag));
             } else {
                 mask_bits.set(index, true)
             }
@@ -36,14 +37,15 @@ impl<'a> TryFrom<&'a str> for FenceMask {
     }
 }
 
+/// [Fence mask](FenceMask) parse error
 #[derive(Debug, PartialEq)]
-pub struct FenceMaskFlagError<'a> {
+pub struct FenceMaskParseError<'a> {
     mask: &'a str,
     flag: char,
     kind: FenceMaskFlagErrorKind,
 }
 
-impl<'a> FenceMaskFlagError<'a> {
+impl<'a> FenceMaskParseError<'a> {
     fn invalid(mask: &'a str, flag: char) -> Self {
         Self::new(mask, flag, FenceMaskFlagErrorKind::Invalid)
     }
@@ -57,7 +59,7 @@ impl<'a> FenceMaskFlagError<'a> {
     }
 }
 
-impl Display for FenceMaskFlagError<'_> {
+impl Display for FenceMaskParseError<'_> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
             f,
@@ -67,7 +69,7 @@ impl Display for FenceMaskFlagError<'_> {
     }
 }
 
-impl Error for FenceMaskFlagError<'_> {}
+impl Error for FenceMaskParseError<'_> {}
 
 #[derive(Debug, PartialEq)]
 enum FenceMaskFlagErrorKind {
@@ -95,23 +97,23 @@ fn fence_mask() {
 
     assert_eq!(
         FenceMask::try_from("rwr"),
-        Err(FenceMaskFlagError::duplicate("rwr", 'r'))
+        Err(FenceMaskParseError::duplicate("rwr", 'r'))
     );
 
     assert_eq!(
         FenceMask::try_from("iorwx"),
-        Err(FenceMaskFlagError::invalid("iorwx", 'x'))
+        Err(FenceMaskParseError::invalid("iorwx", 'x'))
     );
 }
 
 #[test]
 fn fence_mask_flag_error() {
     assert_eq!(
-        FenceMaskFlagError::invalid("iorwx", 'x').to_string(),
+        FenceMaskParseError::invalid("iorwx", 'x').to_string(),
         r#"malformed fence mask "iorwx": invalid flag 'x'"#
     );
     assert_eq!(
-        FenceMaskFlagError::duplicate("rwr", 'r').to_string(),
+        FenceMaskParseError::duplicate("rwr", 'r').to_string(),
         r#"malformed fence mask "rwr": duplicate flag 'r'"#
     );
 }
