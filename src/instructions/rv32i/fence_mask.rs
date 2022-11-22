@@ -100,7 +100,7 @@ impl Display for FenceMaskFlagErrorKind {
 }
 
 /// [FenceMask] conversion error
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Eq)]
 pub struct FenceMaskConvError(u8);
 
 impl Display for FenceMaskConvError {

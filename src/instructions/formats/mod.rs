@@ -5,8 +5,8 @@ pub(crate) mod j_imm;
 pub(crate) mod opcode;
 pub(crate) mod uimm5;
 
+use super::Uimm5;
 use crate::registers::Register;
-use bitvec::field::BitField;
 use bitvec::order::Lsb0;
 use bitvec::slice::BitSlice;
 use bitvec::view::BitView;
@@ -15,8 +15,6 @@ use funct7::Funct7;
 use i_imm::IImm;
 use j_imm::JImm;
 use opcode::Opcode;
-
-use super::Uimm5;
 
 pub(crate) fn r_instruction(
     opcode: Opcode,
@@ -99,9 +97,11 @@ pub(crate) fn b_instruction(
 pub(crate) fn u_instruction(opcode: Opcode, rd: Register, imm: i32) -> u32 {
     let mut instruction = 0;
     let bits = instruction.view_bits_mut::<Lsb0>();
+    let imm = imm as u32;
+    let imm_bits = imm.view_bits::<Lsb0>();
     bits[0..7].clone_from_bitslice(opcode.view_bits());
     bits[7..12].clone_from_bitslice(rd.view_bits());
-    bits[12..32].store(imm);
+    bits[12..32].clone_from_bitslice(&imm_bits[12..32]);
     instruction
 }
 
