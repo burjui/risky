@@ -3,11 +3,11 @@ use std::{error::Error, fmt::Display, ops::Range};
 
 use bitvec::{order::Lsb0, slice::BitSlice, view::BitView};
 
-/// 12-bit signed immediate value for I-format instructions
+/// 12-bit signed immediate value
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub struct IImm(u16);
+pub struct Imm12(u16);
 
-impl IImm {
+impl Imm12 {
     const BIT_RANGE: Range<usize> = 0..12;
 
     /// Zero
@@ -26,7 +26,7 @@ impl IImm {
     }
 }
 
-impl TryFrom<i16> for IImm {
+impl TryFrom<i16> for Imm12 {
     type Error = IImmConvError;
 
     fn try_from(value: i16) -> Result<Self, Self::Error> {
@@ -38,7 +38,7 @@ impl TryFrom<i16> for IImm {
     }
 }
 
-/// [IImm] conversion error
+/// [Imm12] conversion error
 #[derive(Debug)]
 pub struct IImmConvError(i16);
 

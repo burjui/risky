@@ -1,6 +1,6 @@
 pub(crate) mod funct3;
 pub(crate) mod funct7;
-pub(crate) mod i_imm;
+pub(crate) mod imm12;
 pub(crate) mod j_imm;
 pub(crate) mod opcode;
 pub(crate) mod uimm5;
@@ -12,7 +12,7 @@ use bitvec::slice::BitSlice;
 use bitvec::view::BitView;
 use funct3::Funct3;
 use funct7::Funct7;
-use i_imm::IImm;
+use imm12::Imm12;
 use j_imm::JImm;
 use opcode::Opcode;
 
@@ -40,7 +40,7 @@ pub(crate) fn i_instruction(
     rd: Register,
     funct3: Funct3,
     rs1: RegOrUimm5,
-    imm: IImm,
+    imm: Imm12,
 ) -> u32 {
     let mut instruction = 0;
     let bits = instruction.view_bits_mut::<Lsb0>();
@@ -54,21 +54,20 @@ pub(crate) fn i_instruction(
 
 pub(crate) fn s_instruction(
     opcode: Opcode,
-    imm: i16,
+    imm: Imm12,
     funct3: Funct3,
     rs1: Register,
     rs2: Register,
 ) -> u32 {
     let mut instruction = 0;
     let bits = instruction.view_bits_mut::<Lsb0>();
-    let imm = imm as u32;
-    let imm_bits = imm.view_bits::<Lsb0>();
+    let imm_bits = imm.view_bits();
     bits[0..7].clone_from_bitslice(opcode.view_bits());
-    bits[7..12].copy_from_bitslice(&imm_bits[0..5]);
+    bits[7..12].clone_from_bitslice(&imm_bits[0..5]);
     bits[12..15].clone_from_bitslice(funct3.view_bits());
     bits[15..20].clone_from_bitslice(rs1.view_bits());
     bits[20..25].clone_from_bitslice(rs2.view_bits());
-    bits[25..32].copy_from_bitslice(&imm_bits[5..12]);
+    bits[25..32].clone_from_bitslice(&imm_bits[5..12]);
     instruction
 }
 
