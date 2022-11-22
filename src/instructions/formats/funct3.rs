@@ -2,7 +2,7 @@ use bitvec::order::Lsb0;
 use bitvec::slice::BitSlice;
 use bitvec::view::BitView;
 
-pub(crate) struct Funct3(u8);
+pub(crate) struct Funct3(u32);
 
 impl Funct3 {
     // RV32I
@@ -62,7 +62,7 @@ impl Funct3 {
     pub(crate) const REM: Self = Self(0b110);
     pub(crate) const REMU: Self = Self(0b111);
 
-    pub(crate) fn view_bits(&self) -> &BitSlice<u8, Lsb0> {
+    pub(crate) fn view_bits(&self) -> &BitSlice<u32, Lsb0> {
         &self.0.view_bits()[0..3]
     }
 }

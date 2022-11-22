@@ -15,20 +15,19 @@ pub const NUMBER_OF_REGISTERS: usize = 32;
 
 /// Represents a `RISC-V` register
 #[derive(Debug, PartialEq, Eq, Hash, Clone, Copy)]
-#[repr(transparent)]
-pub struct Register(u8);
+pub struct Register(u32);
 
 impl Register {
     /// Returns a register corresponding to `index`, if `index` < [NUMBER_OF_REGISTERS]
     pub const fn new(index: usize) -> Result<Self, &'static str> {
         if index < NUMBER_OF_REGISTERS {
-            Ok(Self(index as u8))
+            Ok(Self(index as u32))
         } else {
             Err("register index is greater than 31")
         }
     }
 
-    pub(crate) fn view_bits(&self) -> &BitSlice<u8, Lsb0> {
+    pub(crate) fn view_bits(&self) -> &BitSlice<u32, Lsb0> {
         &self.0.view_bits()[0..5]
     }
 }
@@ -51,13 +50,13 @@ impl TryFrom<usize> for Register {
 
 impl From<Register> for u8 {
     fn from(r: Register) -> Self {
-        r.0
+        r.0 as u8
     }
 }
 
 impl From<Register> for usize {
-    fn from(r: Register) -> Self {
-        usize::from(r.0)
+    fn from(value: Register) -> Self {
+        value.0 as usize // valid since NUMBER_OF_REGISTERS is small
     }
 }
 

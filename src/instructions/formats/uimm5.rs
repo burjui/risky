@@ -4,10 +4,10 @@ use std::fmt::Display;
 use bitvec::{order::Lsb0, view::BitView};
 
 /// 5-bit unsigned immediate value
-pub struct Uimm5(u8);
+pub struct Uimm5(u32);
 
 impl Uimm5 {
-    pub(crate) fn view_bits(&self) -> &bitvec::slice::BitSlice<u8, Lsb0> {
+    pub(crate) fn view_bits(&self) -> &bitvec::slice::BitSlice<u32, Lsb0> {
         &self.0.view_bits()[0..5]
     }
 }
@@ -17,7 +17,7 @@ impl TryFrom<u8> for Uimm5 {
 
     fn try_from(value: u8) -> Result<Self, Self::Error> {
         if value <= 0b11111 {
-            Ok(Self(value))
+            Ok(Self(value as u32))
         } else {
             Err(Uimm5ConvError(value))
         }

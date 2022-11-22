@@ -1,7 +1,7 @@
 use bitvec::order::Lsb0;
 use bitvec::{slice::BitSlice, view::BitView};
 
-pub(crate) struct Opcode(u8);
+pub(crate) struct Opcode(u32);
 
 impl Opcode {
     pub(crate) const LUI: Self = Self(0b0110111);
@@ -20,7 +20,7 @@ impl Opcode {
 }
 
 impl Opcode {
-    pub(crate) fn view_bits(&self) -> &BitSlice<u8, Lsb0> {
+    pub(crate) fn view_bits(&self) -> &BitSlice<u32, Lsb0> {
         &self.0.view_bits()[0..7]
     }
 }
