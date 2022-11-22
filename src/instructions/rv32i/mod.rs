@@ -5,15 +5,15 @@ mod fence_mode;
 
 use super::formats::funct3::Funct3;
 use super::formats::funct7::Funct7;
+pub use super::formats::i_imm::*;
 pub use super::formats::j_imm::*;
 use super::formats::opcode::Opcode;
+pub use super::formats::uimm5::*;
 use super::formats::{
     b_instruction, i_instruction, j_instruction, r_instruction, s_instruction, u_instruction,
-    ITypeRs1,
+    RegOrUimm5,
 };
 use crate::registers::*;
-use bitvec::order::Lsb0;
-use bitvec::view::BitView;
 pub use fence_mask::*;
 use fence_mode::FenceMode;
 
@@ -48,8 +48,14 @@ pub fn jal(rd: Register, imm: JImm) -> u32 {
 /// the least-significant bit of the result to zero. The address of the instruction following the jump
 /// (pc+4) is written to the register `rd`. Register [X0] can be used as the destination if the result is not
 /// required.
-pub fn jalr(rd: Register, rs1: Register, imm: i16) -> u32 {
-    i_instruction(Opcode::JALR, rd, Funct3::JALR, ITypeRs1::Register(rs1), imm)
+pub fn jalr(rd: Register, rs1: Register, imm: IImm) -> u32 {
+    i_instruction(
+        Opcode::JALR,
+        rd,
+        Funct3::JALR,
+        RegOrUimm5::Register(rs1),
+        imm,
+    )
 }
 
 /// *(RV32I, B-format)*<br/>
@@ -121,36 +127,48 @@ pub fn bgeu(imm: i16, rs1: Register, rs2: Register) -> u32 {
 /// *(RV32I, I-format)*<br/>
 /// `LB` instruction copies a 8-bit value from memory to the register `rd`, sign-extending it to
 /// 32&nbsp;bits. The effective address is obtained by adding register `rs1` to the sign-extended 12-bit offset `imm`.
-pub fn lb(rd: Register, rs1: Register, imm: i16) -> u32 {
-    i_instruction(Opcode::LOAD, rd, Funct3::LB, ITypeRs1::Register(rs1), imm)
+pub fn lb(rd: Register, rs1: Register, imm: IImm) -> u32 {
+    i_instruction(Opcode::LOAD, rd, Funct3::LB, RegOrUimm5::Register(rs1), imm)
 }
 
 /// *(RV32I, I-format)*<br/>
 /// `LBU` instruction copies a 8-bit from memory to the register `rd`, zero-extending it to
 /// 32&nbsp;bits. The effective address is obtained by adding register `rs1` to the sign-extended 12-bit offset `imm`.
-pub fn lbu(rd: Register, rs1: Register, imm: i16) -> u32 {
-    i_instruction(Opcode::LOAD, rd, Funct3::LBU, ITypeRs1::Register(rs1), imm)
+pub fn lbu(rd: Register, rs1: Register, imm: IImm) -> u32 {
+    i_instruction(
+        Opcode::LOAD,
+        rd,
+        Funct3::LBU,
+        RegOrUimm5::Register(rs1),
+        imm,
+    )
 }
 
 /// *(RV32I, I-format)*<br/>
 /// `LH` instruction copies a 16-bit value from memory to the register `rd`, sign-extending it to
 /// 32&nbsp;bits. The effective address is obtained by adding register `rs1` to the sign-extended 12-bit offset `imm`.
-pub fn lh(rd: Register, rs1: Register, imm: i16) -> u32 {
-    i_instruction(Opcode::LOAD, rd, Funct3::LH, ITypeRs1::Register(rs1), imm)
+pub fn lh(rd: Register, rs1: Register, imm: IImm) -> u32 {
+    i_instruction(Opcode::LOAD, rd, Funct3::LH, RegOrUimm5::Register(rs1), imm)
 }
 
 /// *(RV32I, I-format)*<br/>
 /// `LHU` instruction copies a 16-bit value from memory to the register `rd`, zero-extending it to
 /// 32&nbsp;bits. The effective address is obtained by adding register `rs1` to the sign-extended 12-bit offset `imm`.
-pub fn lhu(rd: Register, rs1: Register, imm: i16) -> u32 {
-    i_instruction(Opcode::LOAD, rd, Funct3::LHU, ITypeRs1::Register(rs1), imm)
+pub fn lhu(rd: Register, rs1: Register, imm: IImm) -> u32 {
+    i_instruction(
+        Opcode::LOAD,
+        rd,
+        Funct3::LHU,
+        RegOrUimm5::Register(rs1),
+        imm,
+    )
 }
 
 /// *(RV32I, I-format)*<br/>
 /// `LW` instruction copies a 32-bit value from memory to the register `rd`.
 /// The effective address is obtained by adding register `rs1` to the sign-extended 12-bit offset `imm`.
-pub fn lw(rd: Register, rs1: Register, imm: i16) -> u32 {
-    i_instruction(Opcode::LOAD, rd, Funct3::LW, ITypeRs1::Register(rs1), imm)
+pub fn lw(rd: Register, rs1: Register, imm: IImm) -> u32 {
+    i_instruction(Opcode::LOAD, rd, Funct3::LW, RegOrUimm5::Register(rs1), imm)
 }
 
 /// *(RV32I, S-format)*<br/>
@@ -179,12 +197,12 @@ pub fn sw(rs1: Register, imm: i16, rs2: Register) -> u32 {
 /// Arithmetic overflow is ignored and the result is simply the low XLEN bits of the result.
 /// Note, `ADDI rd, rs1, 0` is equivalent to pseudoinstruction [MV](mv)&nbsp;`rd, rs1`,
 /// and `ADDI x0, x0, 0` is equivalent to pseudoinstruction [NOP](nop).
-pub fn addi(rd: Register, rs1: Register, imm: i16) -> u32 {
+pub fn addi(rd: Register, rs1: Register, imm: IImm) -> u32 {
     i_instruction(
         Opcode::OP_IMM,
         rd,
         Funct3::ADDI,
-        ITypeRs1::Register(rs1),
+        RegOrUimm5::Register(rs1),
         imm,
     )
 }
@@ -193,7 +211,7 @@ pub fn addi(rd: Register, rs1: Register, imm: i16) -> u32 {
 /// `MV` pseudoinstruction copies the register `rs1` to the register `rd`.<br/><br/>
 /// `MV rd, rs1` is encoded as [ADDI](addi)&nbsp;`rd, rs1, 0`.
 pub fn mv(rd: Register, rs1: Register) -> u32 {
-    addi(rd, rs1, 0)
+    addi(rd, rs1, IImm::ZERO)
 }
 
 /// *(RV32I, I-format)*<br/>
@@ -201,18 +219,18 @@ pub fn mv(rd: Register, rs1: Register) -> u32 {
 /// pc and incrementing any applicable performance counters.<br/><br/>
 /// `NOP` is encoded as [ADDI](addi)&nbsp;`x0, x0, 0`.
 pub fn nop() -> u32 {
-    addi(X0, X0, 0)
+    addi(X0, X0, IImm::ZERO)
 }
 
 /// *(RV32I, I-format)*<br/>
 /// `SLTI` (set less than immediate) places the value 1 in the register `rd` if register `rs1` is less than the
 /// sign-extended immediate when both are treated as signed numbers, else 0 is written to `rd`.
-pub fn slti(rd: Register, rs1: Register, imm: i16) -> u32 {
+pub fn slti(rd: Register, rs1: Register, imm: IImm) -> u32 {
     i_instruction(
         Opcode::OP_IMM,
         rd,
         Funct3::SLTI,
-        ITypeRs1::Register(rs1),
+        RegOrUimm5::Register(rs1),
         imm,
     )
 }
@@ -222,12 +240,12 @@ pub fn slti(rd: Register, rs1: Register, imm: i16) -> u32 {
 /// the sign-extended immediate when both are treated as unsigned numbers, else 0 is written to `rd`. Note,
 /// `SLTIU rd, rs1, 1` sets `rd` to 1 if `rs1` = 0, otherwise sets `rd` to 0, and is equivalent to pseudoinstruction
 /// [SEQZ](seqz)&nbsp;`rd, rs`).
-pub fn sltiu(rd: Register, rs1: Register, imm: i16) -> u32 {
+pub fn sltiu(rd: Register, rs1: Register, imm: IImm) -> u32 {
     i_instruction(
         Opcode::OP_IMM,
         rd,
         Funct3::SLTIU,
-        ITypeRs1::Register(rs1),
+        RegOrUimm5::Register(rs1),
         imm,
     )
 }
@@ -237,19 +255,19 @@ pub fn sltiu(rd: Register, rs1: Register, imm: i16) -> u32 {
 /// else 0 is written to `rd`.<br/><br/>
 /// `SEQZ rd, rs1` is encoded as [SLTIU](sltiu)&nbsp;`rd, rs1, 1`.
 pub fn seqz(rd: Register, rs1: Register) -> u32 {
-    sltiu(rd, rs1, 1)
+    sltiu(rd, rs1, IImm::ONE)
 }
 
 /// *(RV32I, I-format)*<br/>
 /// `XORI` performs XOR bitwise logical operation on register `rs1` and the sign-extended 12-bit immediate `imm` and
 /// places the result in register `rd`. Note, `XORI rd, rs1, -1` performs a bitwise logical inversion of the register
 /// `rs1` and is equivalent to pseudoinstruction [NOT](not)&nbsp;`rd, rs`.
-pub fn xori(rd: Register, rs1: Register, imm: i16) -> u32 {
+pub fn xori(rd: Register, rs1: Register, imm: IImm) -> u32 {
     i_instruction(
         Opcode::OP_IMM,
         rd,
         Funct3::XORI,
-        ITypeRs1::Register(rs1),
+        RegOrUimm5::Register(rs1),
         imm,
     )
 }
@@ -259,18 +277,18 @@ pub fn xori(rd: Register, rs1: Register, imm: i16) -> u32 {
 /// register `rd`.<br/><br/>
 /// `NOT rd, rs1` is encoded as [XORI](xori)&nbsp;`rd, rs1, -1`.
 pub fn not(rd: Register, rs1: Register) -> u32 {
-    xori(rd, rs1, -1)
+    xori(rd, rs1, IImm::MINUS_ONE)
 }
 
 /// *(RV32I, I-format)*<br/>
 /// `ORI` performs OR bitwise logical operation on register `rs1` and the sign-extended 12-bit immediate `imm`
 /// and places the result in the register `rd`.
-pub fn ori(rd: Register, rs1: Register, imm: i16) -> u32 {
+pub fn ori(rd: Register, rs1: Register, imm: IImm) -> u32 {
     i_instruction(
         Opcode::OP_IMM,
         rd,
         Funct3::ORI,
-        ITypeRs1::Register(rs1),
+        RegOrUimm5::Register(rs1),
         imm,
     )
 }
@@ -278,55 +296,58 @@ pub fn ori(rd: Register, rs1: Register, imm: i16) -> u32 {
 /// *(RV32I, I-format)*<br/>
 /// `ANDI` performs AND bitwise logical operation on register `rs1` and the sign-extended 12-bit immediate `imm`
 /// and places the result in the register `rd`.
-pub fn andi(rd: Register, rs1: Register, imm: i16) -> u32 {
+pub fn andi(rd: Register, rs1: Register, imm: IImm) -> u32 {
     i_instruction(
         Opcode::OP_IMM,
         rd,
         Funct3::ANDI,
-        ITypeRs1::Register(rs1),
+        RegOrUimm5::Register(rs1),
         imm,
     )
 }
 
-/// *(RV32I, I-format)*<br/>
+/// *(RV32I, R-format)*<br/>
 /// `SLLI` (shift left logical immediate) instruction performs a left shift of register `rs1` by
 /// a constant `shamt` encoded in the lower 5 bits of the I-immediate field, shifting zeros into the lower bits,
 /// and places the result in the register `rd`.
-pub fn slli(rd: Register, rs1: Register, shamt: u8) -> u32 {
-    i_instruction(
+pub fn slli(rd: Register, rs1: Register, shamt: Uimm5) -> u32 {
+    r_instruction(
         Opcode::OP_IMM,
         rd,
         Funct3::SLLI,
-        ITypeRs1::Register(rs1),
-        i16::from(shamt & 0x1F),
+        rs1,
+        RegOrUimm5::Uimm5(shamt),
+        Funct7::SLL,
     )
 }
 
-/// *(RV32I, I-format)*<br/>
+/// *(RV32I, R-format)*<br/>
 /// `SRLI` (shift right logical immediate) instruction performs a right shift of register `rs1` by
 /// a constant `shamt` encoded in the lower 5 bits of the I-immediate field, shifting zeros into the upper bits,
 /// and places the result in the register `rd`.
-pub fn srli(rd: Register, rs1: Register, shamt: u8) -> u32 {
-    i_instruction(
+pub fn srli(rd: Register, rs1: Register, shamt: Uimm5) -> u32 {
+    r_instruction(
         Opcode::OP_IMM,
         rd,
         Funct3::SRLI,
-        ITypeRs1::Register(rs1),
-        i16::from(shamt & 0x1F),
+        rs1,
+        RegOrUimm5::Uimm5(shamt),
+        Funct7::SRL,
     )
 }
 
-/// *(RV32I, I-format)*<br/>
+/// *(RV32I, R-format)*<br/>
 /// `SRAI` (shift right arithmetic immediate) instruction performs a left shift of register `rs1` by
 /// a constant `shamt` encoded in the lower 5 bits of the I-immediate field, sign-extends the result
 /// and places the result in the register `rd`.
-pub fn srai(rd: Register, rs1: Register, shamt: u8) -> u32 {
-    i_instruction(
+pub fn srai(rd: Register, rs1: Register, shamt: Uimm5) -> u32 {
+    r_instruction(
         Opcode::OP_IMM,
         rd,
         Funct3::SRAI,
-        ITypeRs1::Register(rs1),
-        i16::from(shamt & 0x1F) | 0b0100000 << 5,
+        rs1,
+        RegOrUimm5::Uimm5(shamt),
+        Funct7::SRA,
     )
 }
 
@@ -335,7 +356,14 @@ pub fn srai(rd: Register, rs1: Register, shamt: u8) -> u32 {
 /// and places the result in the register `rd`. Overflows are ignored and the low XLEN bits of results are written
 /// to the destination `rd`.
 pub fn add(rd: Register, rs1: Register, rs2: Register) -> u32 {
-    r_instruction(Opcode::OP, rd, Funct3::ADD, rs1, rs2, Funct7::ADD)
+    r_instruction(
+        Opcode::OP,
+        rd,
+        Funct3::ADD,
+        rs1,
+        RegOrUimm5::Register(rs2),
+        Funct7::ADD,
+    )
 }
 
 /// *(RV32I, R-format)*<br/>
@@ -343,35 +371,70 @@ pub fn add(rd: Register, rs1: Register, rs2: Register) -> u32 {
 /// and places the result in the register `rd`. Overflows are ignored and the low XLEN bits of results are written
 /// to the destination `rd`.
 pub fn sub(rd: Register, rs1: Register, rs2: Register) -> u32 {
-    r_instruction(Opcode::OP, rd, Funct3::SUB, rs1, rs2, Funct7::SUB)
+    r_instruction(
+        Opcode::OP,
+        rd,
+        Funct3::SUB,
+        rs1,
+        RegOrUimm5::Register(rs2),
+        Funct7::SUB,
+    )
 }
 
 /// *(RV32I, R-format)*<br/>
 /// `SLL` instruction (shift logical left) performs logical left shift on the value in register `rs1` by the shift
 /// amount held in the lower 5 bits of register `rs2` and places the result in the register `rd`.
 pub fn sll(rd: Register, rs1: Register, rs2: Register) -> u32 {
-    r_instruction(Opcode::OP, rd, Funct3::SLL, rs1, rs2, Funct7::SLL)
+    r_instruction(
+        Opcode::OP,
+        rd,
+        Funct3::SLL,
+        rs1,
+        RegOrUimm5::Register(rs2),
+        Funct7::SLL,
+    )
 }
 
 /// *(RV32I, R-format)*<br/>
 /// `SRL` instruction (shift logical right) performs logical right shift on the value in register `rs1` by the shift
 /// amount held in the lower 5 bits of register `rs2` and places the result in the register `rd`.
 pub fn srl(rd: Register, rs1: Register, rs2: Register) -> u32 {
-    r_instruction(Opcode::OP, rd, Funct3::SRL, rs1, rs2, Funct7::SRL)
+    r_instruction(
+        Opcode::OP,
+        rd,
+        Funct3::SRL,
+        rs1,
+        RegOrUimm5::Register(rs2),
+        Funct7::SRL,
+    )
 }
 
 /// *(RV32I, R-format)*<br/>
 /// `SRA` instruction (shift arithmetic right) performs right shift on the value in register `rs1` by the shift amount
 /// held in the lower 5 bits of register `rs2`, sign-extends the result and places the it in the register `rd`.
 pub fn sra(rd: Register, rs1: Register, rs2: Register) -> u32 {
-    r_instruction(Opcode::OP, rd, Funct3::SRA, rs1, rs2, Funct7::SRA)
+    r_instruction(
+        Opcode::OP,
+        rd,
+        Funct3::SRA,
+        rs1,
+        RegOrUimm5::Register(rs2),
+        Funct7::SRA,
+    )
 }
 
 /// *(RV32I, R-format)*<br/>
 /// `SLT` instruction (set less than) perform signed compare,
 /// writing 1 to the register `rd` if registers `rs1` < `rs2`, 0 otherwise.
 pub fn slt(rd: Register, rs1: Register, rs2: Register) -> u32 {
-    r_instruction(Opcode::OP, rd, Funct3::SLT, rs1, rs2, Funct7::SLT)
+    r_instruction(
+        Opcode::OP,
+        rd,
+        Funct3::SLT,
+        rs1,
+        RegOrUimm5::Register(rs2),
+        Funct7::SLT,
+    )
 }
 
 /// *(RV32I, R-format)*<br/>
@@ -380,7 +443,14 @@ pub fn slt(rd: Register, rs1: Register, rs2: Register) -> u32 {
 /// Note, `SLTU rd, x0, rs2` sets `rd` to 1 if `rs2` ≠ 0, otherwise sets `rd` to 0, and is equivalent to
 /// pseudoinstruction [SNEZ](snez)&nbsp;`rd, rs`.
 pub fn sltu(rd: Register, rs1: Register, rs2: Register) -> u32 {
-    r_instruction(Opcode::OP, rd, Funct3::SLTU, rs1, rs2, Funct7::SLTU)
+    r_instruction(
+        Opcode::OP,
+        rd,
+        Funct3::SLTU,
+        rs1,
+        RegOrUimm5::Register(rs2),
+        Funct7::SLTU,
+    )
 }
 
 /// *(RV32I, R-format)*<br/>
@@ -394,21 +464,42 @@ pub fn snez(rd: Register, rs2: Register) -> u32 {
 /// `XOR` instruction performs XOR logical operation on registers `rs1` and `rs2`
 /// and places the result in the register `rd`.
 pub fn xor(rd: Register, rs1: Register, rs2: Register) -> u32 {
-    r_instruction(Opcode::OP, rd, Funct3::XOR, rs1, rs2, Funct7::XOR)
+    r_instruction(
+        Opcode::OP,
+        rd,
+        Funct3::XOR,
+        rs1,
+        RegOrUimm5::Register(rs2),
+        Funct7::XOR,
+    )
 }
 
 /// *(RV32I, R-format)*<br/>
 /// `OR` instruction performs OR logical operation on registers `rs1` and `rs2`
 /// and places the result in the register `rd`.
 pub fn or(rd: Register, rs1: Register, rs2: Register) -> u32 {
-    r_instruction(Opcode::OP, rd, Funct3::OR, rs1, rs2, Funct7::OR)
+    r_instruction(
+        Opcode::OP,
+        rd,
+        Funct3::OR,
+        rs1,
+        RegOrUimm5::Register(rs2),
+        Funct7::OR,
+    )
 }
 
 /// *(RV32I, R-format)*<br/>
 /// `AND` instruction performs AND logical operation on registers `rs1` and `rs2`
 /// and places the result in the register `rd`.
 pub fn and(rd: Register, rs1: Register, rs2: Register) -> u32 {
-    r_instruction(Opcode::OP, rd, Funct3::AND, rs1, rs2, Funct7::AND)
+    r_instruction(
+        Opcode::OP,
+        rd,
+        Funct3::AND,
+        rs1,
+        RegOrUimm5::Register(rs2),
+        Funct7::AND,
+    )
 }
 
 /// *(RV32I, I-format specialized)*<br/>
@@ -446,8 +537,8 @@ pub fn fence_tso() -> u32 {
 /// Description   |  FM   | predecessor |  successor  |   0   | FENCE  |  0   | MISC_MEM |
 /// ```
 fn fence_instruction(fm: FenceMode, predecessor: FenceMask, successor: FenceMask) -> u32 {
-    let mut imm = 0u16;
-    let imm_bits = imm.view_bits_mut::<Lsb0>();
+    let mut imm = IImm::ZERO;
+    let imm_bits = imm.view_bits_mut();
     imm_bits[0..4].clone_from_bitslice(predecessor.view_bits());
     imm_bits[4..8].clone_from_bitslice(successor.view_bits());
     imm_bits[8..12].clone_from_bitslice(fm.view_bits());
@@ -455,8 +546,8 @@ fn fence_instruction(fm: FenceMode, predecessor: FenceMask, successor: FenceMask
         Opcode::MISC_MEM,
         X0,
         Funct3::FENCE,
-        ITypeRs1::Register(X0),
-        imm as i16,
+        RegOrUimm5::Register(X0),
+        imm,
     )
 }
 
@@ -469,8 +560,8 @@ pub fn ecall() -> u32 {
         Opcode::SYSTEM,
         X0,
         Funct3::ECALL,
-        ITypeRs1::Register(X0),
-        0b0000_0000_0000,
+        RegOrUimm5::Register(X0),
+        IImm::ZERO,
     )
 }
 
@@ -492,7 +583,7 @@ pub fn ebreak() -> u32 {
         Opcode::SYSTEM,
         X0,
         Funct3::EBREAK,
-        ITypeRs1::Register(X0),
-        0b0000_0000_0001,
+        RegOrUimm5::Register(X0),
+        IImm::ONE,
     )
 }

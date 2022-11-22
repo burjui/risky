@@ -2,7 +2,7 @@
 
 use crate::registers::Register;
 
-use super::formats::{funct3::Funct3, funct7::Funct7, opcode::Opcode, r_instruction};
+use super::formats::{funct3::Funct3, funct7::Funct7, opcode::Opcode, r_instruction, RegOrUimm5};
 
 /// *(RV32M, R-format)*<br/>
 /// `MUL` instruction performs an XLEN-bit×XLEN-bit multiplication of `rs1` by `rs2` and places the lower XLEN bits
@@ -136,5 +136,12 @@ pub fn remu(rd: Register, rs1: Register, rs2: Register) -> u32 {
 ///               | MULDIV |  divisor   |   dividend   | REMU   | dest |   OP   |
 /// ```
 fn muldiv_instruction(rd: Register, rs1: Register, rs2: Register, funct3: Funct3) -> u32 {
-    r_instruction(Opcode::OP, rd, funct3, rs1, rs2, Funct7::MULDIV)
+    r_instruction(
+        Opcode::OP,
+        rd,
+        funct3,
+        rs1,
+        RegOrUimm5::Register(rs2),
+        Funct7::MULDIV,
+    )
 }

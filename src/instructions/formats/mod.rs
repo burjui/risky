@@ -1,9 +1,10 @@
 pub(crate) mod funct3;
 pub(crate) mod funct7;
+pub(crate) mod i_imm;
 pub(crate) mod j_imm;
 pub(crate) mod opcode;
+pub(crate) mod uimm5;
 
-use crate::instructions::zicsr_ext::CsrMask;
 use crate::registers::Register;
 use bitvec::field::BitField;
 use bitvec::order::Lsb0;
@@ -11,15 +12,18 @@ use bitvec::slice::BitSlice;
 use bitvec::view::BitView;
 use funct3::Funct3;
 use funct7::Funct7;
+use i_imm::IImm;
 use j_imm::JImm;
 use opcode::Opcode;
+
+use super::Uimm5;
 
 pub(crate) fn r_instruction(
     opcode: Opcode,
     rd: Register,
     funct3: Funct3,
     rs1: Register,
-    rs2: Register,
+    rs2: RegOrUimm5,
     funct7: Funct7,
 ) -> u32 {
     let mut instruction = 0;
@@ -33,26 +37,12 @@ pub(crate) fn r_instruction(
     instruction
 }
 
-pub(crate) enum ITypeRs1 {
-    Register(Register),
-    Uimm5(CsrMask),
-}
-
-impl ITypeRs1 {
-    pub(crate) fn view_bits(&self) -> &BitSlice<u8, Lsb0> {
-        match self {
-            ITypeRs1::Register(register) => register.view_bits(),
-            ITypeRs1::Uimm5(uimm) => uimm.view_bits(),
-        }
-    }
-}
-
 pub(crate) fn i_instruction(
     opcode: Opcode,
     rd: Register,
     funct3: Funct3,
-    rs1: ITypeRs1,
-    imm: i16,
+    rs1: RegOrUimm5,
+    imm: IImm,
 ) -> u32 {
     let mut instruction = 0;
     let bits = instruction.view_bits_mut::<Lsb0>();
@@ -60,7 +50,7 @@ pub(crate) fn i_instruction(
     bits[7..12].clone_from_bitslice(rd.view_bits());
     bits[12..15].clone_from_bitslice(funct3.view_bits());
     bits[15..20].clone_from_bitslice(rs1.view_bits());
-    bits[20..32].store(imm);
+    bits[20..32].clone_from_bitslice(imm.view_bits());
     instruction
 }
 
@@ -126,4 +116,18 @@ pub(crate) fn j_instruction(opcode: Opcode, rd: Register, imm: JImm) -> u32 {
     bits[21..31].copy_from_bitslice(&imm_bits[1..11]);
     bits.set(31, imm_bits[20]);
     instruction
+}
+
+pub(crate) enum RegOrUimm5 {
+    Register(Register),
+    Uimm5(Uimm5),
+}
+
+impl RegOrUimm5 {
+    pub(crate) fn view_bits(&self) -> &BitSlice<u8, Lsb0> {
+        match self {
+            RegOrUimm5::Register(register) => register.view_bits(),
+            RegOrUimm5::Uimm5(uimm) => uimm.view_bits(),
+        }
+    }
 }

@@ -1,8 +1,9 @@
 use bitvec::order::Lsb0;
 use bitvec::{slice::BitSlice, view::BitView};
+use core::fmt;
 use std::{error::Error, fmt::Display};
 
-/// Represents a mask for the [FENCE](super::fence) instruction
+/// 4-bit mask for the [FENCE](super::fence) instruction
 #[derive(Debug, PartialEq, Eq)]
 pub struct FenceMask(u8);
 
@@ -37,6 +38,18 @@ impl<'a> TryFrom<&'a str> for FenceMask {
     }
 }
 
+impl TryFrom<u8> for FenceMask {
+    type Error = FenceMaskConvError;
+
+    fn try_from(value: u8) -> Result<Self, Self::Error> {
+        if value <= 0b1111 {
+            Ok(Self(value))
+        } else {
+            Err(FenceMaskConvError(value))
+        }
+    }
+}
+
 /// [Fence mask](FenceMask) parse error
 #[derive(Debug, PartialEq)]
 pub struct FenceMaskParseError<'a> {
@@ -60,10 +73,10 @@ impl<'a> FenceMaskParseError<'a> {
 }
 
 impl Display for FenceMaskParseError<'_> {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(
             f,
-            r#"malformed fence mask "{}": {} flag '{}'"#,
+            r#"invalid fence mask "{}": {} flag '{}'"#,
             self.mask, self.kind, self.flag
         )
     }
@@ -86,8 +99,18 @@ impl Display for FenceMaskFlagErrorKind {
     }
 }
 
+/// [FenceMask] conversion error
+#[derive(Debug, PartialEq)]
+pub struct FenceMaskConvError(u8);
+
+impl Display for FenceMaskConvError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "invalid 4-bit fence mask: {} (0x{:02x})", self.0, self.0)
+    }
+}
+
 #[test]
-fn fence_mask() {
+fn fence_mask_str() {
     assert_eq!(FenceMask::try_from(""), Ok(FenceMask(0b0000)));
     assert_eq!(FenceMask::try_from("r"), Ok(FenceMask(0b0010)));
     assert_eq!(FenceMask::try_from("w"), Ok(FenceMask(0b0001)));
@@ -107,13 +130,28 @@ fn fence_mask() {
 }
 
 #[test]
-fn fence_mask_flag_error() {
+fn fence_mask_u8() {
+    assert_eq!(FenceMask::try_from(0b0000), Ok(FenceMask(0b0000)));
+    assert_eq!(FenceMask::try_from(0b0010), Ok(FenceMask(0b0010)));
+    assert_eq!(FenceMask::try_from(0b0001), Ok(FenceMask(0b0001)));
+    assert_eq!(FenceMask::try_from(0b1000), Ok(FenceMask(0b1000)));
+    assert_eq!(FenceMask::try_from(0b0100), Ok(FenceMask(0b0100)));
+    assert_eq!(FenceMask::try_from(0b1111), Ok(FenceMask(0b1111)));
+
+    assert_eq!(
+        FenceMask::try_from(0b10000),
+        Err(FenceMaskConvError(0b10000))
+    );
+}
+
+#[test]
+fn fence_mask_parse_error() {
     assert_eq!(
         FenceMaskParseError::invalid("iorwx", 'x').to_string(),
-        r#"malformed fence mask "iorwx": invalid flag 'x'"#
+        r#"invalid fence mask "iorwx": invalid flag 'x'"#
     );
     assert_eq!(
         FenceMaskParseError::duplicate("rwr", 'r').to_string(),
-        r#"malformed fence mask "rwr": duplicate flag 'r'"#
+        r#"invalid fence mask "rwr": duplicate flag 'r'"#
     );
 }
