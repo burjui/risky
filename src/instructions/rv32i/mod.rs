@@ -3,6 +3,7 @@
 mod fence_mask;
 mod fence_mode;
 
+use super::formats::b_imm::BImm;
 use super::formats::funct3::Funct3;
 use super::formats::funct7::Funct7;
 pub use super::formats::imm12::*;
@@ -64,7 +65,7 @@ pub fn jalr(rd: Register, rs1: Register, imm: Imm12) -> u32 {
 /// instruction to give the target address. The conditional branch range is ±4&nbsp;KiB.<br/><br/>
 /// Similar instructions with other branch conditions:
 /// [BNE](bne), [BLT](blt), [BLTU](bltu), [BGE](bge), [BGEU](bgeu).
-pub fn beq(imm: i16, rs1: Register, rs2: Register) -> u32 {
+pub fn beq(imm: BImm, rs1: Register, rs2: Register) -> u32 {
     b_instruction(Opcode::BRANCH, imm, Funct3::BEQ, rs1, rs2)
 }
 
@@ -74,7 +75,7 @@ pub fn beq(imm: i16, rs1: Register, rs2: Register) -> u32 {
 /// instruction to give the target address. The conditional branch range is ±4&nbsp;KiB.<br/><br/>
 /// Similar instructions with other branch conditions:
 /// [BEQ](beq), [BLT](blt), [BLTU](bltu), [BGE](bge), [BGEU](bgeu).
-pub fn bne(imm: i16, rs1: Register, rs2: Register) -> u32 {
+pub fn bne(imm: BImm, rs1: Register, rs2: Register) -> u32 {
     b_instruction(Opcode::BRANCH, imm, Funct3::BNE, rs1, rs2)
 }
 
@@ -85,7 +86,7 @@ pub fn bne(imm: i16, rs1: Register, rs2: Register) -> u32 {
 /// The conditional branch range is ±4&nbsp;KiB.<br/><br/>
 /// Similar instructions with other branch conditions:
 /// [BLTU](bltu), [BGE](bge), [BGEU](bgeu), [BEQ](beq), [BNE](bne).
-pub fn blt(imm: i16, rs1: Register, rs2: Register) -> u32 {
+pub fn blt(imm: BImm, rs1: Register, rs2: Register) -> u32 {
     b_instruction(Opcode::BRANCH, imm, Funct3::BLT, rs1, rs2)
 }
 
@@ -98,7 +99,7 @@ pub fn blt(imm: i16, rs1: Register, rs2: Register) -> u32 {
 /// since any negative index will compare greater than any nonnegative bound.<br/><br/>
 /// Similar instructions with other branch conditions:
 /// [BLT](blt), [BGE](bge), [BGEU](bgeu), [BEQ](beq), [BNE](bne)
-pub fn bltu(imm: i16, rs1: Register, rs2: Register) -> u32 {
+pub fn bltu(imm: BImm, rs1: Register, rs2: Register) -> u32 {
     b_instruction(Opcode::BRANCH, imm, Funct3::BLTU, rs1, rs2)
 }
 
@@ -109,7 +110,7 @@ pub fn bltu(imm: i16, rs1: Register, rs2: Register) -> u32 {
 /// The conditional branch range is ±4&nbsp;KiB.<br/><br/>
 /// Similar instructions with other branch conditions:
 /// [BGEU](bgeu), [BLT](blt), [BLTU](bltu), [BEQ](beq), [BNE](bne).
-pub fn bge(imm: i16, rs1: Register, rs2: Register) -> u32 {
+pub fn bge(imm: BImm, rs1: Register, rs2: Register) -> u32 {
     b_instruction(Opcode::BRANCH, imm, Funct3::BGE, rs1, rs2)
 }
 
@@ -120,7 +121,7 @@ pub fn bge(imm: i16, rs1: Register, rs2: Register) -> u32 {
 /// The conditional branch range is ±4&nbsp;KiB.<br/><br/>
 /// Similar instructions with other branch conditions:
 /// [BGE](bge), [BLT](blt), [BLTU](bltu), [BEQ](beq), [BNE](bne).
-pub fn bgeu(imm: i16, rs1: Register, rs2: Register) -> u32 {
+pub fn bgeu(imm: BImm, rs1: Register, rs2: Register) -> u32 {
     b_instruction(Opcode::BRANCH, imm, Funct3::BGEU, rs1, rs2)
 }
 

@@ -1,3 +1,4 @@
+pub(crate) mod b_imm;
 pub(crate) mod funct3;
 pub(crate) mod funct7;
 pub(crate) mod imm12;
@@ -7,6 +8,7 @@ pub(crate) mod uimm5;
 
 use super::Uimm5;
 use crate::registers::Register;
+use b_imm::BImm;
 use bitvec::order::Lsb0;
 use bitvec::slice::BitSlice;
 use bitvec::view::BitView;
@@ -73,15 +75,14 @@ pub(crate) fn s_instruction(
 
 pub(crate) fn b_instruction(
     opcode: Opcode,
-    imm: i16,
+    imm: BImm,
     funct3: Funct3,
     rs1: Register,
     rs2: Register,
 ) -> u32 {
     let mut instruction = 0;
     let bits = instruction.view_bits_mut::<Lsb0>();
-    let imm = imm as u16;
-    let imm_bits = imm.view_bits::<Lsb0>();
+    let imm_bits = imm.view_bits();
     bits[0..7].clone_from_bitslice(opcode.view_bits());
     bits.set(7, imm_bits[11]);
     bits[8..12].clone_from_bitslice(&imm_bits[1..5]);
