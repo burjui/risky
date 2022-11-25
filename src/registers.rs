@@ -25,8 +25,7 @@ pub const NUMBER_OF_REGISTERS: usize = 32;
 pub struct Register(u32);
 
 impl Register {
-    /// Returns a register corresponding to `index`, if `index` < [NUMBER_OF_REGISTERS]
-    pub const fn new(index: usize) -> Result<Self, &'static str> {
+    pub(crate) const fn new(index: usize) -> Result<Self, &'static str> {
         if index < NUMBER_OF_REGISTERS {
             Ok(Self(index as u32))
         } else {

@@ -2,6 +2,7 @@ use core::fmt;
 use std::{
     error::Error,
     fmt::Display,
+    ops::Range,
 };
 
 use bitvec::{
@@ -10,6 +11,8 @@ use bitvec::{
     view::BitView,
 };
 
+use crate::util::u8_max_value;
+
 /// 4-bit mask for the [FENCE](super::fence) instruction
 #[derive(Debug, PartialEq, Eq)]
 pub struct FenceMask(u8);
@@ -17,10 +20,12 @@ pub struct FenceMask(u8);
 // TODO: Implement as e.g. parse_fence_mask("rw") when const fns become able to do this
 
 impl FenceMask {
+    const BIT_RANGE: Range<usize> = 0..4;
+
     pub(crate) const RW: FenceMask = FenceMask(0b0011);
 
     pub(crate) fn view_bits(&self) -> &BitSlice<u8, Lsb0> {
-        &self.0.view_bits()[0..4]
+        &self.0.view_bits()[Self::BIT_RANGE]
     }
 }
 
@@ -49,7 +54,7 @@ impl TryFrom<u8> for FenceMask {
     type Error = FenceMaskConvError;
 
     fn try_from(value: u8) -> Result<Self, Self::Error> {
-        if value <= 0b1111 {
+        if value <= u8_max_value(Self::BIT_RANGE.end) {
             Ok(Self(value))
         } else {
             Err(FenceMaskConvError(value))

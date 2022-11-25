@@ -4,6 +4,7 @@ use core::fmt;
 use std::{
     error::Error,
     fmt::Display,
+    ops::Range,
 };
 
 use bitvec::{
@@ -12,12 +13,16 @@ use bitvec::{
     view::BitView,
 };
 
+use crate::util::i32_value_range;
+
 /// 21-bit signed J-immediate used in the [JAL](crate::instructions::rv32i::jal) instruction
 pub struct JImm(u32);
 
 impl JImm {
+    const BIT_RANGE: Range<usize> = 0..21;
+
     pub(crate) fn view_bits(&self) -> &BitSlice<u32, Lsb0> {
-        &self.0.view_bits()[0..21]
+        &self.0.view_bits()[Self::BIT_RANGE]
     }
 }
 
@@ -25,7 +30,7 @@ impl TryFrom<i32> for JImm {
     type Error = JImmConvError;
 
     fn try_from(value: i32) -> Result<Self, Self::Error> {
-        if (-(1 << 21) - 1..(1 << 21)).contains(&value) {
+        if i32_value_range(Self::BIT_RANGE.end).contains(&value) {
             Ok(Self(value as u32))
         } else {
             Err(JImmConvError(value))

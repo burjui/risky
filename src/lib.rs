@@ -4,3 +4,5 @@
 pub mod abi;
 pub mod instructions;
 pub mod registers;
+
+pub(crate) mod util;

@@ -1,5 +1,5 @@
 //! This module defines [Imm12] and relevant trait implementations
-//!
+
 use core::fmt;
 use std::{
     error::Error,
@@ -12,6 +12,8 @@ use bitvec::{
     slice::BitSlice,
     view::BitView,
 };
+
+use crate::util::i16_value_range;
 
 /// 12-bit signed immediate value
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -40,7 +42,7 @@ impl TryFrom<i16> for Imm12 {
     type Error = IImmConvError;
 
     fn try_from(value: i16) -> Result<Self, Self::Error> {
-        if (-(1 << 12) - 1..1 << 12).contains(&value) {
+        if i16_value_range(Self::BIT_RANGE.end).contains(&value) {
             Ok(Self(value as u32))
         } else {
             Err(IImmConvError(value))
