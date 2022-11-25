@@ -1,11 +1,16 @@
 //! Zicsr standard extension
 
-use super::formats::funct3::Funct3;
-pub use super::formats::imm12::*;
-use super::formats::opcode::Opcode;
-pub use super::formats::uimm5::*;
-use super::formats::{i_instruction, RegOrUimm5};
-use crate::registers::{Register, X0};
+use super::formats::{
+    funct3::Funct3,
+    i_instruction,
+    opcode::Opcode,
+    RegOrUimm5,
+};
+pub use super::{
+    imm12::*,
+    uimm5::*,
+};
+pub use crate::registers::*;
 
 /// *(RV32 Zicsr, I-format)*<br/>
 /// `CSRRW` (atomic read/write CSR) instruction atomically swaps values in the CSRs and general-purpose registers.

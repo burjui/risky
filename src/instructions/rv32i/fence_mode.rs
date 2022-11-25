@@ -1,5 +1,7 @@
-use bitvec::order::Lsb0;
-use bitvec::view::BitView;
+use bitvec::{
+    order::Lsb0,
+    view::BitView,
+};
 
 pub(crate) struct FenceMode(u8);
 

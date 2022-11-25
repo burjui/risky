@@ -1,6 +1,8 @@
-use bitvec::order::Lsb0;
-use bitvec::slice::BitSlice;
-use bitvec::view::BitView;
+use bitvec::{
+    order::Lsb0,
+    slice::BitSlice,
+    view::BitView,
+};
 
 pub(crate) struct Funct3(u32);
 

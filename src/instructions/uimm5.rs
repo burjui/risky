@@ -1,7 +1,12 @@
+//! This module defines [Uimm5] and relevant trait implementations
+
 use core::fmt;
 use std::fmt::Display;
 
-use bitvec::{order::Lsb0, view::BitView};
+use bitvec::{
+    order::Lsb0,
+    view::BitView,
+};
 
 /// 5-bit unsigned immediate value
 pub struct Uimm5(u32);

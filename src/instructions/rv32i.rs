@@ -3,20 +3,28 @@
 mod fence_mask;
 mod fence_mode;
 
-use super::formats::b_imm::BImm;
-use super::formats::funct3::Funct3;
-use super::formats::funct7::Funct7;
-pub use super::formats::imm12::*;
-pub use super::formats::j_imm::*;
-use super::formats::opcode::Opcode;
-pub use super::formats::uimm5::*;
-use super::formats::{
-    b_instruction, i_instruction, j_instruction, r_instruction, s_instruction, u_instruction,
-    RegOrUimm5,
-};
-use crate::registers::*;
 pub use fence_mask::*;
 use fence_mode::FenceMode;
+
+use super::formats::{
+    b_instruction,
+    funct3::Funct3,
+    funct7::Funct7,
+    i_instruction,
+    j_instruction,
+    opcode::Opcode,
+    r_instruction,
+    s_instruction,
+    u_instruction,
+    RegOrUimm5,
+};
+pub use super::{
+    b_imm::*,
+    imm12::*,
+    j_imm::*,
+    uimm5::*,
+};
+pub use crate::registers::*;
 
 /// *(RV32I, U-format)*<br/>
 /// `LUI` (load upper immediate) instruction is used to build 32-bit constants. `LUI` places `imm` in the top 20 bits

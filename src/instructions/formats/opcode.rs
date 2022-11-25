@@ -1,5 +1,8 @@
-use bitvec::order::Lsb0;
-use bitvec::{slice::BitSlice, view::BitView};
+use bitvec::{
+    order::Lsb0,
+    slice::BitSlice,
+    view::BitView,
+};
 
 pub(crate) struct Opcode(u32);
 

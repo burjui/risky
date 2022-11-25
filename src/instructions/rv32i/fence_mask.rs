@@ -1,7 +1,14 @@
-use bitvec::order::Lsb0;
-use bitvec::{slice::BitSlice, view::BitView};
 use core::fmt;
-use std::{error::Error, fmt::Display};
+use std::{
+    error::Error,
+    fmt::Display,
+};
+
+use bitvec::{
+    order::Lsb0,
+    slice::BitSlice,
+    view::BitView,
+};
 
 /// 4-bit mask for the [FENCE](super::fence) instruction
 #[derive(Debug, PartialEq, Eq)]

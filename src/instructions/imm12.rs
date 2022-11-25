@@ -1,7 +1,17 @@
+//! This module defines [Imm12] and relevant trait implementations
+//!
 use core::fmt;
-use std::{error::Error, fmt::Display, ops::Range};
+use std::{
+    error::Error,
+    fmt::Display,
+    ops::Range,
+};
 
-use bitvec::{order::Lsb0, slice::BitSlice, view::BitView};
+use bitvec::{
+    order::Lsb0,
+    slice::BitSlice,
+    view::BitView,
+};
 
 /// 12-bit signed immediate value
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

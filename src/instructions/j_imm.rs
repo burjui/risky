@@ -1,10 +1,16 @@
-use core::fmt;
-use std::error::Error;
-use std::fmt::Display;
+//! This module defines [JImm] and relevant trait implementations
 
-use bitvec::order::Lsb0;
-use bitvec::slice::BitSlice;
-use bitvec::view::BitView;
+use core::fmt;
+use std::{
+    error::Error,
+    fmt::Display,
+};
+
+use bitvec::{
+    order::Lsb0,
+    slice::BitSlice,
+    view::BitView,
+};
 
 /// 21-bit signed J-immediate used in the [JAL](crate::instructions::rv32i::jal) instruction
 pub struct JImm(u32);

@@ -1,10 +1,16 @@
-use core::fmt;
-use std::error::Error;
-use std::fmt::Display;
+//! This module defines [BImm] and relevant trait implementations
 
-use bitvec::order::Lsb0;
-use bitvec::slice::BitSlice;
-use bitvec::view::BitView;
+use core::fmt;
+use std::{
+    error::Error,
+    fmt::Display,
+};
+
+use bitvec::{
+    order::Lsb0,
+    slice::BitSlice,
+    view::BitView,
+};
 
 /// 13-bit signed J-immediate used in branch instructions
 pub struct BImm(u32);

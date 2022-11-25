@@ -1,22 +1,23 @@
-pub(crate) mod b_imm;
 pub(crate) mod funct3;
 pub(crate) mod funct7;
-pub(crate) mod imm12;
-pub(crate) mod j_imm;
 pub(crate) mod opcode;
-pub(crate) mod uimm5;
 
-use super::Uimm5;
-use crate::registers::Register;
-use b_imm::BImm;
-use bitvec::order::Lsb0;
-use bitvec::slice::BitSlice;
-use bitvec::view::BitView;
+use bitvec::{
+    order::Lsb0,
+    slice::BitSlice,
+    view::BitView,
+};
 use funct3::Funct3;
 use funct7::Funct7;
-use imm12::Imm12;
-use j_imm::JImm;
 use opcode::Opcode;
+
+use super::{
+    BImm,
+    Imm12,
+    JImm,
+    Uimm5,
+};
+use crate::registers::Register;
 
 pub(crate) enum RegOrUimm5 {
     Register(Register),

@@ -6,9 +6,16 @@ Based on the following document:
 Editors Kito Cheng and Jessica Clarke, RISC-V International, November 2022.
 */
 
-use bitvec::order::Lsb0;
-use bitvec::{slice::BitSlice, view::BitView};
-use std::fmt::{Display, Write};
+use std::fmt::{
+    Display,
+    Write,
+};
+
+use bitvec::{
+    order::Lsb0,
+    slice::BitSlice,
+    view::BitView,
+};
 
 /// Number of `RISC-V` registers
 pub const NUMBER_OF_REGISTERS: usize = 32;
