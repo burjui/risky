@@ -6,7 +6,7 @@ use bitvec::order::Lsb0;
 use bitvec::slice::BitSlice;
 use bitvec::view::BitView;
 
-/// 13-bit signed J-immediate used in the branch instructions
+/// 13-bit signed J-immediate used in branch instructions
 pub struct BImm(u32);
 
 impl BImm {

@@ -18,6 +18,20 @@ use imm12::Imm12;
 use j_imm::JImm;
 use opcode::Opcode;
 
+pub(crate) enum RegOrUimm5 {
+    Register(Register),
+    Uimm5(Uimm5),
+}
+
+impl RegOrUimm5 {
+    pub(crate) fn view_bits(&self) -> &BitSlice<u32, Lsb0> {
+        match self {
+            RegOrUimm5::Register(register) => register.view_bits(),
+            RegOrUimm5::Uimm5(uimm) => uimm.view_bits(),
+        }
+    }
+}
+
 pub(crate) fn r_instruction(
     opcode: Opcode,
     rd: Register,
@@ -116,18 +130,4 @@ pub(crate) fn j_instruction(opcode: Opcode, rd: Register, imm: JImm) -> u32 {
     bits[21..31].copy_from_bitslice(&imm_bits[1..11]);
     bits.set(31, imm_bits[20]);
     instruction
-}
-
-pub(crate) enum RegOrUimm5 {
-    Register(Register),
-    Uimm5(Uimm5),
-}
-
-impl RegOrUimm5 {
-    pub(crate) fn view_bits(&self) -> &BitSlice<u32, Lsb0> {
-        match self {
-            RegOrUimm5::Register(register) => register.view_bits(),
-            RegOrUimm5::Uimm5(uimm) => uimm.view_bits(),
-        }
-    }
 }
