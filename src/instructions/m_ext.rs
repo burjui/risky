@@ -1,6 +1,12 @@
 //! M standard extension
 
-use super::formats::{funct3::Funct3, funct7::Funct7, opcode::Opcode, r_instruction, RegOrUimm5};
+use super::formats::{
+    funct3::Funct3,
+    funct7::Funct7,
+    opcode::Opcode,
+    r_instruction,
+    RegOrUimm5,
+};
 pub use crate::registers::*;
 
 /// `MUL` instruction performs an XLEN-bit×XLEN-bit multiplication of `rs1` by `rs2` and places the lower XLEN bits

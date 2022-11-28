@@ -1,9 +1,15 @@
 //! Defines [Uimm5] and relevant trait implementations
 
 use core::fmt;
-use std::{fmt::Display, ops::Range};
+use std::{
+    fmt::Display,
+    ops::Range,
+};
 
-use bitvec::{order::Lsb0, view::BitView};
+use bitvec::{
+    order::Lsb0,
+    view::BitView,
+};
 
 use crate::util::u8_max_value;
 

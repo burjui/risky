@@ -1,9 +1,17 @@
 //! Defines [JImm] and relevant trait implementations
 
 use core::fmt;
-use std::{error::Error, fmt::Display, ops::Range};
+use std::{
+    error::Error,
+    fmt::Display,
+    ops::Range,
+};
 
-use bitvec::{order::Lsb0, slice::BitSlice, view::BitView};
+use bitvec::{
+    order::Lsb0,
+    slice::BitSlice,
+    view::BitView,
+};
 
 use crate::util::i32_value_range;
 

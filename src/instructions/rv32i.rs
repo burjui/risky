@@ -7,10 +7,23 @@ pub use fence_mask::*;
 use fence_mode::FenceMode;
 
 use super::formats::{
-    b_instruction, funct3::Funct3, funct7::Funct7, i_instruction, j_instruction, opcode::Opcode,
-    r_instruction, s_instruction, u_instruction, RegOrUimm5,
+    b_instruction,
+    funct3::Funct3,
+    funct7::Funct7,
+    i_instruction,
+    j_instruction,
+    opcode::Opcode,
+    r_instruction,
+    s_instruction,
+    u_instruction,
+    RegOrUimm5,
 };
-pub use super::{b_imm::*, imm12::*, j_imm::*, uimm5::*};
+pub use super::{
+    b_imm::*,
+    imm12::*,
+    j_imm::*,
+    uimm5::*,
+};
 pub use crate::registers::*;
 
 /// "Load Upper Immediate" instruction is primarily used to build 32-bit constants. It places `imm` in the top
