@@ -16,6 +16,7 @@ use bitvec::{
 use crate::util::i16_value_range;
 
 /// 13-bit signed immediate value used in branch instructions
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct BImm(u32);
 
 impl BImm {

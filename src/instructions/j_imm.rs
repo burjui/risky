@@ -16,6 +16,7 @@ use bitvec::{
 use crate::util::i32_value_range;
 
 /// 21-bit signed immediate value used in the [crate::instructions::rv32i::jal] instruction
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct JImm(u32);
 
 impl JImm {

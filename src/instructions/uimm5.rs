@@ -14,6 +14,7 @@ use bitvec::{
 use crate::util::u8_max_value;
 
 /// 5-bit unsigned immediate value
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct Uimm5(u32);
 
 impl Uimm5 {

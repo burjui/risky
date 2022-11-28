@@ -16,7 +16,7 @@ use bitvec::{
 use crate::util::i16_value_range;
 
 /// 12-bit signed immediate value
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct Imm12(u32);
 
 impl Imm12 {

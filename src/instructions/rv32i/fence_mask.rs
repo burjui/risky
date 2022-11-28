@@ -1,7 +1,10 @@
 use core::fmt;
 use std::{
     error::Error,
-    fmt::Display,
+    fmt::{
+        Debug,
+        Display,
+    },
     ops::Range,
 };
 
@@ -14,7 +17,7 @@ use bitvec::{
 use crate::util::u8_max_value;
 
 /// 4-bit mask for the [fence](super::fence) instruction
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct FenceMask(u8);
 
 // TODO: Implement as e.g. parse_fence_mask("rw") when const fns become able to do this
