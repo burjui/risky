@@ -1,19 +1,13 @@
 //! M standard extension
 
-use super::formats::{
-    funct3::Funct3,
-    funct7::Funct7,
-    opcode::Opcode,
-    r_instruction,
-    RegOrUimm5,
-};
+use super::formats::{funct3::Funct3, funct7::Funct7, opcode::Opcode, r_instruction, RegOrUimm5};
 pub use crate::registers::*;
 
-/// `MUL` instruction performs an XLEN-bit×XLEN-bit multiplication of `rs1` by `rs2` and places the lower XLEN bits
+/// `mul` instruction performs an XLEN-bit×XLEN-bit multiplication of `rs1` by `rs2` and places the lower XLEN bits
 /// in the destination register. If both the high and low bits of the same
-/// product are required, then the recommended code sequence is:<br/>
-/// [`MULH`](mulh) | [`MULHSU`](mulhsu) | [`MULHU`](mulhu) `rdh, rs1, rs2`<br/>
-/// `MUL rdl, rs1, rs2`<br/>
+/// product are required, then the recommended code sequence is:<br/><br/>
+/// [mulh] | [mulhsu] | [mulhu] `rdh, rs1, rs2`<br/>
+/// `MUL rdl, rs1, rs2`<br/><br/>
 /// Source register specifiers must be in same order and `rdh` cannot be the same as `rs1` or
 /// `rs2`. Microarchitectures can then fuse these into a single multiply operation instead of performing
 /// two separate multiplies.<br/><br/>
@@ -24,11 +18,11 @@ pub fn mul(rd: Register, rs1: Register, rs2: Register) -> u32 {
     muldiv_instruction(rd, rs1, rs2, Funct3::MUL)
 }
 
-/// `MULH` instruction performs an XLEN-bit×XLEN-bit multiplication of `rs1` (signed) by `rs2` (signed) and
+/// `mulh` instruction performs an XLEN-bit×XLEN-bit multiplication of `rs1` (signed) by `rs2` (signed) and
 /// places the upper XLEN bits in the destination register. If both the high and low bits of the same
-/// product are required, then the recommended code sequence is:<br/>
-/// `MULH` | [`MULHSU`](mulhsu) | [`MULHU`](mulhu) `rdh, rs1, rs2`<br/>
-/// [`MUL`](mul)` rdl, rs1, rs2`<br/>
+/// product are required, then the recommended code sequence is:<br/><br/>
+/// `mulh` | [mulhsu] | [mulhu] `rdh, rs1, rs2`<br/>
+/// [mul]` rdl, rs1, rs2`<br/><br/>
 /// Source register specifiers must be in same order and `rdh` cannot be the same as `rs1` or
 /// `rs2`. Microarchitectures can then fuse these into a single multiply operation instead of performing
 /// two separate multiplies.<br/><br/>
@@ -39,11 +33,11 @@ pub fn mulh(rd: Register, rs1: Register, rs2: Register) -> u32 {
     muldiv_instruction(rd, rs1, rs2, Funct3::MULH)
 }
 
-/// `MULHSU` instruction performs an XLEN-bit×XLEN-bit multiplication of `rs1` (signed) by `rs2` (unsigned) and
+/// `mulhsu` instruction performs an XLEN-bit×XLEN-bit multiplication of `rs1` (signed) by `rs2` (unsigned) and
 /// places the upper XLEN bits in the destination register. If both the high and low bits of the same
-/// product are required, then the recommended code sequence is:<br/>
-/// [`MULH`](mulh) | `MULHSU` | [`MULHU`](mulhu) `rdh, rs1, rs2`<br/>
-/// [`MUL`](mul)` rdl, rs1, rs2`<br/>
+/// product are required, then the recommended code sequence is:<br/><br/>
+/// [mulh] | `mulhsu` | [mulhu] `rdh, rs1, rs2`<br/>
+/// [mul]` rdl, rs1, rs2`<br/><br/>
 /// Source register specifiers must be in same order and `rdh` cannot be the same as `rs1` or
 /// `rs2`. Microarchitectures can then fuse these into a single multiply operation instead of performing
 /// two separate multiplies.<br/><br/>
@@ -54,11 +48,11 @@ pub fn mulhsu(rd: Register, rs1: Register, rs2: Register) -> u32 {
     muldiv_instruction(rd, rs1, rs2, Funct3::MULHSU)
 }
 
-/// `MULHU` instruction performs an XLEN-bit×XLEN-bit multiplication of `rs1` (unsigned) by `rs2` (unsigned) and
+/// `mulhu` instruction performs an XLEN-bit×XLEN-bit multiplication of `rs1` (unsigned) by `rs2` (unsigned) and
 /// places the upper XLEN bits in the destination register. If both the high and low bits of the same
-/// product are required, then the recommended code sequence is:<br/>
-/// [`MULH`](mulh) | [`MULHSU`](mulhsu) | `MULHU` `rdh, rs1, rs2`<br/>
-/// [`MUL`](mul)` rdl, rs1, rs2`<br/>
+/// product are required, then the recommended code sequence is:<br/><br/>
+/// [mulh] | [mulhsu] | `mulhu` `rdh, rs1, rs2`<br/>
+/// [mul]` rdl, rs1, rs2`<br/><br/>
 /// Source register specifiers must be in same order and `rdh` cannot be the same as `rs1` or
 /// `rs2`. Microarchitectures can then fuse these into a single multiply operation instead of performing
 /// two separate multiplies.<br/><br/>
@@ -69,14 +63,14 @@ pub fn mulhu(rd: Register, rs1: Register, rs2: Register) -> u32 {
     muldiv_instruction(rd, rs1, rs2, Funct3::MULHU)
 }
 
-/// `DIV` instruction performs XLEN-bit signed integer division of registers `rs1`÷`rs2`, rounding towards zero,
+/// `div` instruction performs XLEN-bit signed integer division of registers `rs1`÷`rs2`, rounding towards zero,
 /// and places the result in the register `rd`.
-/// [REM](rem) and [REMU](remu) provide the remainder of the corresponding division operation.
+/// [rem] and [remu] provide the remainder of the corresponding division operation.
 /// For both signed and unsigned division, it holds that dividend = divisor × quotient + remainder.
 /// If both the quotient and remainder are required from the same division, the recommended code
-/// sequence is:<br/>
-/// `DIV` | [DIVU](divu) `rdq, rs1, rs2`<br/>
-/// [REM](rem) | [REMU](remu) `rdr, rs1, rs2`<br/>
+/// sequence is:<br/><br/>
+/// `div` | [divu] `rdq, rs1, rs2`<br/>
+/// [rem] | [remu] `rdr, rs1, rs2`<br/><br/>
 /// `rdq` cannot be the same as `rs1` or `rs2`.
 /// Microarchitectures can then fuse these into a single divide operation instead of performing two
 /// separate divides.<br/><br/>
@@ -87,14 +81,14 @@ pub fn div(rd: Register, rs1: Register, rs2: Register) -> u32 {
     muldiv_instruction(rd, rs1, rs2, Funct3::DIV)
 }
 
-/// `DIVU` instruction performs XLEN-bit unsigned integer division of registers `rs1`÷`rs2`, rounding towards zero,
+/// `divu` instruction performs XLEN-bit unsigned integer division of registers `rs1`÷`rs2`, rounding towards zero,
 /// and places the result in the register `rd`.
-/// [REM](rem) and [REMU](remu) provide the remainder of the corresponding division operation.
+/// [rem] and [remu] provide the remainder of the corresponding division operation.
 /// For both signed and unsigned division, it holds that dividend = divisor × quotient + remainder.
 /// If both the quotient and remainder are required from the same division, the recommended code
-/// sequence is:<br/>
-/// [DIV](div) | `DIVU` `rdq, rs1, rs2`<br/>
-/// [REM](rem) | [REMU](remu) `rdr, rs1, rs2`<br/>
+/// sequence is:<br/><br/>
+/// [div] | `divu` `rdq, rs1, rs2`<br/>
+/// [rem] | [remu] `rdr, rs1, rs2`<br/><br/>
 /// `rdq` cannot be the same as `rs1` or `rs2`.
 /// Microarchitectures can then fuse these into a single divide operation instead of performing two
 /// separate divides.<br/><br/>
@@ -105,14 +99,14 @@ pub fn divu(rd: Register, rs1: Register, rs2: Register) -> u32 {
     muldiv_instruction(rd, rs1, rs2, Funct3::DIVU)
 }
 
-/// `REM` instruction performs XLEN-bit signed integer division of registers `rs1`÷`rs2`,
+/// `rem` instruction performs XLEN-bit signed integer division of registers `rs1`÷`rs2`,
 /// and places the remainder of that division in register `rd`.
-/// [DIV](div) and [DIVU](divu) provide the quotient of the corresponding division operation.
+/// [div] and [divu] provide the quotient of the corresponding division operation.
 /// For both signed and unsigned division, it holds that dividend = divisor × quotient + remainder.
 /// If both the quotient and remainder are required from the same division, the recommended code
-/// sequence is:<br/>
-/// [DIV](div) | [DIVU](divu) `rdq, rs1, rs2`<br/>
-/// `REM` | [REMU](remu) `rdr, rs1, rs2`<br/>
+/// sequence is:<br/><br/>
+/// [div] | [divu] `rdq, rs1, rs2`<br/>
+/// `rem` | [remu] `rdr, rs1, rs2`<br/><br/>
 /// `rdq` cannot be the same as `rs1` or `rs2`.
 /// Microarchitectures can then fuse these into a single divide operation instead of performing two
 /// separate divides.<br/><br/>
@@ -123,14 +117,14 @@ pub fn rem(rd: Register, rs1: Register, rs2: Register) -> u32 {
     muldiv_instruction(rd, rs1, rs2, Funct3::REM)
 }
 
-/// `REMU` instruction performs XLEN-bit unsigned integer division of registers `rs1`÷`rs2`,
+/// `remu` instruction performs XLEN-bit unsigned integer division of registers `rs1`÷`rs2`,
 /// and places the remainder of that division in the register `rd`.
-/// [DIV](div) and [DIVU](divu) provide the quotient of the corresponding division operation.
+/// [div] and [divu] provide the quotient of the corresponding division operation.
 /// For both signed and unsigned division, it holds that dividend = divisor × quotient + remainder.
 /// If both the quotient and remainder are required from the same division, the recommended code
-/// sequence is:<br/>
-/// [DIV](div) | [DIVU](divu) `rdq, rs1, rs2`<br/>
-/// [REM](rem) | `REMU` `rdr, rs1, rs2`<br/>
+/// sequence is:<br/><br/>
+/// [div] | [divu] `rdq, rs1, rs2`<br/>
+/// [rem] | `remu` `rdr, rs1, rs2`<br/><br/>
 /// `rdq` cannot be the same as `rs1` or `rs2`.
 /// Microarchitectures can then fuse these into a single divide operation instead of performing two
 /// separate divides.<br/><br/>

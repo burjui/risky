@@ -7,23 +7,10 @@ pub use fence_mask::*;
 use fence_mode::FenceMode;
 
 use super::formats::{
-    b_instruction,
-    funct3::Funct3,
-    funct7::Funct7,
-    i_instruction,
-    j_instruction,
-    opcode::Opcode,
-    r_instruction,
-    s_instruction,
-    u_instruction,
-    RegOrUimm5,
+    b_instruction, funct3::Funct3, funct7::Funct7, i_instruction, j_instruction, opcode::Opcode,
+    r_instruction, s_instruction, u_instruction, RegOrUimm5,
 };
-pub use super::{
-    b_imm::*,
-    imm12::*,
-    j_imm::*,
-    uimm5::*,
-};
+pub use super::{b_imm::*, imm12::*, j_imm::*, uimm5::*};
 pub use crate::registers::*;
 
 /// "Load Upper Immediate" instruction is primarily used to build 32-bit constants. It places `imm` in the top
@@ -225,8 +212,8 @@ pub fn sw(rs1: Register, imm: Imm12, rs2: Register) -> u32 {
 
 /// "ADD Immediate" instruction adds the sign-extended 12-bit immediate `imm` to the register `rs1`.
 /// Arithmetic overflow is ignored and the result is simply the low XLEN bits of the result.
-/// Note, `ADDI rd, rs1, 0` is equivalent to pseudoinstruction [MV](mv)&nbsp;`rd, rs1`,
-/// and `ADDI x0, x0, 0` is equivalent to pseudoinstruction [NOP](nop).<br/><br/>
+/// Note, `ADDI rd, rs1, 0` is equivalent to pseudoinstruction [mv]&nbsp;`rd, rs1`,
+/// and `ADDI x0, x0, 0` is equivalent to pseudoinstruction [nop].<br/><br/>
 /// Other arithmetic instructions:
 /// - RV32I: [add], [sub]
 /// - M extension: [mul](super::mul), [mulh](super::mulh), [mulhsu](super::mulhsu), [mulhu](super::mulhu),
@@ -242,7 +229,7 @@ pub fn addi(rd: Register, rs1: Register, imm: Imm12) -> u32 {
 }
 
 /// "MoVe" pseudoinstruction copies the register `rs1` to the register `rd`.<br/><br/>
-/// `MV rd, rs1` is encoded as [ADDI](addi)&nbsp;`rd, rs1, 0`.<br/><br/>
+/// `MV rd, rs1` is encoded as [addi]&nbsp;`rd, rs1, 0`.<br/><br/>
 /// For copying values to and from memory, use the following instructions:
 /// - Loading from memory: [lb], [lbu], [lh], [lhu], [lw]
 /// - Storing to memory: [sb], [sh], [sw]
@@ -252,7 +239,7 @@ pub fn mv(rd: Register, rs1: Register) -> u32 {
 
 /// "No OPeration" instruction does not change any architecturally visible state, except for advancing the
 /// pc and incrementing any applicable performance counters.<br/><br/>
-/// `NOP` is encoded as [ADDI](addi)&nbsp;`x0, x0, 0`.
+/// `nop` is encoded as [addi]&nbsp;`x0, x0, 0`.
 pub fn nop() -> u32 {
     addi(X0, X0, Imm12::ZERO)
 }
@@ -273,7 +260,7 @@ pub fn slti(rd: Register, rs1: Register, imm: Imm12) -> u32 {
 /// "Set Less Than Immediate Unsigned" (set less than immediate unsigned) places the value 1 in the register `rd` if register `rs1` is less than
 /// the sign-extended immediate when both are treated as unsigned numbers, else 0 is written to `rd`. Note,
 /// `SLTIU rd, rs1, 1` sets `rd` to 1 if `rs1` = 0, otherwise sets `rd` to 0, and is equivalent to pseudoinstruction
-/// [SEQZ](seqz)&nbsp;`rd, rs`).<br/><br/>
+/// [seqz]&nbsp;`rd, rs`).<br/><br/>
 /// Other comparison instructions: [slt], [sltu], [slti], [seqz], [snez]
 pub fn sltiu(rd: Register, rs1: Register, imm: Imm12) -> u32 {
     i_instruction(
@@ -287,7 +274,7 @@ pub fn sltiu(rd: Register, rs1: Register, imm: Imm12) -> u32 {
 
 /// "Set EQual to Zero" pseudoinstruction places the value 1 in register `rd` if register `rs1` = 0,
 /// else 0 is written to `rd`.<br/><br/>
-/// `SEQZ rd, rs1` is encoded as [SLTIU](sltiu)&nbsp;`rd, rs1, 1`.<br/><br/>
+/// `SEQZ rd, rs1` is encoded as [sltiu]&nbsp;`rd, rs1, 1`.<br/><br/>
 /// Other comparison instructions: [slt], [sltu], [slti], [sltiu], [snez]
 pub fn seqz(rd: Register, rs1: Register) -> u32 {
     sltiu(rd, rs1, Imm12::ONE)
@@ -295,7 +282,7 @@ pub fn seqz(rd: Register, rs1: Register) -> u32 {
 
 /// "XOR with Immediate" performs XOR bitwise logical operation on register `rs1` and the sign-extended 12-bit immediate `imm` and
 /// places the result in register `rd`. Note, `XORI rd, rs1, -1` performs a bitwise logical inversion of the register
-/// `rs1` and is equivalent to pseudoinstruction [NOT](not)&nbsp;`rd, rs`.<br/><br/>
+/// `rs1` and is equivalent to pseudoinstruction [not]&nbsp;`rd, rs`.<br/><br/>
 /// Other logical operations: [xor], [or], [ori], [and], [andi], [not]
 pub fn xori(rd: Register, rs1: Register, imm: Imm12) -> u32 {
     i_instruction(
@@ -309,7 +296,7 @@ pub fn xori(rd: Register, rs1: Register, imm: Imm12) -> u32 {
 
 /// "NOT" pseudoinstruction performs bitwise logical inversion of register `rs1` and places the result in the
 /// register `rd`.<br/><br/>
-/// `NOT rd, rs1` is encoded as [XORI](xori)&nbsp;`rd, rs1, -1`.<br/><br/>
+/// `NOT rd, rs1` is encoded as [xori]&nbsp;`rd, rs1, -1`.<br/><br/>
 /// Other logical operations: [xor], [xori], [or], [ori], [and], [andi]
 pub fn not(rd: Register, rs1: Register) -> u32 {
     xori(rd, rs1, Imm12::MINUS_ONE)
@@ -481,7 +468,7 @@ pub fn slt(rd: Register, rs1: Register, rs2: Register) -> u32 {
 /// "Set Less Than Unsigned" instruction performs unsigned compare,
 /// writing 1 to the register `rd` if registers `rs1` < `rs2`, 0 otherwise.
 /// Note, `SLTU rd, x0, rs2` sets `rd` to 1 if `rs2` ≠ 0, otherwise sets `rd` to 0, and is equivalent to
-/// pseudoinstruction [SNEZ](snez)&nbsp;`rd, rs`.<br/><br/>
+/// pseudoinstruction [snez]&nbsp;`rd, rs`.<br/><br/>
 /// Other comparison instructions: [slt], [slti], [sltiu], [seqz], [snez]
 pub fn sltu(rd: Register, rs1: Register, rs2: Register) -> u32 {
     r_instruction(
@@ -495,7 +482,7 @@ pub fn sltu(rd: Register, rs1: Register, rs2: Register) -> u32 {
 }
 
 /// "Set Not Equal to Zero" pseudoinstruction sets `rd` to 1 if `rs2` ≠ 0, otherwise sets `rd` to 0.<br/><br/>
-/// `SNEZ rd, rs2` is encoded as [SLTU](sltu)&nbsp;`rd, x0, rs2`.<br/><br/>
+/// `SNEZ rd, rs2` is encoded as [sltu]&nbsp;`rd, x0, rs2`.<br/><br/>
 /// Other comparison instructions: [slt], [sltu], [slti], [sltiu], [seqz]
 pub fn snez(rd: Register, rs2: Register) -> u32 {
     sltu(rd, X0, rs2)
@@ -551,7 +538,7 @@ pub fn and(rd: Register, rs1: Register, rs2: Register) -> u32 {
 /// * `r` — memory reads
 /// * `w` — memory writes
 ///
-/// Note, [FENCE.TSO](fence_tso) instruction is encoded as a `FENCE` instruction with `fm` = 1000
+/// Note, [fence_tso] instruction is encoded as a `FENCE` instruction with `fm` = 1000
 /// (refer to the instruction manual for this field), `predecessor` = "rw", and `successor` = "rw".
 pub fn fence(predecessor: FenceMask, successor: FenceMask) -> u32 {
     fence_instruction(FenceMode::FENCE, predecessor, successor)
@@ -561,7 +548,7 @@ pub fn fence(predecessor: FenceMask, successor: FenceMask) -> u32 {
 /// and all store operations in its predecessor set before all store operations in its successor set. This leaves
 /// non-AMO store operations in the `FENCE.TSO`'s predecessor set unordered with non-AMO loads in its successor set.
 /// <br/><br/>
-/// `FENCE.TSO` instruction is encoded as a [FENCE](fence) instruction with `fm` = 1000
+/// `FENCE.TSO` instruction is encoded as a [fence] instruction with `fm` = 1000
 /// (refer to the instruction manual for this field), `predecessor` = "rw", and `successor` = "rw".
 pub fn fence_tso() -> u32 {
     fence_instruction(FenceMode::FENCE_TSO, FenceMask::RW, FenceMask::RW)
@@ -604,12 +591,12 @@ pub fn ecall() -> u32 {
 }
 
 /// "Environment BREAK" instruction is used to return control to a debugging environment.
-/// `EBREAK` was primarily designed to be used by a debugger to cause execution to stop and fall back into the debugger.
-/// `EBREAK` is also used by the standard gcc compiler to mark code paths/ that should not be executed.
-/// Another use of `EBREAK` is to support "semihosting", where the execution environment in cludes a debugger that can
-/// provide services over an alternate system call interface built around the `EBREAK` instruction. Because the RISC-V
-/// base ISAs do not provide more than one `EBREAK` instruction, RISC-V semihosting uses a special sequence of
-/// instructions to distinguish a semihosting `EBREAK` from a debugger inserted `EBREAK`.
+/// `ebreak` was primarily designed to be used by a debugger to cause execution to stop and fall back into the debugger.
+/// `ebreak` is also used by the standard gcc compiler to mark code paths/ that should not be executed.
+/// Another use of `ebreak` is to support "semihosting", where the execution environment in cludes a debugger that can
+/// provide services over an alternate system call interface built around the `ebreak` instruction. Because the RISC-V
+/// base ISAs do not provide more than one `ebreak` instruction, RISC-V semihosting uses a special sequence of
+/// instructions to distinguish a semihosting `ebreak` from a debugger inserted `ebreak`.
 /// ```asm
 /// slli x0, x0, 0x1f   # Entry NOP
 /// ebreak              # Break to debugger
