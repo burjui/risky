@@ -6,16 +6,9 @@ Based on the following document:
 Editors Kito Cheng and Jessica Clarke, RISC-V International, November 2022.
 */
 
-use std::fmt::{
-    Display,
-    Write,
-};
+use std::fmt::{Display, Write};
 
-use bitvec::{
-    order::Lsb0,
-    slice::BitSlice,
-    view::BitView,
-};
+use bitvec::{order::Lsb0, slice::BitSlice, view::BitView};
 
 /// Number of `RISC-V` registers
 pub const NUMBER_OF_REGISTERS: usize = 32;
@@ -62,7 +55,7 @@ impl From<Register> for u8 {
 
 impl From<Register> for usize {
     fn from(value: Register) -> Self {
-        value.0 as usize // valid since NUMBER_OF_REGISTERS is small
+        value.0 as usize // valid since NUMBER_OF_REGISTERS always fits usize
     }
 }
 
@@ -81,7 +74,6 @@ pub const fn x(index: usize) -> Result<Register, &'static str> {
 
 /// Hard-wired zero, ignores writes
 pub const X0: Register = Register(0);
-/// General-purpose register
 /// General-purpose register 1
 pub const X1: Register = Register(1);
 /// General-purpose register 2

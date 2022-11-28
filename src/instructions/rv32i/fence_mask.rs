@@ -1,19 +1,11 @@
 use core::fmt;
-use std::{
-    error::Error,
-    fmt::Display,
-    ops::Range,
-};
+use std::{error::Error, fmt::Display, ops::Range};
 
-use bitvec::{
-    order::Lsb0,
-    slice::BitSlice,
-    view::BitView,
-};
+use bitvec::{order::Lsb0, slice::BitSlice, view::BitView};
 
 use crate::util::u8_max_value;
 
-/// 4-bit mask for the [FENCE](super::fence) instruction
+/// 4-bit mask for the [fence](super::fence) instruction
 #[derive(Debug, PartialEq, Eq)]
 pub struct FenceMask(u8);
 
@@ -21,6 +13,12 @@ pub struct FenceMask(u8);
 
 impl FenceMask {
     const BIT_RANGE: Range<usize> = 0..4;
+
+    /// Creates a FenceMask from an [str], the characters of which specify the flags to be set:
+    ///
+    pub fn try_from_str(mask_spec: &str) -> Result<Self, FenceMaskParseError<'_>> {
+        Self::try_from(mask_spec)
+    }
 
     pub(crate) const RW: FenceMask = FenceMask(0b0011);
 
@@ -72,15 +70,19 @@ pub struct FenceMaskParseError<'a> {
 
 impl<'a> FenceMaskParseError<'a> {
     fn invalid(mask: &'a str, flag: char) -> Self {
-        Self::new(mask, flag, FenceMaskFlagErrorKind::Invalid)
+        Self {
+            mask,
+            flag,
+            kind: FenceMaskFlagErrorKind::Invalid,
+        }
     }
 
     fn duplicate(mask: &'a str, flag: char) -> Self {
-        Self::new(mask, flag, FenceMaskFlagErrorKind::Duplicate)
-    }
-
-    fn new(mask: &'a str, flag: char, kind: FenceMaskFlagErrorKind) -> Self {
-        Self { mask, flag, kind }
+        Self {
+            mask,
+            flag,
+            kind: FenceMaskFlagErrorKind::Duplicate,
+        }
     }
 }
 

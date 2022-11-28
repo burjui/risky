@@ -1,15 +1,8 @@
-//! RV32M standard extension
+//! M standard extension
 
-use super::formats::{
-    funct3::Funct3,
-    funct7::Funct7,
-    opcode::Opcode,
-    r_instruction,
-    RegOrUimm5,
-};
+use super::formats::{funct3::Funct3, funct7::Funct7, opcode::Opcode, r_instruction, RegOrUimm5};
 pub use crate::registers::*;
 
-/// *(RV32M, R-format)*<br/>
 /// `MUL` instruction performs an XLEN-bit×XLEN-bit multiplication of `rs1` by `rs2` and places the lower XLEN bits
 /// in the destination register. If both the high and low bits of the same
 /// product are required, then the recommended code sequence is:<br/>
@@ -17,12 +10,14 @@ pub use crate::registers::*;
 /// `MUL rdl, rs1, rs2`<br/>
 /// Source register specifiers must be in same order and `rdh` cannot be the same as `rs1` or
 /// `rs2`. Microarchitectures can then fuse these into a single multiply operation instead of performing
-/// two separate multiplies.
+/// two separate multiplies.<br/><br/>
+/// Other arithmetic instructions:
+/// - M extension: [mulh], [mulhsu], [mulhu], [div], [divu], [rem], [remu]
+/// - RV32I: [add](super::add), [sub](super::sub), [addi](super::addi)
 pub fn mul(rd: Register, rs1: Register, rs2: Register) -> u32 {
     muldiv_instruction(rd, rs1, rs2, Funct3::MUL)
 }
 
-/// *(RV32M, R-format)*<br/>
 /// `MULH` instruction performs an XLEN-bit×XLEN-bit multiplication of `rs1` (signed) by `rs2` (signed) and
 /// places the upper XLEN bits in the destination register. If both the high and low bits of the same
 /// product are required, then the recommended code sequence is:<br/>
@@ -30,12 +25,14 @@ pub fn mul(rd: Register, rs1: Register, rs2: Register) -> u32 {
 /// [`MUL`](mul)` rdl, rs1, rs2`<br/>
 /// Source register specifiers must be in same order and `rdh` cannot be the same as `rs1` or
 /// `rs2`. Microarchitectures can then fuse these into a single multiply operation instead of performing
-/// two separate multiplies.
+/// two separate multiplies.<br/><br/>
+/// Other arithmetic instructions:
+/// - M extension: [mul], [mulhsu], [mulhu], [div], [divu], [rem], [remu]
+/// - RV32I: [add](super::add), [sub](super::sub), [addi](super::addi)
 pub fn mulh(rd: Register, rs1: Register, rs2: Register) -> u32 {
     muldiv_instruction(rd, rs1, rs2, Funct3::MULH)
 }
 
-/// *(RV32M, R-format)*<br/>
 /// `MULHSU` instruction performs an XLEN-bit×XLEN-bit multiplication of `rs1` (signed) by `rs2` (unsigned) and
 /// places the upper XLEN bits in the destination register. If both the high and low bits of the same
 /// product are required, then the recommended code sequence is:<br/>
@@ -43,12 +40,14 @@ pub fn mulh(rd: Register, rs1: Register, rs2: Register) -> u32 {
 /// [`MUL`](mul)` rdl, rs1, rs2`<br/>
 /// Source register specifiers must be in same order and `rdh` cannot be the same as `rs1` or
 /// `rs2`. Microarchitectures can then fuse these into a single multiply operation instead of performing
-/// two separate multiplies.
+/// two separate multiplies.<br/><br/>
+/// Other arithmetic instructions:
+/// - M extension: [mul], [mulh], [mulhu], [div], [divu], [rem], [remu]
+/// - RV32I: [add](super::add), [sub](super::sub), [addi](super::addi)
 pub fn mulhsu(rd: Register, rs1: Register, rs2: Register) -> u32 {
     muldiv_instruction(rd, rs1, rs2, Funct3::MULHSU)
 }
 
-/// *(RV32M, R-format)*<br/>
 /// `MULHU` instruction performs an XLEN-bit×XLEN-bit multiplication of `rs1` (unsigned) by `rs2` (unsigned) and
 /// places the upper XLEN bits in the destination register. If both the high and low bits of the same
 /// product are required, then the recommended code sequence is:<br/>
@@ -56,12 +55,14 @@ pub fn mulhsu(rd: Register, rs1: Register, rs2: Register) -> u32 {
 /// [`MUL`](mul)` rdl, rs1, rs2`<br/>
 /// Source register specifiers must be in same order and `rdh` cannot be the same as `rs1` or
 /// `rs2`. Microarchitectures can then fuse these into a single multiply operation instead of performing
-/// two separate multiplies.
+/// two separate multiplies.<br/><br/>
+/// Other arithmetic instructions:
+/// - M extension: [mul], [mulh], [mulhsu], [div], [divu], [rem], [remu]
+/// - RV32I: [add](super::add), [sub](super::sub), [addi](super::addi)
 pub fn mulhu(rd: Register, rs1: Register, rs2: Register) -> u32 {
     muldiv_instruction(rd, rs1, rs2, Funct3::MULHU)
 }
 
-/// *(RV32M, R-format)*<br/>
 /// `DIV` instruction performs XLEN-bit signed integer division of registers `rs1`÷`rs2`, rounding towards zero,
 /// and places the result in the register `rd`.
 /// [REM](rem) and [REMU](remu) provide the remainder of the corresponding division operation.
@@ -72,12 +73,14 @@ pub fn mulhu(rd: Register, rs1: Register, rs2: Register) -> u32 {
 /// [REM](rem) | [REMU](remu) `rdr, rs1, rs2`<br/>
 /// `rdq` cannot be the same as `rs1` or `rs2`.
 /// Microarchitectures can then fuse these into a single divide operation instead of performing two
-/// separate divides.
+/// separate divides.<br/><br/>
+/// Other arithmetic instructions:
+/// - M extension: [divu], [rem], [remu], [mul], [mulh], [mulhsu], [mulhu]
+/// - RV32I: [add](super::add), [sub](super::sub), [addi](super::addi)
 pub fn div(rd: Register, rs1: Register, rs2: Register) -> u32 {
     muldiv_instruction(rd, rs1, rs2, Funct3::DIV)
 }
 
-/// *(RV32M, R-format)*<br/>
 /// `DIVU` instruction performs XLEN-bit unsigned integer division of registers `rs1`÷`rs2`, rounding towards zero,
 /// and places the result in the register `rd`.
 /// [REM](rem) and [REMU](remu) provide the remainder of the corresponding division operation.
@@ -88,12 +91,14 @@ pub fn div(rd: Register, rs1: Register, rs2: Register) -> u32 {
 /// [REM](rem) | [REMU](remu) `rdr, rs1, rs2`<br/>
 /// `rdq` cannot be the same as `rs1` or `rs2`.
 /// Microarchitectures can then fuse these into a single divide operation instead of performing two
-/// separate divides.
+/// separate divides.<br/><br/>
+/// Other arithmetic instructions:
+/// - M extension: [div], [rem], [remu], [mul], [mulh], [mulhsu], [mulhu]
+/// - RV32I: [add](super::add), [sub](super::sub), [addi](super::addi)
 pub fn divu(rd: Register, rs1: Register, rs2: Register) -> u32 {
     muldiv_instruction(rd, rs1, rs2, Funct3::DIVU)
 }
 
-/// *(RV32M, R-format)*<br/>
 /// `REM` instruction performs XLEN-bit signed integer division of registers `rs1`÷`rs2`,
 /// and places the remainder of that division in register `rd`.
 /// [DIV](div) and [DIVU](divu) provide the quotient of the corresponding division operation.
@@ -104,12 +109,14 @@ pub fn divu(rd: Register, rs1: Register, rs2: Register) -> u32 {
 /// `REM` | [REMU](remu) `rdr, rs1, rs2`<br/>
 /// `rdq` cannot be the same as `rs1` or `rs2`.
 /// Microarchitectures can then fuse these into a single divide operation instead of performing two
-/// separate divides.
+/// separate divides.<br/><br/>
+/// Other arithmetic instructions:
+/// - M extension: [remu], [div], [divu], [mul], [mulh], [mulhsu], [mulhu]
+/// - RV32I: [add](super::add), [sub](super::sub), [addi](super::addi)
 pub fn rem(rd: Register, rs1: Register, rs2: Register) -> u32 {
     muldiv_instruction(rd, rs1, rs2, Funct3::REM)
 }
 
-/// *(RV32M, R-format)*<br/>
 /// `REMU` instruction performs XLEN-bit unsigned integer division of registers `rs1`÷`rs2`,
 /// and places the remainder of that division in the register `rd`.
 /// [DIV](div) and [DIVU](divu) provide the quotient of the corresponding division operation.
@@ -120,12 +127,14 @@ pub fn rem(rd: Register, rs1: Register, rs2: Register) -> u32 {
 /// [REM](rem) | `REMU` `rdr, rs1, rs2`<br/>
 /// `rdq` cannot be the same as `rs1` or `rs2`.
 /// Microarchitectures can then fuse these into a single divide operation instead of performing two
-/// separate divides.
+/// separate divides.<br/><br/>
+/// Other arithmetic instructions:
+/// - M extension: [rem], [div], [divu], [mul], [mulh], [mulhsu], [mulhu]
+/// - RV32I: [add](super::add), [sub](super::sub), [addi](super::addi)
 pub fn remu(rd: Register, rs1: Register, rs2: Register) -> u32 {
     muldiv_instruction(rd, rs1, rs2, Funct3::REMU)
 }
 
-/// *(RV32M, R-format)*<br/>
 /// MUL-type instruction encoding.<br/>
 /// ```text
 /// Bit range     | 31:25  |   24:20    |    19:15     | 14:12  | 11:7 |  6:0   |

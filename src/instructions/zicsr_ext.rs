@@ -1,18 +1,9 @@
 //! Zicsr standard extension
 
-use super::formats::{
-    funct3::Funct3,
-    i_instruction,
-    opcode::Opcode,
-    RegOrUimm5,
-};
-pub use super::{
-    imm12::*,
-    uimm5::*,
-};
+use super::formats::{funct3::Funct3, i_instruction, opcode::Opcode, RegOrUimm5};
+pub use super::{imm12::*, uimm5::*};
 pub use crate::registers::*;
 
-/// *(RV32 Zicsr, I-format)*<br/>
 /// `CSRRW` (atomic read/write CSR) instruction atomically swaps values in the CSRs and general-purpose registers.
 /// `CSRRW` reads the old value of the CSR register `csr`, zero-extends the value to XLEN bits, then writes it to the
 /// register `rd`. The initial value in `rs1` is written to the CSR. If `rs1` = [X0], then the instruction will not
@@ -29,7 +20,6 @@ pub fn csrrw(rd: Register, rs1: Register, csr: Imm12) -> u32 {
     csr_instruction(rd, RegOrUimm5::Register(rs1), csr, Funct3::CSRRW)
 }
 
-/// *(RV32 Zicsr, I-format)*<br/>
 /// `CSRRS` (atomic read and set bits in CSR) instruction atomically reads the value of the CSR register `csr`,
 /// zero-extends the value to XLEN bits, and writes it to the register `rd`. The initial value in the register `rs1` is
 /// treated as a bit mask that specifies bit positions to be set in the CSR. Any bit that is high in `rs1` will cause
@@ -46,7 +36,6 @@ pub fn csrrs(rd: Register, rs1: Register, csr: Imm12) -> u32 {
     csr_instruction(rd, RegOrUimm5::Register(rs1), csr, Funct3::CSRRS)
 }
 
-/// *(RV32 Zicsr, I-format)*<br/>
 /// `CSRR` (atomic read and set bits in CSR) pseudoinstruction atomically reads the value of the CSR register `csr`,
 /// zero-extends the value to XLEN bits, and writes it to the register `rd`. `CSRR` always reads the addressed CSR and
 /// cause any read side effects regardless of `rd` value.<br/><br/>
@@ -58,7 +47,6 @@ pub fn csrr(rd: Register, csr: Imm12) -> u32 {
     csrrs(rd, X0, csr)
 }
 
-/// *(RV32 Zicsr, I-format)*<br/>
 /// `CSRS` (atomic set bits in CSR) pseudoinstruction atomically sets bits in the CSR register `csr` using the register
 /// `rs1` as a bit mask that specifies bit positions to be set in the CSR. Any bit that is high in `rs1` will cause the
 /// corresponding bit to be set in the CSR, if that CSR bit is writable. Other bits in the CSR are not explicitly
@@ -75,7 +63,6 @@ pub fn csrs(rs1: Register, csr: Imm12) -> u32 {
     csrrs(X0, rs1, csr)
 }
 
-/// *(RV32 Zicsr, I-format)*<br/>
 /// `CSRRC` (atomic read and clear bits in CSR) instruction atomically reads the value of the CSR register `csr`,
 /// zero-extends the value to XLEN bits, and writes it to the register `rd`. The value in the register `rs1` is treated
 /// as a bit mask that specifies bit positions to be cleared in the CSR. Any bit that is high in `rs1` will cause the
@@ -92,7 +79,6 @@ pub fn csrrc(rd: Register, rs1: Register, csr: Imm12) -> u32 {
     csr_instruction(rd, RegOrUimm5::Register(rs1), csr, Funct3::CSRRC)
 }
 
-/// *(RV32 Zicsr, I-format)*<br/>
 /// `CSRC` (atomic clear bits in CSR) pseudoinstruction atomically clears bits in the CSR register `csr` using the value
 /// in the register `rs1` as a bit mask that specifies bit positions to be cleared in the CSR. Any bit that is high in
 /// `rs1` will cause the corresponding bit to be cleared in the CSR, if that CSR bit is writable. Other bits in the CSR
@@ -109,7 +95,6 @@ pub fn csrc(rs1: Register, csr: Imm12) -> u32 {
     csrrc(X0, rs1, csr)
 }
 
-/// *(RV32 Zicsr, I-format)*<br/>
 /// `CSRRWI` (atomic read/write CSR with immediate) instruction atomically swaps values in CSRs and general-purpose
 /// registers. `CSRRWI` reads the old value of the CSR register `csr`, zero-extends the value to XLEN bits, then writes
 /// it to the register `rd`. An XLEN-bit value obtained by zero-extending a 5-bit unsigned immediate `uimm` is written
@@ -122,7 +107,6 @@ pub fn csrrwi(rd: Register, uimm: Uimm5, csr: Imm12) -> u32 {
     csr_instruction(rd, RegOrUimm5::Uimm5(uimm), csr, Funct3::CSRRWI)
 }
 
-/// *(RV32I, I-format)*<br/>
 /// `CSRRSI` (atomic read and set bits in CSR with immediate) instruction atomically reads the value of the CSR register
 /// `csr`, zero-extends the value to XLEN bits, and writes it to the register `rd`. An XLEN-bit value obtained by
 /// zero-extending a 5-bit unsigned immediate `uimm` is treated as a bit mask that specifies bit positions to be set in
@@ -136,7 +120,6 @@ pub fn csrrsi(rd: Register, uimm: Uimm5, csr: Imm12) -> u32 {
     csr_instruction(rd, RegOrUimm5::Uimm5(uimm), csr, Funct3::CSRRSI)
 }
 
-/// *(RV32 Zicsr, I-format)*<br/>
 /// `CSRSI` (atomic set bits in CSR with immediate) pseudoinstruction atomically sets bits in the CSR register `csr`
 /// using an XLEN-bit value obtained by zero-extending a 5-bit unsigned immediate `uimm` as a bit mask that specifies
 /// bit positions to be set in the CSR. Any bit that is high in `uimm` will cause the corresponding bit to be set in the
@@ -150,7 +133,6 @@ pub fn csrsi(uimm: Uimm5, csr: Imm12) -> u32 {
     csrrsi(X0, uimm, csr)
 }
 
-/// *(RV32 Zicsr, I-format)*<br/>
 /// `CSRRCI` (atomic read and clear bits in CSR with immediate) instruction atomically reads the value of the CSR
 /// register `csr`, zero-extends the value to XLEN bits, and writes it to the register `rd`. An XLEN-bit value obtained
 /// by zero-extending a 5-bit unsigned immediate `uimm` is treated as a bit mask that specifies bit positions to be
@@ -164,7 +146,6 @@ pub fn csrrci(rd: Register, uimm: Uimm5, csr: Imm12) -> u32 {
     csr_instruction(rd, RegOrUimm5::Uimm5(uimm), csr, Funct3::CSRRCI)
 }
 
-/// *(RV32 Zicsr, I-format)*<br/>
 /// `CSRCI` (atomic clear bits in CSR with immediate) pseudoinstruction atomically clears bits in the CSR register
 /// `csr`, using an XLEN-bit value obtained by zero-extending the 5-bit unsigned immediate `uimm` as a bit mask that
 /// specifies bit positions to be cleared in the CSR. Any bit that is high in `uimm` will cause the corresponding bit to
@@ -178,7 +159,6 @@ pub fn csrci(uimm: Uimm5, csr: Imm12) -> u32 {
     csrrci(X0, uimm, csr)
 }
 
-/// *(RV32 Zicsr, I-format specialized)*<br/>
 /// CSRR-type instruction encoding.<br/>
 /// ```text
 /// Bit range     |    31:20    | 19:15  | 14:12  | 11:7 |  6:0   |

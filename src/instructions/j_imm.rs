@@ -1,21 +1,13 @@
-//! This module defines [JImm] and relevant trait implementations
+//! Defines [JImm] and relevant trait implementations
 
 use core::fmt;
-use std::{
-    error::Error,
-    fmt::Display,
-    ops::Range,
-};
+use std::{error::Error, fmt::Display, ops::Range};
 
-use bitvec::{
-    order::Lsb0,
-    slice::BitSlice,
-    view::BitView,
-};
+use bitvec::{order::Lsb0, slice::BitSlice, view::BitView};
 
 use crate::util::i32_value_range;
 
-/// 21-bit signed J-immediate used in the [JAL](crate::instructions::rv32i::jal) instruction
+/// 21-bit signed immediate value used in the [crate::instructions::rv32i::jal] instruction
 pub struct JImm(u32);
 
 impl JImm {

@@ -1,21 +1,13 @@
-//! This module defines [BImm] and relevant trait implementations
+//! Defines [BImm] and relevant trait implementations
 
 use core::fmt;
-use std::{
-    error::Error,
-    fmt::Display,
-    ops::Range,
-};
+use std::{error::Error, fmt::Display, ops::Range};
 
-use bitvec::{
-    order::Lsb0,
-    slice::BitSlice,
-    view::BitView,
-};
+use bitvec::{order::Lsb0, slice::BitSlice, view::BitView};
 
 use crate::util::i16_value_range;
 
-/// 13-bit signed J-immediate used in branch instructions
+/// 13-bit signed immediate value used in branch instructions
 pub struct BImm(u32);
 
 impl BImm {

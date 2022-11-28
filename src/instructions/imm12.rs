@@ -1,17 +1,9 @@
-//! This module defines [Imm12] and relevant trait implementations
+//! Defines [Imm12] and relevant trait implementations
 
 use core::fmt;
-use std::{
-    error::Error,
-    fmt::Display,
-    ops::Range,
-};
+use std::{error::Error, fmt::Display, ops::Range};
 
-use bitvec::{
-    order::Lsb0,
-    slice::BitSlice,
-    view::BitView,
-};
+use bitvec::{order::Lsb0, slice::BitSlice, view::BitView};
 
 use crate::util::i16_value_range;
 
@@ -39,22 +31,22 @@ impl Imm12 {
 }
 
 impl TryFrom<i16> for Imm12 {
-    type Error = IImmConvError;
+    type Error = Imm12ConvError;
 
     fn try_from(value: i16) -> Result<Self, Self::Error> {
         if i16_value_range(Self::BIT_RANGE.end).contains(&value) {
             Ok(Self(value as u32))
         } else {
-            Err(IImmConvError(value))
+            Err(Imm12ConvError(value))
         }
     }
 }
 
 /// [Imm12] conversion error
 #[derive(Debug)]
-pub struct IImmConvError(i16);
+pub struct Imm12ConvError(i16);
 
-impl Display for IImmConvError {
+impl Display for Imm12ConvError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(
             f,
@@ -64,4 +56,4 @@ impl Display for IImmConvError {
     }
 }
 
-impl Error for IImmConvError {}
+impl Error for Imm12ConvError {}
