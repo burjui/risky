@@ -4,7 +4,6 @@ use core::fmt;
 use std::{
     error::Error,
     fmt::Display,
-    ops::Range,
 };
 
 use bitvec::{
@@ -32,54 +31,58 @@ mod internal {
 pub struct Uimm5(u32);
 
 impl Uimm5 {
-    const BIT_RANGE: Range<usize> = 0..5;
+    const NBITS: usize = 5;
 
     #[doc = include_str!("../../doc/nightly_warning.html")]
+    ///
     /// Creates an `Uimm5` from an [u8] constant
     #[cfg(feature = "nightly")]
     #[must_use]
     pub const fn from_u8<const VALUE: u8>() -> Self
     where
-        internal::Assert<{ u8_fits_n_bits(VALUE, 5) }>: internal::Fits5BIts,
+        internal::Assert<{ u8_fits_n_bits(VALUE, Self::NBITS) }>: internal::Fits5BIts,
     {
         Self(VALUE as u32)
     }
 
     #[doc = include_str!("../../doc/nightly_warning.html")]
+    ///
     /// Creates an `Uimm5` from an [u16] constant
     #[cfg(feature = "nightly")]
     #[must_use]
     pub const fn from_u16<const VALUE: u16>() -> Self
     where
-        internal::Assert<{ u16_fits_n_bits(VALUE, 5) }>: internal::Fits5BIts,
+        internal::Assert<{ u16_fits_n_bits(VALUE, Self::NBITS) }>: internal::Fits5BIts,
     {
         Self(VALUE as u32)
     }
 
     #[doc = include_str!("../../doc/nightly_warning.html")]
+    ///
     /// Creates an `Uimm5` from an [u32] constant
     #[cfg(feature = "nightly")]
     #[must_use]
     pub const fn from_u32<const VALUE: u32>() -> Self
     where
-        internal::Assert<{ u32_fits_n_bits(VALUE, 5) }>: internal::Fits5BIts,
+        internal::Assert<{ u32_fits_n_bits(VALUE, Self::NBITS) }>: internal::Fits5BIts,
     {
         Self(VALUE)
     }
 
     #[doc = include_str!("../../doc/nightly_warning.html")]
+    ///
     /// Creates an `Uimm5` from an [u64] constant
     #[cfg(feature = "nightly")]
     #[must_use]
     pub const fn from_u64<const VALUE: u64>() -> Self
     where
-        internal::Assert<{ u64_fits_n_bits(VALUE, 5) }>: internal::Fits5BIts,
+        internal::Assert<{ u64_fits_n_bits(VALUE, Self::NBITS) }>: internal::Fits5BIts,
     {
         Self(VALUE as u32)
     }
 
     pub(crate) fn view_bits(&self) -> &bitvec::slice::BitSlice<u32, Lsb0> {
-        &self.0.view_bits()[Self::BIT_RANGE]
+        &self.0.view_bits()[0..Self::NBITS]
     }
 }
 
@@ -94,8 +97,7 @@ fn constructors() {
 
 #[test]
 fn view_bits() {
-    assert_eq!(Uimm5(0b11111).view_bits().len(), Uimm5::BIT_RANGE.end);
-    assert_eq!(Uimm5::BIT_RANGE.end, 5);
+    assert_eq!(Uimm5(0b11111).view_bits().len(), Uimm5::NBITS);
 }
 
 impl Display for Uimm5 {
@@ -114,7 +116,7 @@ impl TryFrom<u8> for Uimm5 {
     type Error = Uimm5ConvError;
 
     fn try_from(value: u8) -> Result<Self, Self::Error> {
-        if u8_fits_n_bits(value, Self::BIT_RANGE.end) {
+        if u8_fits_n_bits(value, Self::NBITS) {
             Ok(Self(value as u32))
         } else {
             Err(Uimm5ConvError::U8(value))
@@ -126,7 +128,7 @@ impl TryFrom<u16> for Uimm5 {
     type Error = Uimm5ConvError;
 
     fn try_from(value: u16) -> Result<Self, Self::Error> {
-        if u16_fits_n_bits(value, Self::BIT_RANGE.end) {
+        if u16_fits_n_bits(value, Self::NBITS) {
             Ok(Self(value as u32))
         } else {
             Err(Uimm5ConvError::U16(value))
@@ -138,7 +140,7 @@ impl TryFrom<u32> for Uimm5 {
     type Error = Uimm5ConvError;
 
     fn try_from(value: u32) -> Result<Self, Self::Error> {
-        if u32_fits_n_bits(value, Self::BIT_RANGE.end) {
+        if u32_fits_n_bits(value, Self::NBITS) {
             Ok(Self(value))
         } else {
             Err(Uimm5ConvError::U32(value))
@@ -150,7 +152,7 @@ impl TryFrom<u64> for Uimm5 {
     type Error = Uimm5ConvError;
 
     fn try_from(value: u64) -> Result<Self, Self::Error> {
-        if u64_fits_n_bits(value, Self::BIT_RANGE.end) {
+        if u64_fits_n_bits(value, Self::NBITS) {
             Ok(Self(value as u32))
         } else {
             Err(Uimm5ConvError::U64(value))
@@ -159,7 +161,7 @@ impl TryFrom<u64> for Uimm5 {
 }
 
 #[test]
-fn try_from() -> Result<(), Uimm5ConvError> {
+fn conversions() -> Result<(), Uimm5ConvError> {
     assert_eq!(Uimm5::try_from(0b11111u8)?, Uimm5(0b11111));
     assert_eq!(Uimm5::try_from(0b11111u16)?, Uimm5(0b11111));
     assert_eq!(Uimm5::try_from(0b11111u32)?, Uimm5(0b11111));
@@ -234,10 +236,6 @@ impl Error for Uimm5ConvError {}
 
 #[test]
 fn conv_error_impl_error() -> Result<(), Box<dyn Error>> {
-    assert_eq!(Uimm5::try_from(0b11111u8)?, Uimm5(0b11111));
-    assert_eq!(Uimm5::try_from(0b11111u16)?, Uimm5(0b11111));
-    assert_eq!(Uimm5::try_from(0b11111u32)?, Uimm5(0b11111));
-    assert_eq!(Uimm5::try_from(0b11111u64)?, Uimm5(0b11111));
-
+    assert_eq!(Uimm5::try_from(0u8)?, Uimm5(0));
     Ok(())
 }

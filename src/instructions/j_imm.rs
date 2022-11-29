@@ -4,7 +4,6 @@ use core::fmt;
 use std::{
     error::Error,
     fmt::Display,
-    ops::Range,
 };
 
 use bitvec::{
@@ -13,18 +12,83 @@ use bitvec::{
     view::BitView,
 };
 
-use crate::util::i32_fits_n_bits;
+use crate::util::{
+    i32_fits_n_bits,
+    i64_fits_n_bits,
+};
 
-/// 21-bit signed immediate value used in the [crate::instructions::rv32i::jal] instruction
+mod internal {
+    pub enum Assert<const CHECK: bool> {}
+
+    pub trait Fits21BIts {}
+
+    impl Fits21BIts for Assert<true> {}
+}
+
+/// 21-bit signed immediate value used in the [jal](crate::instructions::rv32i::jal) instruction
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct JImm(u32);
 
 impl JImm {
-    const BIT_RANGE: Range<usize> = 0..21;
+    const NBITS: usize = 21;
+
+    /// Creates an `JImm` from an [i8] constant
+    #[must_use]
+    pub const fn from_i8<const VALUE: i8>() -> Self {
+        Self(VALUE as u32)
+    }
+
+    /// Creates an `JImm` from an [i16] constant
+    #[must_use]
+    pub const fn from_i16<const VALUE: i16>() -> Self {
+        Self(VALUE as u32)
+    }
+
+    #[doc = include_str!("../../doc/nightly_warning.html")]
+    ///
+    /// Creates an `JImm` from an [i32] constant
+    #[cfg(feature = "nightly")]
+    #[must_use]
+    pub const fn from_i32<const VALUE: i32>() -> Self
+    where
+        internal::Assert<{ i32_fits_n_bits(VALUE, Self::NBITS) }>: internal::Fits21BIts,
+    {
+        Self(VALUE as u32)
+    }
+
+    #[doc = include_str!("../../doc/nightly_warning.html")]
+    ///
+    /// Creates an `JImm` from an [i64] constant
+    #[cfg(feature = "nightly")]
+    #[must_use]
+    pub const fn from_i64<const VALUE: i64>() -> Self
+    where
+        internal::Assert<{ i64_fits_n_bits(VALUE, Self::NBITS) }>: internal::Fits21BIts,
+    {
+        Self(VALUE as u32)
+    }
 
     pub(crate) fn view_bits(&self) -> &BitSlice<u32, Lsb0> {
-        &self.0.view_bits()[Self::BIT_RANGE]
+        &self.0.view_bits()[0..Self::NBITS]
     }
+}
+
+#[cfg(feature = "nightly")]
+#[test]
+fn constructors() {
+    let _ = JImm::from_i8::<-128>();
+    let _ = JImm::from_i8::<127>();
+    let _ = JImm::from_i16::<-32768>();
+    let _ = JImm::from_i16::<32767>();
+    let _ = JImm::from_i32::<-1048576>();
+    let _ = JImm::from_i32::<1048575>();
+    let _ = JImm::from_i64::<-1048576>();
+    let _ = JImm::from_i64::<1048575>();
+}
+
+#[test]
+fn view_bits() {
+    assert_eq!(JImm(-1048576_i32 as u32).view_bits().len(), JImm::NBITS);
 }
 
 impl Display for JImm {
@@ -35,34 +99,131 @@ impl Display for JImm {
 
 #[test]
 fn display() -> Result<(), JImmConvError> {
-    assert_eq!(JImm::try_from(-600)?.to_string(), "-600");
+    assert_eq!(JImm::try_from(-1048576)?.to_string(), "-1048576");
+    assert_eq!(JImm::try_from(1048575)?.to_string(), "1048575");
     Ok(())
+}
+
+impl From<i8> for JImm {
+    fn from(value: i8) -> Self {
+        Self(value as u32)
+    }
+}
+
+impl From<i16> for JImm {
+    fn from(value: i16) -> Self {
+        Self(value as u32)
+    }
 }
 
 impl TryFrom<i32> for JImm {
     type Error = JImmConvError;
 
     fn try_from(value: i32) -> Result<Self, Self::Error> {
-        if i32_fits_n_bits(value, Self::BIT_RANGE.end) {
+        if i32_fits_n_bits(value, Self::NBITS) {
             Ok(Self(value as u32))
         } else {
-            Err(JImmConvError(value))
+            Err(JImmConvError::I32(value))
         }
     }
 }
 
+impl TryFrom<i64> for JImm {
+    type Error = JImmConvError;
+
+    fn try_from(value: i64) -> Result<Self, Self::Error> {
+        if i64_fits_n_bits(value, Self::NBITS) {
+            Ok(Self(value as u32))
+        } else {
+            Err(JImmConvError::I64(value))
+        }
+    }
+}
+#[test]
+fn conversions() -> Result<(), JImmConvError> {
+    assert_eq!(JImm::from(-128_i8), JImm(-128_i32 as u32));
+    assert_eq!(JImm::from(127_i8), JImm(127_i32 as u32));
+    assert_eq!(JImm::from(-32768_i16), JImm(-32768_i32 as u32));
+    assert_eq!(JImm::from(32767_i16), JImm(32767_i32 as u32));
+    assert_eq!(JImm::try_from(-1048576_i32)?, JImm(-1048576_i32 as u32));
+    assert_eq!(JImm::try_from(1048575_i32)?, JImm(1048575_i32 as u32));
+    assert_eq!(JImm::try_from(-1048576_i64)?, JImm(-1048576_i32 as u32));
+    assert_eq!(JImm::try_from(1048575_i64)?, JImm(1048575_i32 as u32));
+
+    assert!(matches!(
+        JImm::try_from(-1048577_i32),
+        Err(JImmConvError::I32(-1048577))
+    ));
+    assert!(matches!(
+        JImm::try_from(1048576_i32),
+        Err(JImmConvError::I32(1048576))
+    ));
+    assert!(matches!(
+        JImm::try_from(-1048577_i64),
+        Err(JImmConvError::I64(-1048577))
+    ));
+    assert!(matches!(
+        JImm::try_from(1048576_i64),
+        Err(JImmConvError::I64(1048576))
+    ));
+
+    Ok(())
+}
+
 /// [JImm] conversion error
 #[derive(Debug)]
-pub struct JImmConvError(i32);
+pub enum JImmConvError {
+    ///
+    I32(i32),
+    ///
+    I64(i64),
+}
 
 impl Display for JImmConvError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(
-            f,
-            "invalid 21-bit signed immediate: {} 0x{:08x}",
-            self.0, self.0
-        )
+        write!(f, "invalid 21-bit signed immediate: ")?;
+        match self {
+            JImmConvError::I32(value) => write!(f, "{} (0x{:08x})", value, value),
+            JImmConvError::I64(value) => write!(f, "{} (0x{:016x})", value, value),
+        }
     }
+}
+#[test]
+fn conv_error_impl_display() {
+    assert_eq!(
+        JImm::try_from(-1048577_i32).unwrap_err().to_string(),
+        format!(
+            "invalid {}-bit signed immediate: -1048577 (0xffefffff)",
+            JImm::NBITS
+        )
+    );
+    assert_eq!(
+        JImm::try_from(1048576_i32).unwrap_err().to_string(),
+        format!(
+            "invalid {}-bit signed immediate: 1048576 (0x00100000)",
+            JImm::NBITS
+        )
+    );
+    assert_eq!(
+        JImm::try_from(-1048577_i64).unwrap_err().to_string(),
+        format!(
+            "invalid {}-bit signed immediate: -1048577 (0xffffffffffefffff)",
+            JImm::NBITS
+        )
+    );
+    assert_eq!(
+        JImm::try_from(1048576_i64).unwrap_err().to_string(),
+        format!(
+            "invalid {}-bit signed immediate: 1048576 (0x0000000000100000)",
+            JImm::NBITS
+        )
+    );
 }
 
 impl Error for JImmConvError {}
+
+#[test]
+fn conv_error_impl_error() -> Result<(), Box<dyn Error>> {
+    assert_eq!(JImm::try_from(0)?, JImm(0));
+    Ok(())
+}
