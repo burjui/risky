@@ -7,14 +7,28 @@ pub use fence_mask::*;
 use fence_mode::FenceMode;
 
 use super::formats::{
-    b_instruction, funct3::Funct3, funct7::Funct7, i_instruction, j_instruction, opcode::Opcode,
-    r_instruction, s_instruction, u_instruction, RegOrUimm5,
+    b_instruction,
+    funct3::Funct3,
+    funct7::Funct7,
+    i_instruction,
+    j_instruction,
+    opcode::Opcode,
+    r_instruction,
+    s_instruction,
+    u_instruction,
+    RegOrUimm5,
 };
-pub use super::{b_imm::*, imm12::*, j_imm::*, uimm5::*};
+pub use super::{
+    b_imm::*,
+    imm12::*,
+    j_imm::*,
+    uimm5::*,
+};
 pub use crate::registers::*;
 
-/// "Load Upper Immediate" instruction is primarily used to build 32-bit constants. It places `imm` in the top
-/// 20 bits of the destination register `rd`, filling in the lowest 12 bits with zeros.<br/><br/>
+/// "Load Upper Immediate" instruction is primarily used to build 32-bit constants. It places `imm`
+/// in the top 20 bits of the destination register `rd`, filling in the lowest 12 bits with zeros.
+///
 /// It is supposed to be paired with the following instructions for:
 /// - Just building a constant: [addi]
 /// - Loading from memory: [lb], [lbu], [lh], [lhu], [lw]
@@ -24,29 +38,36 @@ pub fn lui(rd: Register, imm: i32) -> u32 {
     u_instruction(Opcode::LUI, rd, imm)
 }
 
-/// "Add Upper Immediate to PC" instruction is used to build pc-relative addresses.
-/// It forms a 32-bit offset from `imm`, filling in the lowest 12 bits with zeros, adds this offset to the address of
-/// the `auipc` instruction, then places the result in the register `rd`.<br/><br/>
+/// "Add Upper Immediate to PC" instruction is used to build pc-relative addresses. It forms a
+/// 32-bit offset from `imm`, filling in the lowest 12 bits with zeros, adds this offset to the
+/// address of the `auipc` instruction, then places the result in the register `rd`.
+///
 /// For a pc-relative jump, use [jal].
 pub fn auipc(rd: Register, imm: i32) -> u32 {
     u_instruction(Opcode::AUIPC, rd, imm)
 }
 
-/// "Jump And Link" instruction performs a pc-relative jump, where `imm` encodes a 21-bit signed offset,
-/// with the lowest bit ignored. The offset is sign-extended and added to the address of the jump instruction (pc) to
-/// form the jump target address. Jumps can therefore target a ±1&nbsp;MiB range. `jal` stores the address of the
-/// instruction that follows the `jal` (pc+4) into the register `rd`. The standard software calling convention uses [X1]
-/// as the return address register and [X5] as an alternate link register.<br/><br/>
+/// "Jump And Link" instruction performs a pc-relative jump, where `imm` encodes a 21-bit signed
+/// offset, with the lowest bit ignored. The offset is sign-extended and added to the address of the
+/// jump instruction (pc) to form the jump target address. Jumps can therefore target a ±1&nbsp;MiB
+/// range. `jal` stores the address of the instruction that follows the `jal` (pc+4) into the
+/// register `rd`. The standard software calling convention uses [X1] as the return address register
+/// and [X5] as an alternate link register (more details in the [abi](crate::abi) module).
+///
 /// For an indirect jump, use [jalr].<br/>
 /// For just retrieving the value of `pc`, use [auipc].
 pub fn jal(rd: Register, imm: JImm) -> u32 {
     j_instruction(Opcode::JAL, rd, imm)
 }
 
-/// "Jump And Link from Register" instruction performs an indirect jump. The target address is obtained by
-/// adding the sign-extended 12-bit `imm` to the register `rs1`, then setting the least-significant bit of the result to
-/// zero. The address of the instruction following the `jalr` (pc+4) is written to the register `rd`. Register [X0] can
-/// be used as the destination if the result is not required.<br/><br/>
+/// "Jump And Link from Register" instruction performs an indirect jump. The target address is
+/// obtained by adding the sign-extended 12-bit `imm` to the register `rs1`, then setting the
+/// least-significant bit of the result to zero. The address of the instruction following the `jalr`
+/// (pc+4) is written to the register `rd`. Register [X0] can be used as the destination if the
+/// result is not required.
+///
+/// To jump to a constant address, pair `jalr` with [lui].
+///
 /// For a pc-relative jump, use [jal].<br/>
 /// For just retrieving the value of `pc`, use [auipc].
 pub fn jalr(rd: Register, rs1: Register, imm: Imm12) -> u32 {
@@ -59,61 +80,73 @@ pub fn jalr(rd: Register, rs1: Register, imm: Imm12) -> u32 {
     )
 }
 
-/// "Branch if EQual" instruction takes the branch if `rs1` = `rs2`, using the 13-bit immediate `imm` as an
-/// offset from the address of the branch instruction (pc). The lower bit if `imm` is ignored, so the effective offset
-/// is always in multiples of 2. The branch range is ±4&nbsp;KiB.<br/><br/>
+/// "Branch if EQual" instruction takes the branch if `rs1` = `rs2`, using the 13-bit immediate
+/// `imm` as an offset from the address of the branch instruction (pc). The lower bit if `imm` is
+/// ignored, so the effective offset is always in multiples of 2. The branch range is ±4&nbsp;KiB.
+///
 /// Other branch instructions with different conditions: [bne], [blt], [bltu], [bge], [bgeu].
 pub fn beq(imm: BImm, rs1: Register, rs2: Register) -> u32 {
     b_instruction(Opcode::BRANCH, imm, Funct3::BEQ, rs1, rs2)
 }
 
-/// "Branch if Not Equal" instruction takes the branch if `rs1` ≠ `rs2`, using the 13-bit immediate `imm` as
-/// an offset from the address of the branch instruction (pc). The lower bit if `imm` is ignored, so the effective
-/// offset is always in multiples of 2. The branch range is ±4&nbsp;KiB.<br/><br/>
+/// "Branch if Not Equal" instruction takes the branch if `rs1` ≠ `rs2`, using the 13-bit immediate
+/// `imm` as an offset from the address of the branch instruction (pc). The lower bit if `imm` is
+/// ignored, so the effective offset is always in multiples of 2. The branch range is ±4&nbsp;KiB.
+///
 /// Other branch instructions with different conditions: [beq], [blt], [bltu], [bge], [bgeu].
 pub fn bne(imm: BImm, rs1: Register, rs2: Register) -> u32 {
     b_instruction(Opcode::BRANCH, imm, Funct3::BNE, rs1, rs2)
 }
 
-/// "Branch if Less Than" instruction takes the branch if `rs1` < `rs2`, using signed comparison and the
-/// 13-bit immediate `imm` as an offset from the address of the branch instruction (pc). The lower bit if `imm` is
-/// ignored, so the effective offset is always in multiples of 2. The conditional branch range is ±4&nbsp;KiB.<br/><br/>
+/// "Branch if Less Than" instruction takes the branch if `rs1` < `rs2`, using signed comparison and
+/// the 13-bit immediate `imm` as an offset from the address of the branch instruction (pc). The
+/// lower bit if `imm` is ignored, so the effective offset is always in multiples of 2. The
+/// conditional branch range is ±4&nbsp;KiB.
+///
 /// Other branch instructions with different conditions: [bltu], [bge], [bgeu], [beq], [bne].
 pub fn blt(imm: BImm, rs1: Register, rs2: Register) -> u32 {
     b_instruction(Opcode::BRANCH, imm, Funct3::BLT, rs1, rs2)
 }
 
-/// "Branch if Less Than Unsigned" instruction takes the branch if `rs1` < `rs2`, using unsigned comparison
-/// and the 13-bit immediate `imm` as an offset from the address of the branch instruction (pc). The lower bit if `imm`
-/// is ignored, so the effective offset is always in multiples of 2. The branch range is ±4&nbsp;KiB.<br/><br/>
-/// Note that signed array bounds may be checked with a single BLTU instruction,
-/// since any negative index will compare greater than any nonnegative bound.<br/><br/>
+/// "Branch if Less Than Unsigned" instruction takes the branch if `rs1` < `rs2`, using unsigned
+/// comparison and the 13-bit immediate `imm` as an offset from the address of the branch
+/// instruction (pc). The lower bit if `imm` is ignored, so the effective offset is always in
+/// multiples of 2. The branch range is ±4&nbsp;KiB.
+///
+/// Note that signed array bounds may be checked with a single `bltu` instruction, since any
+/// negative index will compare greater than any nonnegative bound.
+///
 /// Other branch instructions with different conditions: [blt], [bge], [bgeu], [beq], [bne]
 pub fn bltu(imm: BImm, rs1: Register, rs2: Register) -> u32 {
     b_instruction(Opcode::BRANCH, imm, Funct3::BLTU, rs1, rs2)
 }
 
-/// "Branch if Greater or Equal" instruction takes the branch if `rs1` ≥ `rs2`, using signed comparison and
-/// the 13-bit immediate `imm` as an offset from the address of the branch instruction (pc). The lower bit if `imm` is
-/// ignored, so the effective offset is always in multiples of 2. The branch range is ±4&nbsp;KiB.<br/><br/>
+/// "Branch if Greater or Equal" instruction takes the branch if `rs1` ≥ `rs2`, using signed
+/// comparison and the 13-bit immediate `imm` as an offset from the address of the branch
+/// instruction (pc). The lower bit if `imm` is ignored, so the effective offset is always in
+/// multiples of 2. The branch range is ±4&nbsp;KiB.
+///
 /// Other branch instructions with different conditions: [bgeu], [blt], [bltu], [beq], [bne].
 pub fn bge(imm: BImm, rs1: Register, rs2: Register) -> u32 {
     b_instruction(Opcode::BRANCH, imm, Funct3::BGE, rs1, rs2)
 }
 
-/// "Branch if Greater or Equal Unsigned" instruction takes the branch if `rs1` ≥ `rs2`, using unsigned
-/// comparison and the 13-bit immediate `imm` as an offset from the address of the branch instruction (pc). The lower
-/// bit if `imm` is ignored, so the effective offset is always in multiples of 2.
-/// The branch range is ±4&nbsp;KiB.<br/><br/>
+/// "Branch if Greater or Equal Unsigned" instruction takes the branch if `rs1` ≥ `rs2`, using
+/// unsigned comparison and the 13-bit immediate `imm` as an offset from the address of the branch
+/// instruction (pc). The lower bit if `imm` is ignored, so the effective offset is always in
+/// multiples of 2. The branch range is ±4&nbsp;KiB.
+///
 /// Other branch instructions with different conditions: [bge], [blt], [bltu], [beq], [bne].
 pub fn bgeu(imm: BImm, rs1: Register, rs2: Register) -> u32 {
     b_instruction(Opcode::BRANCH, imm, Funct3::BGEU, rs1, rs2)
 }
 
-/// "Load Byte" instruction copies a 8-bit value from memory to the register `rd`, sign-extending it to
-/// 32&nbsp;bits. The effective address is obtained by adding register `rs1` to the sign-extended 12-bit offset `imm`.
-/// <br/><br/>
-/// For loading from a constant address, pair `lb` with [lui].<br/><br/>
+/// "Load Byte" instruction copies a 8-bit value from memory to the register `rd`, sign-extending it
+/// to 32&nbsp;bits. The effective address is obtained by adding register `rs1` to the sign-extended
+/// 12-bit offset `imm`.
+///
+/// For loading from a constant address, pair `lb` with [lui].
+///
 /// Other load instructions: [lbu], [lh], [lhu], [lw]<br/>
 /// Store instructions: [sb], [sh], [sw]<br/>
 /// Copying values between registers: [mv]
@@ -121,10 +154,12 @@ pub fn lb(rd: Register, rs1: Register, imm: Imm12) -> u32 {
     i_instruction(Opcode::LOAD, rd, Funct3::LB, RegOrUimm5::Register(rs1), imm)
 }
 
-/// "Load Byte Unsigned" instruction copies a 8-bit from memory to the register `rd`, zero-extending it to
-/// 32&nbsp;bits. The effective address is obtained by adding register `rs1` to the sign-extended 12-bit offset `imm`.
-/// <br/><br/>
-/// For loading from a constant address, pair `lbu` with [lui].<br/><br/>
+/// "Load Byte Unsigned" instruction copies a 8-bit from memory to the register `rd`, zero-extending
+/// it to 32&nbsp;bits. The effective address is obtained by adding register `rs1` to the
+/// sign-extended 12-bit offset `imm`.
+///
+/// For loading from a constant address, pair `lbu` with [lui].
+///
 /// Other load instructions: [lb], [lh], [lhu], [lw]<br/>
 /// Store instructions: [sb], [sh], [sw]<br/>
 /// Copying values between registers: [mv]
@@ -138,10 +173,12 @@ pub fn lbu(rd: Register, rs1: Register, imm: Imm12) -> u32 {
     )
 }
 
-/// "Load Half-word" instruction copies a 16-bit value from memory to the register `rd`, sign-extending it to
-/// 32&nbsp;bits. The effective address is obtained by adding register `rs1` to the sign-extended 12-bit offset `imm`.
-/// <br/><br/>
-/// For loading from a constant address, pair `lh` with [lui].<br/><br/>
+/// "Load Half-word" instruction copies a 16-bit value from memory to the register `rd`,
+/// sign-extending it to 32&nbsp;bits. The effective address is obtained by adding register `rs1` to
+/// the sign-extended 12-bit offset `imm`.
+///
+/// For loading from a constant address, pair `lh` with [lui].
+///
 /// Other load instructions: [lhu], [lb], [lbu], [lw]<br/>
 /// Store instructions: [sb], [sh], [sw]<br/>
 /// Copying values between registers: [mv]
@@ -149,10 +186,12 @@ pub fn lh(rd: Register, rs1: Register, imm: Imm12) -> u32 {
     i_instruction(Opcode::LOAD, rd, Funct3::LH, RegOrUimm5::Register(rs1), imm)
 }
 
-/// "Load Half-word Unsigned" instruction copies a 16-bit value from memory to the register `rd`, zero-extending it to
-/// 32&nbsp;bits. The effective address is obtained by adding register `rs1` to the sign-extended 12-bit offset `imm`.
-/// <br/><br/>
-/// For loading from a constant address, pair `lhu` with [lui].<br/><br/>
+/// "Load Half-word Unsigned" instruction copies a 16-bit value from memory to the register `rd`,
+/// zero-extending it to 32&nbsp;bits. The effective address is obtained by adding register `rs1` to
+/// the sign-extended 12-bit offset `imm`.
+///
+/// For loading from a constant address, pair `lhu` with [lui].
+///
 /// Other load instructions: [lh], [lb], [lbu], [lw]<br/>
 /// Store instructions: [sb], [sh], [sw]<br/>
 /// Copying values between registers: [mv]
@@ -166,10 +205,11 @@ pub fn lhu(rd: Register, rs1: Register, imm: Imm12) -> u32 {
     )
 }
 
-/// "Load Word" instruction copies a 32-bit value from memory to the register `rd`.
-/// The effective address is obtained by adding register `rs1` to the sign-extended 12-bit offset `imm`.
-/// <br/><br/>
-/// For loading from a constant address, pair `lw` with [lui].<br/><br/>
+/// "Load Word" instruction copies a 32-bit value from memory to the register `rd`. The effective
+/// address is obtained by adding register `rs1` to the sign-extended 12-bit offset `imm`.
+///
+/// For loading from a constant address, pair `lw` with [lui].
+///
 /// Other load instructions: [lb], [lbu], [lh], [lhu]<br/>
 /// Store instructions: [sb], [sh], [sw]<br/>
 /// Copying values between registers: [mv]
@@ -177,10 +217,11 @@ pub fn lw(rd: Register, rs1: Register, imm: Imm12) -> u32 {
     i_instruction(Opcode::LOAD, rd, Funct3::LW, RegOrUimm5::Register(rs1), imm)
 }
 
-/// "Store Byte" instruction copies a 8-bit value from the low bits of register `rs2` to memory.
-/// The effective address is obtained by adding register `rs1` to the sign-extended 12-bit offset `imm`.
-/// <br/><br/>
-/// For storing to a constant address, pair `sb` with [lui].<br/><br/>
+/// "Store Byte" instruction copies a 8-bit value from the low bits of register `rs2` to memory. The
+/// effective address is obtained by adding register `rs1` to the sign-extended 12-bit offset `imm`.
+///
+/// For storing to a constant address, pair `sb` with [lui].
+///
 /// Other store instructions: [sh], [sw]<br/>
 /// Load instructions: [lb], [lbu], [lh], [lhu], [lw]<br/>
 /// Copying values between registers: [mv]
@@ -188,10 +229,12 @@ pub fn sb(rs1: Register, imm: Imm12, rs2: Register) -> u32 {
     s_instruction(Opcode::STORE, imm, Funct3::SB, rs1, rs2)
 }
 
-/// "Store Half-word" instruction copies a 16-bit value from the low bits of register `rs2` to memory.
-/// The effective address is obtained by adding register `rs1` to the sign-extended 12-bit offset `imm`.
-/// <br/><br/>
-/// For storing to a constant address, pair `sh` with [lui].<br/><br/>
+/// "Store Half-word" instruction copies a 16-bit value from the low bits of register `rs2` to
+/// memory. The effective address is obtained by adding register `rs1` to the sign-extended 12-bit
+/// offset `imm`.
+///
+/// For storing to a constant address, pair `sh` with [lui].
+///
 /// Other store instructions: [sb], [sw]<br/>
 /// Load instructions: [lb], [lbu], [lh], [lhu], [lw]<br/>
 /// Copying values between registers: [mv]
@@ -199,10 +242,11 @@ pub fn sh(rs1: Register, imm: Imm12, rs2: Register) -> u32 {
     s_instruction(Opcode::STORE, imm, Funct3::SH, rs1, rs2)
 }
 
-/// "Store Word" instruction copies a 32-bit value from the register `rs2` to memory.
-/// The effective address is obtained by adding register `rs1` to the sign-extended 12-bit offset `imm`.
-/// <br/><br/>
-/// For storing to a constant address, pair `sw` with [lui].<br/><br/>
+/// "Store Word" instruction copies a 32-bit value from the register `rs2` to memory. The effective
+/// address is obtained by adding register `rs1` to the sign-extended 12-bit offset `imm`.
+///
+/// For storing to a constant address, pair `sw` with [lui].
+///
 /// Other store instructions: [sb], [sh]<br/>
 /// Load instructions: [lb], [lbu], [lh], [lhu], [lw]<br/>
 /// Copying values between registers: [mv]
@@ -211,13 +255,15 @@ pub fn sw(rs1: Register, imm: Imm12, rs2: Register) -> u32 {
 }
 
 /// "ADD Immediate" instruction adds the sign-extended 12-bit immediate `imm` to the register `rs1`.
-/// Arithmetic overflow is ignored and the result is simply the low XLEN bits of the result.
-/// Note, `ADDI rd, rs1, 0` is equivalent to pseudoinstruction [mv]&nbsp;`rd, rs1`,
-/// and `ADDI x0, x0, 0` is equivalent to pseudoinstruction [nop].<br/><br/>
+/// Arithmetic overflow is ignored and the result is simply the low XLEN bits of the result. Note,
+/// `addi rd, rs1, 0` is equivalent to pseudoinstruction <code>[mv]&nbsp;rd,&nbsp;rs1</code>, and
+/// `addi x0, x0, 0` is equivalent to pseudoinstruction [nop].
+///
 /// Other arithmetic instructions:
 /// - RV32I: [add], [sub]
-/// - M extension: [mul](super::mul), [mulh](super::mulh), [mulhsu](super::mulhsu), [mulhu](super::mulhu),
-/// [div](super::div), [divu](super::divu), [rem](super::rem), [remu](super::remu)
+/// - M extension: [mul](super::mul), [mulh](super::mulh), [mulhsu](super::mulhsu),
+/// [mulhu](super::mulhu), [div](super::div), [divu](super::divu), [rem](super::rem),
+/// [remu](super::remu)
 pub fn addi(rd: Register, rs1: Register, imm: Imm12) -> u32 {
     i_instruction(
         Opcode::OP_IMM,
@@ -228,8 +274,10 @@ pub fn addi(rd: Register, rs1: Register, imm: Imm12) -> u32 {
     )
 }
 
-/// "MoVe" pseudoinstruction copies the register `rs1` to the register `rd`.<br/><br/>
-/// `MV rd, rs1` is encoded as [addi]&nbsp;`rd, rs1, 0`.<br/><br/>
+/// "MoVe" pseudoinstruction copies the register `rs1` to the register `rd`.
+///
+/// `mv rd, rs1` is encoded as <code>[addi] rd, rs1, 0</code>.
+///
 /// For copying values to and from memory, use the following instructions:
 /// - Loading from memory: [lb], [lbu], [lh], [lhu], [lw]
 /// - Storing to memory: [sb], [sh], [sw]
@@ -237,15 +285,18 @@ pub fn mv(rd: Register, rs1: Register) -> u32 {
     addi(rd, rs1, Imm12::ZERO)
 }
 
-/// "No OPeration" instruction does not change any architecturally visible state, except for advancing the
-/// pc and incrementing any applicable performance counters.<br/><br/>
-/// `nop` is encoded as [addi]&nbsp;`x0, x0, 0`.
+/// "No OPeration" instruction does not change any architecturally visible state, except for
+/// advancing the pc and incrementing any applicable performance counters.
+///
+/// `nop` is encoded as <code>[addi] x0, x0, 0</code>.
 pub fn nop() -> u32 {
     addi(X0, X0, Imm12::ZERO)
 }
 
-/// "Set Less Than Immediate" instruction places the value 1 in the register `rd` if register `rs1` is less than the
-/// sign-extended immediate when both are treated as signed numbers, else 0 is written to `rd`.<br/><br/>
+/// "Set Less Than Immediate" instruction places the value 1 in the register `rd` if register `rs1`
+/// is less than the sign-extended immediate when both are treated as signed numbers, else 0 is
+/// written to `rd`.
+///
 /// Other comparison instructions: [slt], [sltu], [sltiu], [seqz], [snez]
 pub fn slti(rd: Register, rs1: Register, imm: Imm12) -> u32 {
     i_instruction(
@@ -257,10 +308,12 @@ pub fn slti(rd: Register, rs1: Register, imm: Imm12) -> u32 {
     )
 }
 
-/// "Set Less Than Immediate Unsigned" (set less than immediate unsigned) places the value 1 in the register `rd` if register `rs1` is less than
-/// the sign-extended immediate when both are treated as unsigned numbers, else 0 is written to `rd`. Note,
-/// `SLTIU rd, rs1, 1` sets `rd` to 1 if `rs1` = 0, otherwise sets `rd` to 0, and is equivalent to pseudoinstruction
-/// [seqz]&nbsp;`rd, rs`).<br/><br/>
+/// "Set Less Than Immediate Unsigned" (set less than immediate unsigned) places the value 1 in the
+/// register `rd` if register `rs1` is less than the sign-extended immediate when both are treated
+/// as unsigned numbers, else 0 is written to `rd`. Note, `sltiu rd, rs1, 1` sets `rd` to 1 if `rs1`
+/// = 0, otherwise sets `rd` to 0, and is equivalent to pseudoinstruction
+/// <code>[seqz]&nbsp;rd,&nbsp;rs</code>.
+///
 /// Other comparison instructions: [slt], [sltu], [slti], [seqz], [snez]
 pub fn sltiu(rd: Register, rs1: Register, imm: Imm12) -> u32 {
     i_instruction(
@@ -273,16 +326,20 @@ pub fn sltiu(rd: Register, rs1: Register, imm: Imm12) -> u32 {
 }
 
 /// "Set EQual to Zero" pseudoinstruction places the value 1 in register `rd` if register `rs1` = 0,
-/// else 0 is written to `rd`.<br/><br/>
-/// `SEQZ rd, rs1` is encoded as [sltiu]&nbsp;`rd, rs1, 1`.<br/><br/>
+/// else 0 is written to `rd`.
+///
+/// `seqz rd, rs1` is encoded as <code>[sltiu] rd, rs1, 1</code>.
+///
 /// Other comparison instructions: [slt], [sltu], [slti], [sltiu], [snez]
 pub fn seqz(rd: Register, rs1: Register) -> u32 {
     sltiu(rd, rs1, Imm12::ONE)
 }
 
-/// "XOR with Immediate" performs XOR bitwise logical operation on register `rs1` and the sign-extended 12-bit immediate `imm` and
-/// places the result in register `rd`. Note, `XORI rd, rs1, -1` performs a bitwise logical inversion of the register
-/// `rs1` and is equivalent to pseudoinstruction [not]&nbsp;`rd, rs`.<br/><br/>
+/// "XOR with Immediate" performs XOR bitwise logical operation on register `rs1` and the
+/// sign-extended 12-bit immediate `imm` and places the result in register `rd`. Note, `xori rd,
+/// rs1, -1` performs a bitwise logical inversion of the register `rs1` and is equivalent to
+/// pseudoinstruction <code>[not]&nbsp;rd,&nbsp;rs</code>.
+///
 /// Other logical operations: [xor], [or], [ori], [and], [andi], [not]
 pub fn xori(rd: Register, rs1: Register, imm: Imm12) -> u32 {
     i_instruction(
@@ -294,16 +351,19 @@ pub fn xori(rd: Register, rs1: Register, imm: Imm12) -> u32 {
     )
 }
 
-/// "NOT" pseudoinstruction performs bitwise logical inversion of register `rs1` and places the result in the
-/// register `rd`.<br/><br/>
-/// `NOT rd, rs1` is encoded as [xori]&nbsp;`rd, rs1, -1`.<br/><br/>
+/// "NOT" pseudoinstruction performs bitwise logical inversion of register `rs1` and places the
+/// result in the register `rd`.
+///
+/// `not rd, rs1` is encoded as <code>[xori] rd, rs1, -1</code>.
+///
 /// Other logical operations: [xor], [xori], [or], [ori], [and], [andi]
 pub fn not(rd: Register, rs1: Register) -> u32 {
     xori(rd, rs1, Imm12::MINUS_ONE)
 }
 
-/// "OR with Immediate" instruction performs OR bitwise logical operation on register `rs1` and the sign-extended 12-bit immediate `imm`
-/// and places the result in the register `rd`.<br/><br/>
+/// "OR with Immediate" instruction performs OR bitwise logical operation on register `rs1` and the
+/// sign-extended 12-bit immediate `imm` and places the result in the register `rd`.
+///
 /// Other logical operations: [or], [xor], [xori], [and], [andi], [not]
 pub fn ori(rd: Register, rs1: Register, imm: Imm12) -> u32 {
     i_instruction(
@@ -315,8 +375,9 @@ pub fn ori(rd: Register, rs1: Register, imm: Imm12) -> u32 {
     )
 }
 
-/// "AND with Immediate" instruction performs AND bitwise logical operation on register `rs1` and the sign-extended 12-bit immediate `imm`
-/// and places the result in the register `rd`.<br/><br/>
+/// "AND with Immediate" instruction performs AND bitwise logical operation on register `rs1` and
+/// the sign-extended 12-bit immediate `imm` and places the result in the register `rd`.
+///
 /// Other logical operations: [and], [xor], [xori], [or], [ori], [not]
 pub fn andi(rd: Register, rs1: Register, imm: Imm12) -> u32 {
     i_instruction(
@@ -328,9 +389,10 @@ pub fn andi(rd: Register, rs1: Register, imm: Imm12) -> u32 {
     )
 }
 
-/// "Shift Left Logical by Immediate" instruction performs a left shift of register `rs1` by
-/// a constant `shamt` encoded in the lower 5 bits of the I-immediate field, shifting zeros into the lower bits,
-/// and places the result in the register `rd`.<br/><br/>
+/// "Shift Left Logical by Immediate" instruction performs a left shift of register `rs1` by a 5-bit
+/// constant `shamt`, shifting zeros into the lower bits, and places the result in the register
+/// `rd`.
+///
 /// Other shift instructions: [sll], [srl], [srli], [sra], [srai]
 pub fn slli(rd: Register, rs1: Register, shamt: Uimm5) -> u32 {
     r_instruction(
@@ -343,9 +405,10 @@ pub fn slli(rd: Register, rs1: Register, shamt: Uimm5) -> u32 {
     )
 }
 
-/// "Shift Right Logical by Immediate" instruction performs a right shift of register `rs1` by
-/// a constant `shamt` encoded in the lower 5 bits of the I-immediate field, shifting zeros into the upper bits,
-/// and places the result in the register `rd`.<br/><br/>
+/// "Shift Right Logical by Immediate" instruction performs a right shift of register `rs1` by a
+/// 5-bit constant `shamt`, shifting zeros into the upper bits, and places the result in the
+/// register `rd`.
+///
 /// Other shift instructions: [srl], [sra], [srai], [slli], [sll],
 pub fn srli(rd: Register, rs1: Register, shamt: Uimm5) -> u32 {
     r_instruction(
@@ -358,9 +421,9 @@ pub fn srli(rd: Register, rs1: Register, shamt: Uimm5) -> u32 {
     )
 }
 
-/// "Shift Right Arithmetic by Immediate" instruction performs a left shift of register `rs1` by
-/// a constant `shamt` encoded in the lower 5 bits of the I-immediate field, sign-extends the result
-/// and places the result in the register `rd`.<br/><br/>
+/// "Shift Right Arithmetic by Immediate" instruction performs a left shift of register `rs1` by a
+/// 5-bit constant `shamt`, sign-extends the result and places the result in the register `rd`.
+///
 /// Other shift instructions: [sra], [srl], [srli], [sll], [slli]
 pub fn srai(rd: Register, rs1: Register, shamt: Uimm5) -> u32 {
     r_instruction(
@@ -373,13 +436,15 @@ pub fn srai(rd: Register, rs1: Register, shamt: Uimm5) -> u32 {
     )
 }
 
-/// "ADD" instruction performs the addition of registers `rs1` and `rs2`
-/// and places the result in the register `rd`. Overflows are ignored and the low XLEN bits of results are written
-/// to the destination `rd`.<br/><br/>
+/// "ADD" instruction performs the addition of registers `rs1` and `rs2` and places the result in
+/// the register `rd`. Overflows are ignored and the low XLEN bits of results are written to the
+/// destination `rd`.
+///
 /// Other arithmetic instructions:
 /// - RV32I: [addi], [sub]
-/// - M extension: [mul](super::mul), [mulh](super::mulh), [mulhsu](super::mulhsu), [mulhu](super::mulhu),
-/// [div](super::div), [divu](super::divu), [rem](super::rem), [remu](super::remu)
+/// - M extension: [mul](super::mul), [mulh](super::mulh), [mulhsu](super::mulhsu),
+/// [mulhu](super::mulhu), [div](super::div), [divu](super::divu), [rem](super::rem),
+/// [remu](super::remu)
 pub fn add(rd: Register, rs1: Register, rs2: Register) -> u32 {
     r_instruction(
         Opcode::OP,
@@ -391,13 +456,15 @@ pub fn add(rd: Register, rs1: Register, rs2: Register) -> u32 {
     )
 }
 
-/// "SUBtract" instruction performs the subtraction of registers `rs1` and `rs2`
-/// and places the result in the register `rd`. Overflows are ignored and the low XLEN bits of results are written
-/// to the destination `rd`.<br/><br/>
+/// "SUBtract" instruction performs the subtraction of registers `rs1` and `rs2` and places the
+/// result in the register `rd`. Overflows are ignored and the low XLEN bits of results are written
+/// to the destination `rd`.
+///
 /// Other arithmetic instructions:
 /// - RV32I: [addi], [add]
-/// - M extension: [mul](super::mul), [mulh](super::mulh), [mulhsu](super::mulhsu), [mulhu](super::mulhu),
-/// [div](super::div), [divu](super::divu), [rem](super::rem), [remu](super::remu)
+/// - M extension: [mul](super::mul), [mulh](super::mulh), [mulhsu](super::mulhsu),
+/// [mulhu](super::mulhu), [div](super::div), [divu](super::divu), [rem](super::rem),
+/// [remu](super::remu)
 pub fn sub(rd: Register, rs1: Register, rs2: Register) -> u32 {
     r_instruction(
         Opcode::OP,
@@ -409,8 +476,10 @@ pub fn sub(rd: Register, rs1: Register, rs2: Register) -> u32 {
     )
 }
 
-/// "Shift Logical Left" instruction performs logical left shift on the value in register `rs1` by the shift
-/// amount held in the lower 5 bits of register `rs2` and places the result in the register `rd`.<br/><br/>
+/// "Shift Logical Left" instruction performs logical left shift on the value in register `rs1` by
+/// the shift amount held in the lower 5 bits of register `rs2` and places the result in the
+/// register `rd`.
+///
 /// Other shift instructions: [slli], [srl], [sra], [srli], [srai]
 pub fn sll(rd: Register, rs1: Register, rs2: Register) -> u32 {
     r_instruction(
@@ -423,8 +492,10 @@ pub fn sll(rd: Register, rs1: Register, rs2: Register) -> u32 {
     )
 }
 
-/// "Shift Logical Right" instruction performs logical right shift on the value in register `rs1` by the shift
-/// amount held in the lower 5 bits of register `rs2` and places the result in the register `rd`.<br/><br/>
+/// "Shift Logical Right" instruction performs logical right shift on the value in register `rs1` by
+/// the shift amount held in the lower 5 bits of register `rs2` and places the result in the
+/// register `rd`.
+///
 /// Other shift instructions: [srli], [sra], [srai], [sll], [slli]
 pub fn srl(rd: Register, rs1: Register, rs2: Register) -> u32 {
     r_instruction(
@@ -437,8 +508,10 @@ pub fn srl(rd: Register, rs1: Register, rs2: Register) -> u32 {
     )
 }
 
-/// "Shift Arithmetic Right" instruction performs right shift on the value in register `rs1` by the shift amount
-/// held in the lower 5 bits of register `rs2`, sign-extends the result and places the it in the register `rd`.<br/><br/>
+/// "Shift Arithmetic Right" instruction performs right shift on the value in register `rs1` by the
+/// shift amount held in the lower 5 bits of register `rs2`, sign-extends the result and places the
+/// it in the register `rd`.
+///
 /// Other shift instructions: [srai], [srl], [srli], [sll], [slli]
 pub fn sra(rd: Register, rs1: Register, rs2: Register) -> u32 {
     r_instruction(
@@ -451,8 +524,9 @@ pub fn sra(rd: Register, rs1: Register, rs2: Register) -> u32 {
     )
 }
 
-/// "Set Less Than" instruction performs signed compare,
-/// writing 1 to the register `rd` if registers `rs1` < `rs2`, 0 otherwise.<br/><br/>
+/// "Set Less Than" instruction performs signed compare, writing 1 to the register `rd` if registers
+/// `rs1` < `rs2`, 0 otherwise.
+///
 /// Other comparison instructions: [sltu], [slti], [sltiu], [seqz], [snez]
 pub fn slt(rd: Register, rs1: Register, rs2: Register) -> u32 {
     r_instruction(
@@ -465,10 +539,11 @@ pub fn slt(rd: Register, rs1: Register, rs2: Register) -> u32 {
     )
 }
 
-/// "Set Less Than Unsigned" instruction performs unsigned compare,
-/// writing 1 to the register `rd` if registers `rs1` < `rs2`, 0 otherwise.
-/// Note, `SLTU rd, x0, rs2` sets `rd` to 1 if `rs2` ≠ 0, otherwise sets `rd` to 0, and is equivalent to
-/// pseudoinstruction [snez]&nbsp;`rd, rs`.<br/><br/>
+/// "Set Less Than Unsigned" instruction performs unsigned compare, writing 1 to the register `rd`
+/// if registers `rs1` < `rs2`, 0 otherwise. Note, `sltu rd, x0, rs2` sets `rd` to 1 if `rs2` ≠ 0,
+/// otherwise sets `rd` to 0, and is equivalent to pseudoinstruction
+/// <code>[snez]&nbsp;rd,&nbsp;rs</code>.
+///
 /// Other comparison instructions: [slt], [slti], [sltiu], [seqz], [snez]
 pub fn sltu(rd: Register, rs1: Register, rs2: Register) -> u32 {
     r_instruction(
@@ -481,15 +556,18 @@ pub fn sltu(rd: Register, rs1: Register, rs2: Register) -> u32 {
     )
 }
 
-/// "Set Not Equal to Zero" pseudoinstruction sets `rd` to 1 if `rs2` ≠ 0, otherwise sets `rd` to 0.<br/><br/>
-/// `SNEZ rd, rs2` is encoded as [sltu]&nbsp;`rd, x0, rs2`.<br/><br/>
+/// "Set Not Equal to Zero" pseudoinstruction sets `rd` to 1 if `rs2` ≠ 0, otherwise sets `rd` to 0.
+///
+/// `snez rd, rs2` is encoded as <code>[sltu] rd, x0, rs2</code>.
+///
 /// Other comparison instructions: [slt], [sltu], [slti], [sltiu], [seqz]
 pub fn snez(rd: Register, rs2: Register) -> u32 {
     sltu(rd, X0, rs2)
 }
 
-/// "XOR" instruction performs XOR logical operation on registers `rs1` and `rs2`
-/// and places the result in the register `rd`.<br/><br/>
+/// "XOR" instruction performs XOR logical operation on registers `rs1` and `rs2` and places the
+/// result in the register `rd`.
+///
 /// Other logical operations: [xori], [or], [ori], [and], [andi], [not]
 pub fn xor(rd: Register, rs1: Register, rs2: Register) -> u32 {
     r_instruction(
@@ -502,8 +580,9 @@ pub fn xor(rd: Register, rs1: Register, rs2: Register) -> u32 {
     )
 }
 
-/// "OR" instruction performs OR logical operation on registers `rs1` and `rs2`
-/// and places the result in the register `rd`.<br/><br/>
+/// "OR" instruction performs OR logical operation on registers `rs1` and `rs2` and places the
+/// result in the register `rd`.
+///
 /// Other logical operations: [ori], [xor], [xori], [and], [andi], [not]
 pub fn or(rd: Register, rs1: Register, rs2: Register) -> u32 {
     r_instruction(
@@ -516,8 +595,9 @@ pub fn or(rd: Register, rs1: Register, rs2: Register) -> u32 {
     )
 }
 
-/// "AND" instruction performs AND logical operation on registers `rs1` and `rs2`
-/// and places the result in the register `rd`.<br/><br/>
+/// "AND" instruction performs AND logical operation on registers `rs1` and `rs2` and places the
+/// result in the register `rd`.
+///
 /// Other logical operations: [andi], [xor], [xori], [or], [ori], [not]
 pub fn and(rd: Register, rs1: Register, rs2: Register) -> u32 {
     r_instruction(
@@ -530,36 +610,32 @@ pub fn and(rd: Register, rs1: Register, rs2: Register) -> u32 {
     )
 }
 
-/// "FENCE" instruction orders all memory operations in its `predecessor` set before all memory operations in
-/// its `successor` set. Both sets are defined here as string slices, with individual characters representing
-/// the corresponsing memory operations:
-/// * `i` — device input
-/// * `o` — device output
-/// * `r` — memory reads
-/// * `w` — memory writes
+/// "FENCE" instruction orders all memory operations in its `predecessor` set before all memory
+/// operations in its `successor` set. Refer to [FenceMask] documentation for further details.
 ///
-/// Note, [fence_tso] instruction is encoded as a `FENCE` instruction with `fm` = 1000
-/// (refer to the instruction manual for this field), `predecessor` = "rw", and `successor` = "rw".
+/// Note, [fence_tso] instruction is encoded as a [fence] instruction with `fm` = 1000 (refer to the
+/// instruction manual for this field), `predecessor` = "rw", and `successor` = "rw".
 pub fn fence(predecessor: FenceMask, successor: FenceMask) -> u32 {
     fence_instruction(FenceMode::FENCE, predecessor, successor)
 }
 
-/// "FENCE.TCO" orders all load operations in its predecessor set before all memory operations in its successor set,
-/// and all store operations in its predecessor set before all store operations in its successor set. This leaves
-/// non-AMO store operations in the `FENCE.TSO`'s predecessor set unordered with non-AMO loads in its successor set.
-/// <br/><br/>
-/// `FENCE.TSO` instruction is encoded as a [fence] instruction with `fm` = 1000
-/// (refer to the instruction manual for this field), `predecessor` = "rw", and `successor` = "rw".
+/// "FENCE.TSO" instruction orders all load operations in its predecessor set before all memory
+/// operations in its successor set, and all store operations in its predecessor set before all
+/// store operations in its successor set. This leaves non-AMO store operations in the `fence_tso`'s
+/// predecessor set unordered with non-AMO loads in its successor set.
+///
+/// `fence_tso` instruction is encoded as a [fence] instruction with `fm` = 1000 (refer to the
+/// instruction manual for this field), `predecessor` = "rw", and `successor` = "rw".
 pub fn fence_tso() -> u32 {
     fence_instruction(FenceMode::FENCE_TSO, FenceMask::RW, FenceMask::RW)
 }
 
 /// FENCE-type instruction encoding.<br/>
 /// ```text
-/// Bit range     | 31:28 | 27 26 25 24 | 23 22 21 20 | 19:15 | 14:12  | 11:7 |  6:0     |
-/// Field name    |  fm   | PI PO PR PW | SI SO SR SW |  rs1  | funct3 |  rd  | opcode   |
-/// Bit count     |  4    | 1  1  1  1  | 1  1  1  1  |   5   |   3    |  5   |   7      |
-/// Description   |  FM   | predecessor |  successor  |   0   | FENCE  |  0   | MISC_MEM |
+/// Bit range     |   31:28    | 27 26 25 24 | 23 22 21 20 | 19:15 | 14:12  | 11:7 |   6:0    |
+/// Bit count     |    4       | 1  1  1  1  | 1  1  1  1  |   5   |   3    |  5   |    7     |
+/// Field name    |    fm      | PI PO PR PW | SI SO SR SW |  rs1  | funct3 |  rd  |  opcode  |
+/// Description   | fence mode | predecessor |  successor  |   0   | FENCE  |  0   | MISC_MEM |
 /// ```
 fn fence_instruction(fm: FenceMode, predecessor: FenceMask, successor: FenceMask) -> u32 {
     let mut imm = Imm12::ZERO;
@@ -576,9 +652,10 @@ fn fence_instruction(fm: FenceMode, predecessor: FenceMask, successor: FenceMask
     )
 }
 
-/// "Environment CALL" instruction is used to make a service request to the execution environment. The EEI
-/// (execution environment interface) will define how parameters for the service request are passed,
-/// but usually these will be in defined locations in the integer register file.<br/><br/>
+/// "Environment CALL" instruction is used to make a service request to the execution environment.
+/// The EEI (execution environment interface) will define how parameters for the service request are
+/// passed, but usually these will be in defined locations in the integer register file.
+///
 /// Other environment instructions: [ebreak].
 pub fn ecall() -> u32 {
     i_instruction(
@@ -590,19 +667,19 @@ pub fn ecall() -> u32 {
     )
 }
 
-/// "Environment BREAK" instruction is used to return control to a debugging environment.
-/// `ebreak` was primarily designed to be used by a debugger to cause execution to stop and fall back into the debugger.
-/// `ebreak` is also used by the standard gcc compiler to mark code paths/ that should not be executed.
-/// Another use of `ebreak` is to support "semihosting", where the execution environment in cludes a debugger that can
-/// provide services over an alternate system call interface built around the `ebreak` instruction. Because the RISC-V
-/// base ISAs do not provide more than one `ebreak` instruction, RISC-V semihosting uses a special sequence of
-/// instructions to distinguish a semihosting `ebreak` from a debugger inserted `ebreak`.
-/// ```asm
-/// slli x0, x0, 0x1f   # Entry NOP
+/// "Environment BREAK" instruction is used to return control to a debugging environment. `ebreak`
+/// was primarily designed to be used by a debugger to cause execution to stop and fall back into
+/// the debugger. `ebreak` is also used by the standard gcc compiler to mark code paths/ that should
+/// not be executed. Another use of `ebreak` is to support "semihosting", where the execution
+/// environment includes a debugger that can provide services over an alternate system call
+/// interface built around the `ebreak` instruction. Because the RISC-V base ISAs do not provide
+/// more than one `ebreak` instruction, RISC-V semihosting uses a special sequence of instructions
+/// to distinguish a semihosting `ebreak` from a debugger inserted `ebreak`: <br/>
+/// <code>
+/// [slli] [X0], [X0], 0x1f   # Entry NOP
 /// ebreak              # Break to debugger
-/// srai x0, x0, 7      # NOP encoding the semihosting call number 7
-/// ```
-/// <br/>
+/// [srai] [X0], [X0], 7      # NOP encoding the semihosting call number 7
+/// </code>
 /// <br/>
 ///
 /// Other environment instructions: [ecall]

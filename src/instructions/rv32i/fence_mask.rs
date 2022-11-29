@@ -17,19 +17,13 @@ use bitvec::{
 use crate::util::u8_max_value;
 
 /// 4-bit mask for the [fence](super::fence) instruction
+///
+/// Refer to [TryFrom] implementations for creating a FenceMask.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct FenceMask(u8);
 
-// TODO: Implement as e.g. parse_fence_mask("rw") when const fns become able to do this
-
 impl FenceMask {
     const BIT_RANGE: Range<usize> = 0..4;
-
-    /// Creates a FenceMask from an [str], the characters of which specify the flags to be set:
-    ///
-    pub fn try_from_str(mask_spec: &str) -> Result<Self, FenceMaskParseError<'_>> {
-        Self::try_from(mask_spec)
-    }
 
     pub(crate) const RW: FenceMask = FenceMask(0b0011);
 
@@ -38,9 +32,19 @@ impl FenceMask {
     }
 }
 
+// TODO: Implement as e.g. (const fn) parse_fence_mask("rw") when const fns become able to do this
+
 impl<'a> TryFrom<&'a str> for FenceMask {
     type Error = FenceMaskParseError<'a>;
 
+    /// Creates a FenceMask from an [str], the characters of which specify the flags to be set:
+    ///
+    /// | Bit | Flag          |
+    /// |-----|---------------|
+    /// | w   | memory writes |
+    /// | r   | memory reads  |
+    /// | o   | device output |
+    /// | i   | device input  |
     fn try_from(mask_spec: &'a str) -> Result<Self, Self::Error> {
         let mut mask = 0;
         let mask_bits = &mut mask.view_bits_mut::<Lsb0>()[0..4];
@@ -62,6 +66,14 @@ impl<'a> TryFrom<&'a str> for FenceMask {
 impl TryFrom<u8> for FenceMask {
     type Error = FenceMaskConvError;
 
+    /// Creates a FenceMask from [u8], the lower 4 bits of which specify the flags to be set:
+    ///
+    /// | Bit | Flag          |
+    /// |-----|---------------|
+    /// | 0   | memory writes |
+    /// | 1   | memory reads  |
+    /// | 2   | device output |
+    /// | 3   | device input  |
     fn try_from(value: u8) -> Result<Self, Self::Error> {
         if value <= u8_max_value(Self::BIT_RANGE.end) {
             Ok(Self(value))
@@ -133,6 +145,8 @@ impl Display for FenceMaskConvError {
         write!(f, "invalid 4-bit fence mask: {} (0x{:02x})", self.0, self.0)
     }
 }
+
+impl Error for FenceMaskConvError {}
 
 #[test]
 fn fence_mask_str() {

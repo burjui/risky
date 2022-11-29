@@ -2,6 +2,7 @@
 
 use core::fmt;
 use std::{
+    error::Error,
     fmt::Display,
     ops::Range,
 };
@@ -50,3 +51,5 @@ impl Display for Uimm5ConvError {
         )
     }
 }
+
+impl Error for Uimm5ConvError {}
