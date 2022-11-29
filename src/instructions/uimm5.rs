@@ -26,6 +26,18 @@ impl Uimm5 {
     }
 }
 
+impl Display for Uimm5 {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        Display::fmt(&self.0, f)
+    }
+}
+
+#[test]
+fn display() -> Result<(), Uimm5ConvError> {
+    assert_eq!(Uimm5::try_from(0b11111)?.to_string(), "31");
+    Ok(())
+}
+
 impl TryFrom<u8> for Uimm5 {
     type Error = Uimm5ConvError;
 

@@ -27,6 +27,18 @@ impl BImm {
     }
 }
 
+impl Display for BImm {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        Display::fmt(&(self.0 as i16), f)
+    }
+}
+
+#[test]
+fn display() -> Result<(), BImmConvError> {
+    assert_eq!(BImm::try_from(-600)?.to_string(), "-600");
+    Ok(())
+}
+
 impl TryFrom<i16> for BImm {
     type Error = BImmConvError;
 
@@ -47,7 +59,7 @@ impl Display for BImmConvError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(
             f,
-            "invalid 13-bit signed immediate:{} 0x{:08x}",
+            "invalid 13-bit signed immediate: {} 0x{:08x}",
             self.0, self.0
         )
     }

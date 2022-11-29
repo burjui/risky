@@ -38,6 +38,18 @@ impl Imm12 {
     }
 }
 
+impl Display for Imm12 {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        Display::fmt(&(self.0 as i16), f)
+    }
+}
+
+#[test]
+fn display() -> Result<(), Imm12ConvError> {
+    assert_eq!(Imm12::try_from(-600)?.to_string(), "-600");
+    Ok(())
+}
+
 impl TryFrom<i16> for Imm12 {
     type Error = Imm12ConvError;
 

@@ -32,6 +32,18 @@ impl FenceMask {
     }
 }
 
+impl Display for FenceMask {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "0b{:04b}", self.0)
+    }
+}
+
+#[test]
+fn display() -> Result<(), FenceMaskParseError<'static>> {
+    assert_eq!(FenceMask::try_from("rwio")?.to_string(), "0b1111");
+    Ok(())
+}
+
 // TODO: Implement as e.g. (const fn) parse_fence_mask("rw") when const fns become able to do this
 
 impl<'a> TryFrom<&'a str> for FenceMask {
@@ -63,6 +75,26 @@ impl<'a> TryFrom<&'a str> for FenceMask {
     }
 }
 
+#[test]
+fn try_from_str() {
+    assert_eq!(FenceMask::try_from(""), Ok(FenceMask(0b0000)));
+    assert_eq!(FenceMask::try_from("r"), Ok(FenceMask(0b0010)));
+    assert_eq!(FenceMask::try_from("w"), Ok(FenceMask(0b0001)));
+    assert_eq!(FenceMask::try_from("i"), Ok(FenceMask(0b1000)));
+    assert_eq!(FenceMask::try_from("o"), Ok(FenceMask(0b0100)));
+    assert_eq!(FenceMask::try_from("riow"), Ok(FenceMask(0b1111)));
+
+    assert_eq!(
+        FenceMask::try_from("rwr"),
+        Err(FenceMaskParseError::duplicate("rwr", 'r'))
+    );
+
+    assert_eq!(
+        FenceMask::try_from("iorwx"),
+        Err(FenceMaskParseError::invalid("iorwx", 'x'))
+    );
+}
+
 impl TryFrom<u8> for FenceMask {
     type Error = FenceMaskConvError;
 
@@ -81,6 +113,21 @@ impl TryFrom<u8> for FenceMask {
             Err(FenceMaskConvError(value))
         }
     }
+}
+
+#[test]
+fn try_from_u8() {
+    assert_eq!(FenceMask::try_from(0b0000), Ok(FenceMask(0b0000)));
+    assert_eq!(FenceMask::try_from(0b0010), Ok(FenceMask(0b0010)));
+    assert_eq!(FenceMask::try_from(0b0001), Ok(FenceMask(0b0001)));
+    assert_eq!(FenceMask::try_from(0b1000), Ok(FenceMask(0b1000)));
+    assert_eq!(FenceMask::try_from(0b0100), Ok(FenceMask(0b0100)));
+    assert_eq!(FenceMask::try_from(0b1111), Ok(FenceMask(0b1111)));
+
+    assert_eq!(
+        FenceMask::try_from(0b10000),
+        Err(FenceMaskConvError(0b10000))
+    );
 }
 
 /// [Fence mask](FenceMask) parse error
@@ -121,6 +168,18 @@ impl Display for FenceMaskParseError<'_> {
 
 impl Error for FenceMaskParseError<'_> {}
 
+#[test]
+fn parse_error() {
+    assert_eq!(
+        FenceMaskParseError::invalid("iorwx", 'x').to_string(),
+        r#"invalid fence mask "iorwx": invalid flag 'x'"#
+    );
+    assert_eq!(
+        FenceMaskParseError::duplicate("rwr", 'r').to_string(),
+        r#"invalid fence mask "rwr": duplicate flag 'r'"#
+    );
+}
+
 #[derive(Debug, PartialEq)]
 enum FenceMaskFlagErrorKind {
     Invalid,
@@ -147,50 +206,3 @@ impl Display for FenceMaskConvError {
 }
 
 impl Error for FenceMaskConvError {}
-
-#[test]
-fn fence_mask_str() {
-    assert_eq!(FenceMask::try_from(""), Ok(FenceMask(0b0000)));
-    assert_eq!(FenceMask::try_from("r"), Ok(FenceMask(0b0010)));
-    assert_eq!(FenceMask::try_from("w"), Ok(FenceMask(0b0001)));
-    assert_eq!(FenceMask::try_from("i"), Ok(FenceMask(0b1000)));
-    assert_eq!(FenceMask::try_from("o"), Ok(FenceMask(0b0100)));
-    assert_eq!(FenceMask::try_from("riow"), Ok(FenceMask(0b1111)));
-
-    assert_eq!(
-        FenceMask::try_from("rwr"),
-        Err(FenceMaskParseError::duplicate("rwr", 'r'))
-    );
-
-    assert_eq!(
-        FenceMask::try_from("iorwx"),
-        Err(FenceMaskParseError::invalid("iorwx", 'x'))
-    );
-}
-
-#[test]
-fn fence_mask_u8() {
-    assert_eq!(FenceMask::try_from(0b0000), Ok(FenceMask(0b0000)));
-    assert_eq!(FenceMask::try_from(0b0010), Ok(FenceMask(0b0010)));
-    assert_eq!(FenceMask::try_from(0b0001), Ok(FenceMask(0b0001)));
-    assert_eq!(FenceMask::try_from(0b1000), Ok(FenceMask(0b1000)));
-    assert_eq!(FenceMask::try_from(0b0100), Ok(FenceMask(0b0100)));
-    assert_eq!(FenceMask::try_from(0b1111), Ok(FenceMask(0b1111)));
-
-    assert_eq!(
-        FenceMask::try_from(0b10000),
-        Err(FenceMaskConvError(0b10000))
-    );
-}
-
-#[test]
-fn fence_mask_parse_error() {
-    assert_eq!(
-        FenceMaskParseError::invalid("iorwx", 'x').to_string(),
-        r#"invalid fence mask "iorwx": invalid flag 'x'"#
-    );
-    assert_eq!(
-        FenceMaskParseError::duplicate("rwr", 'r').to_string(),
-        r#"invalid fence mask "rwr": duplicate flag 'r'"#
-    );
-}
