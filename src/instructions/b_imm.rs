@@ -13,7 +13,11 @@ use bitvec::{
     view::BitView,
 };
 
-use crate::util::i16_value_range;
+use crate::util::{
+    i16_fits_n_bits,
+    i32_fits_n_bits,
+    i64_fits_n_bits,
+};
 
 /// 13-bit signed immediate value used in branch instructions
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
@@ -39,29 +43,67 @@ fn display() -> Result<(), BImmConvError> {
     Ok(())
 }
 
+impl From<i8> for BImm {
+    fn from(value: i8) -> Self {
+        Self(value as u32)
+    }
+}
+
 impl TryFrom<i16> for BImm {
     type Error = BImmConvError;
 
     fn try_from(value: i16) -> Result<Self, Self::Error> {
-        if i16_value_range(Self::BIT_RANGE.end).contains(&value) {
+        if i16_fits_n_bits(value, Self::BIT_RANGE.end) {
             Ok(Self(value as u32))
         } else {
-            Err(BImmConvError(value))
+            Err(BImmConvError::I16(value))
+        }
+    }
+}
+
+impl TryFrom<i32> for BImm {
+    type Error = BImmConvError;
+
+    fn try_from(value: i32) -> Result<Self, Self::Error> {
+        if i32_fits_n_bits(value, Self::BIT_RANGE.end) {
+            Ok(Self(value as u32))
+        } else {
+            Err(BImmConvError::I32(value))
+        }
+    }
+}
+
+impl TryFrom<i64> for BImm {
+    type Error = BImmConvError;
+
+    fn try_from(value: i64) -> Result<Self, Self::Error> {
+        if i64_fits_n_bits(value, Self::BIT_RANGE.end) {
+            Ok(Self(value as u32))
+        } else {
+            Err(BImmConvError::I64(value))
         }
     }
 }
 
 /// [BImm] conversion error
 #[derive(Debug)]
-pub struct BImmConvError(i16);
+pub enum BImmConvError {
+    ///
+    I16(i16),
+    ///
+    I32(i32),
+    ///
+    I64(i64),
+}
 
 impl Display for BImmConvError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(
-            f,
-            "invalid 13-bit signed immediate: {} 0x{:08x}",
-            self.0, self.0
-        )
+        write!(f, "invalid 13-bit signed immediate: ")?;
+        match self {
+            BImmConvError::I16(value) => write!(f, "{} 0x{:04x}", value, value),
+            BImmConvError::I32(value) => write!(f, "{} 0x{:08x}", value, value),
+            BImmConvError::I64(value) => write!(f, "{} 0x{:016x}", value, value),
+        }
     }
 }
 

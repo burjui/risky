@@ -13,7 +13,7 @@ use bitvec::{
     view::BitView,
 };
 
-use crate::util::i32_value_range;
+use crate::util::i32_fits_n_bits;
 
 /// 21-bit signed immediate value used in the [crate::instructions::rv32i::jal] instruction
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
@@ -43,7 +43,7 @@ impl TryFrom<i32> for JImm {
     type Error = JImmConvError;
 
     fn try_from(value: i32) -> Result<Self, Self::Error> {
-        if i32_value_range(Self::BIT_RANGE.end).contains(&value) {
+        if i32_fits_n_bits(value, Self::BIT_RANGE.end) {
             Ok(Self(value as u32))
         } else {
             Err(JImmConvError(value))

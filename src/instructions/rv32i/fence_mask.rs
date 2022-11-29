@@ -14,7 +14,7 @@ use bitvec::{
     view::BitView,
 };
 
-use crate::util::u8_max_value;
+use crate::util::u8_fits_n_bits;
 
 /// 4-bit mask for the [fence](super::fence) instruction
 ///
@@ -107,7 +107,7 @@ impl TryFrom<u8> for FenceMask {
     /// | 2   | device output |
     /// | 3   | device input  |
     fn try_from(value: u8) -> Result<Self, Self::Error> {
-        if value <= u8_max_value(Self::BIT_RANGE.end) {
+        if u8_fits_n_bits(value, Self::BIT_RANGE.end) {
             Ok(Self(u32::from(value)))
         } else {
             Err(FenceMaskConvError(value))

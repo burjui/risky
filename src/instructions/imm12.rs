@@ -13,7 +13,7 @@ use bitvec::{
     view::BitView,
 };
 
-use crate::util::i16_value_range;
+use crate::util::i16_fits_n_bits;
 
 /// 12-bit signed immediate value
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
@@ -54,7 +54,7 @@ impl TryFrom<i16> for Imm12 {
     type Error = Imm12ConvError;
 
     fn try_from(value: i16) -> Result<Self, Self::Error> {
-        if i16_value_range(Self::BIT_RANGE.end).contains(&value) {
+        if i16_fits_n_bits(value, Self::BIT_RANGE.end) {
             Ok(Self(value as u32))
         } else {
             Err(Imm12ConvError(value))
