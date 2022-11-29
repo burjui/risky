@@ -20,9 +20,7 @@ use crate::util::{
 
 mod internal {
     pub enum Assert<const CHECK: bool> {}
-
     pub trait Fits5BIts {}
-
     impl Fits5BIts for Assert<true> {}
 }
 
@@ -202,7 +200,7 @@ pub enum Uimm5ConvError {
 
 impl Display for Uimm5ConvError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "invalid 5-bit unsigned immediate: ")?;
+        write!(f, "invalid {}-bit unsigned immediate: ", Uimm5::NBITS)?;
         match self {
             Uimm5ConvError::U8(value) => write!(f, "{} (0x{:02x})", value, value),
             Uimm5ConvError::U16(value) => write!(f, "{} (0x{:04x})", value, value),
@@ -216,19 +214,28 @@ impl Display for Uimm5ConvError {
 fn conv_error_impl_display() {
     assert_eq!(
         Uimm5::try_from(0b100000u8).unwrap_err().to_string(),
-        "invalid 5-bit unsigned immediate: 32 (0x20)"
+        format!("invalid {}-bit unsigned immediate: 32 (0x20)", Uimm5::NBITS)
     );
     assert_eq!(
         Uimm5::try_from(0b100000u16).unwrap_err().to_string(),
-        "invalid 5-bit unsigned immediate: 32 (0x0020)"
+        format!(
+            "invalid {}-bit unsigned immediate: 32 (0x0020)",
+            Uimm5::NBITS
+        )
     );
     assert_eq!(
         Uimm5::try_from(0b100000u32).unwrap_err().to_string(),
-        "invalid 5-bit unsigned immediate: 32 (0x00000020)"
+        format!(
+            "invalid {}-bit unsigned immediate: 32 (0x00000020)",
+            Uimm5::NBITS
+        )
     );
     assert_eq!(
         Uimm5::try_from(0b100000u64).unwrap_err().to_string(),
-        "invalid 5-bit unsigned immediate: 32 (0x0000000000000020)"
+        format!(
+            "invalid {}-bit unsigned immediate: 32 (0x0000000000000020)",
+            Uimm5::NBITS
+        )
     );
 }
 

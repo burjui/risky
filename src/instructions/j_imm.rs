@@ -19,9 +19,7 @@ use crate::util::{
 
 mod internal {
     pub enum Assert<const CHECK: bool> {}
-
     pub trait Fits21BIts {}
-
     impl Fits21BIts for Assert<true> {}
 }
 
@@ -181,7 +179,7 @@ pub enum JImmConvError {
 
 impl Display for JImmConvError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "invalid 21-bit signed immediate: ")?;
+        write!(f, "invalid {}-bit signed immediate: ", JImm::NBITS)?;
         match self {
             JImmConvError::I32(value) => write!(f, "{} (0x{:08x})", value, value),
             JImmConvError::I64(value) => write!(f, "{} (0x{:016x})", value, value),

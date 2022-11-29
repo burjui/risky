@@ -30,15 +30,6 @@ pub const fn u64_fits_n_bits(value: u64, nbits: usize) -> bool {
     value <= max_value
 }
 
-// pub const fn i8_fits_n_bits(value: i8, nbits: usize) -> bool {
-//     let (min, max) = if nbits < 7 {
-//         (-(1 << (nbits - 1)), (1 << (nbits - 1)) - 1)
-//     } else {
-//         (i8::MIN, i8::MAX)
-//     };
-//     value >= min && value <= max
-// }
-
 pub const fn i16_fits_n_bits(value: i16, nbits: usize) -> bool {
     let (min, max) = if nbits < 15 {
         (-(1 << (nbits - 1)), (1 << (nbits - 1)) - 1)

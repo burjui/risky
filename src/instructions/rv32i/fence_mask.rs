@@ -1,50 +1,239 @@
+//! Defines [FenceMask] and relevant trait implementations
+
 use core::fmt;
 use std::{
     error::Error,
     fmt::{
-        Debug,
         Display,
+        Write,
     },
-    ops::Range,
 };
 
 use bitvec::{
     order::Lsb0,
-    slice::BitSlice,
     view::BitView,
 };
 
-use crate::util::u8_fits_n_bits;
+use crate::util::{
+    u16_fits_n_bits,
+    u32_fits_n_bits,
+    u64_fits_n_bits,
+    u8_fits_n_bits,
+};
+
+mod internal {
+    pub enum Assert<const CHECK: bool> {}
+    pub trait Fits4BIts {}
+    impl Fits4BIts for Assert<true> {}
+}
 
 /// 4-bit mask for the [fence](super::fence) instruction
-///
-/// Refer to [TryFrom] implementations for creating a FenceMask.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct FenceMask(u32);
 
 impl FenceMask {
-    const BIT_RANGE: Range<usize> = 0..4;
+    const NBITS: usize = 4;
+    const BIT_CHARS: &'static str = "wroi";
 
-    pub(crate) const RW: FenceMask = FenceMask(0b0011);
+    pub(crate) const RW: Self = Self(0b0011);
 
-    pub(crate) fn view_bits(&self) -> &BitSlice<u32, Lsb0> {
-        &self.0.view_bits()[Self::BIT_RANGE]
+    #[doc = include_str!("../../../doc/nightly_warning.html")]
+    ///
+    /// Creates an `FenceMask` from an [u8] constant, the lower 4 bits of which specify the flags to be set:
+    ///
+    /// | Bit | Flag          |
+    /// |-----|---------------|
+    /// | 0   | memory writes |
+    /// | 1   | memory reads  |
+    /// | 2   | device output |
+    /// | 3   | device input  |
+    #[cfg(feature = "nightly")]
+    #[must_use]
+    pub const fn from_u8<const VALUE: u8>() -> Self
+    where
+        internal::Assert<{ u8_fits_n_bits(VALUE, Self::NBITS) }>: internal::Fits4BIts,
+    {
+        Self(VALUE as u32)
     }
+
+    #[doc = include_str!("../../../doc/nightly_warning.html")]
+    ///
+    /// Creates an `FenceMask` from an [u16] constant, the lower 4 bits of which specify the flags to be set:
+    ///
+    /// | Bit | Flag          |
+    /// |-----|---------------|
+    /// | 0   | memory writes |
+    /// | 1   | memory reads  |
+    /// | 2   | device output |
+    /// | 3   | device input  |
+    #[cfg(feature = "nightly")]
+    #[must_use]
+    pub const fn from_u16<const VALUE: u16>() -> Self
+    where
+        internal::Assert<{ u16_fits_n_bits(VALUE, Self::NBITS) }>: internal::Fits4BIts,
+    {
+        Self(VALUE as u32)
+    }
+
+    #[doc = include_str!("../../../doc/nightly_warning.html")]
+    ///
+    /// Creates an `FenceMask` from an [u32] constant, the lower 4 bits of which specify the flags to be set:
+    ///
+    /// | Bit | Flag          |
+    /// |-----|---------------|
+    /// | 0   | memory writes |
+    /// | 1   | memory reads  |
+    /// | 2   | device output |
+    /// | 3   | device input  |
+    #[cfg(feature = "nightly")]
+    #[must_use]
+    pub const fn from_u32<const VALUE: u32>() -> Self
+    where
+        internal::Assert<{ u32_fits_n_bits(VALUE, Self::NBITS) }>: internal::Fits4BIts,
+    {
+        Self(VALUE)
+    }
+
+    #[doc = include_str!("../../../doc/nightly_warning.html")]
+    ///
+    /// Creates an `FenceMask` from an [u64] constant, the lower 4 bits of which specify the flags to be set:
+    ///
+    /// | Bit | Flag          |
+    /// |-----|---------------|
+    /// | 0   | memory writes |
+    /// | 1   | memory reads  |
+    /// | 2   | device output |
+    /// | 3   | device input  |
+    #[cfg(feature = "nightly")]
+    #[must_use]
+    pub const fn from_u64<const VALUE: u64>() -> Self
+    where
+        internal::Assert<{ u64_fits_n_bits(VALUE, Self::NBITS) }>: internal::Fits4BIts,
+    {
+        Self(VALUE as u32)
+    }
+
+    pub(crate) fn view_bits(&self) -> &bitvec::slice::BitSlice<u32, Lsb0> {
+        &self.0.view_bits()[0..Self::NBITS]
+    }
+}
+
+#[cfg(feature = "nightly")]
+#[test]
+fn constructors() {
+    let _ = FenceMask::from_u8::<0b1111>();
+    let _ = FenceMask::from_u16::<0b1111>();
+    let _ = FenceMask::from_u32::<0b1111>();
+    let _ = FenceMask::from_u64::<0b1111>();
+}
+
+#[test]
+fn view_bits() {
+    assert_eq!(FenceMask(0b11111).view_bits().len(), FenceMask::NBITS);
 }
 
 impl Display for FenceMask {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "0b{:04b}", self.0)
+        let bits = self.view_bits();
+        for (i, c) in Self::BIT_CHARS.char_indices() {
+            if let Some(value) = bits.get(i) {
+                if *value {
+                    f.write_char(c)?;
+                }
+            }
+        }
+        Ok(())
     }
 }
 
 #[test]
-fn display() -> Result<(), FenceMaskParseError<'static>> {
-    assert_eq!(FenceMask::try_from("rwio")?.to_string(), "0b1111");
+fn display() -> Result<(), FenceMaskConvError> {
+    assert_eq!(
+        FenceMask::try_from(0b1111u8)?.to_string(),
+        FenceMask::BIT_CHARS
+    );
     Ok(())
 }
 
-// TODO: Implement as e.g. (const fn) parse_fence_mask("rw") when const fns become able to do this
+impl TryFrom<u8> for FenceMask {
+    type Error = FenceMaskConvError;
+
+    /// Creates a FenceMask from [u8], the lower 4 bits of which specify the flags to be set:
+    ///
+    /// | Bit | Flag          |
+    /// |-----|---------------|
+    /// | 0   | memory writes |
+    /// | 1   | memory reads  |
+    /// | 2   | device output |
+    /// | 3   | device input  |
+    fn try_from(value: u8) -> Result<Self, Self::Error> {
+        if u8_fits_n_bits(value, Self::NBITS) {
+            Ok(Self(value as u32))
+        } else {
+            Err(FenceMaskConvError::U8(value))
+        }
+    }
+}
+
+impl TryFrom<u16> for FenceMask {
+    type Error = FenceMaskConvError;
+
+    /// Creates a FenceMask from [u16], the lower 4 bits of which specify the flags to be set:
+    ///
+    /// | Bit | Flag          |
+    /// |-----|---------------|
+    /// | 0   | memory writes |
+    /// | 1   | memory reads  |
+    /// | 2   | device output |
+    /// | 3   | device input  |
+    fn try_from(value: u16) -> Result<Self, Self::Error> {
+        if u16_fits_n_bits(value, Self::NBITS) {
+            Ok(Self(value as u32))
+        } else {
+            Err(FenceMaskConvError::U16(value))
+        }
+    }
+}
+
+impl TryFrom<u32> for FenceMask {
+    type Error = FenceMaskConvError;
+
+    /// Creates a FenceMask from [u32], the lower 4 bits of which specify the flags to be set:
+    ///
+    /// | Bit | Flag          |
+    /// |-----|---------------|
+    /// | 0   | memory writes |
+    /// | 1   | memory reads  |
+    /// | 2   | device output |
+    /// | 3   | device input  |
+    fn try_from(value: u32) -> Result<Self, Self::Error> {
+        if u32_fits_n_bits(value, Self::NBITS) {
+            Ok(Self(value))
+        } else {
+            Err(FenceMaskConvError::U32(value))
+        }
+    }
+}
+
+impl TryFrom<u64> for FenceMask {
+    type Error = FenceMaskConvError;
+
+    /// Creates a FenceMask from [u64], the lower 4 bits of which specify the flags to be set:
+    ///
+    /// | Bit | Flag          |
+    /// |-----|---------------|
+    /// | 0   | memory writes |
+    /// | 1   | memory reads  |
+    /// | 2   | device output |
+    /// | 3   | device input  |
+    fn try_from(value: u64) -> Result<Self, Self::Error> {
+        if u64_fits_n_bits(value, Self::NBITS) {
+            Ok(Self(value as u32))
+        } else {
+            Err(FenceMaskConvError::U64(value))
+        }
+    }
+}
 
 impl<'a> TryFrom<&'a str> for FenceMask {
     type Error = FenceMaskParseError<'a>;
@@ -76,7 +265,29 @@ impl<'a> TryFrom<&'a str> for FenceMask {
 }
 
 #[test]
-fn try_from_str() {
+fn conversions() -> Result<(), FenceMaskConvError> {
+    assert_eq!(FenceMask::try_from(0b1111u8)?, FenceMask(0b1111));
+    assert_eq!(FenceMask::try_from(0b1111u16)?, FenceMask(0b1111));
+    assert_eq!(FenceMask::try_from(0b1111u32)?, FenceMask(0b1111));
+    assert_eq!(FenceMask::try_from(0b1111u64)?, FenceMask(0b1111));
+
+    assert!(matches!(
+        FenceMask::try_from(0b10000u8),
+        Err(FenceMaskConvError::U8(0b10000))
+    ));
+    assert!(matches!(
+        FenceMask::try_from(0b10000u16),
+        Err(FenceMaskConvError::U16(0b10000))
+    ));
+    assert!(matches!(
+        FenceMask::try_from(0b10000u32),
+        Err(FenceMaskConvError::U32(0b10000))
+    ));
+    assert!(matches!(
+        FenceMask::try_from(0b10000u64),
+        Err(FenceMaskConvError::U64(0b10000))
+    ));
+
     assert_eq!(FenceMask::try_from(""), Ok(FenceMask(0b0000)));
     assert_eq!(FenceMask::try_from("r"), Ok(FenceMask(0b0010)));
     assert_eq!(FenceMask::try_from("w"), Ok(FenceMask(0b0001)));
@@ -93,41 +304,73 @@ fn try_from_str() {
         FenceMask::try_from("iorwx"),
         Err(FenceMaskParseError::invalid("iorwx", 'x'))
     );
+
+    Ok(())
 }
 
-impl TryFrom<u8> for FenceMask {
-    type Error = FenceMaskConvError;
-
-    /// Creates a FenceMask from [u8], the lower 4 bits of which specify the flags to be set:
+/// FenceMask conversion error
+#[derive(Debug)]
+pub enum FenceMaskConvError {
     ///
-    /// | Bit | Flag          |
-    /// |-----|---------------|
-    /// | 0   | memory writes |
-    /// | 1   | memory reads  |
-    /// | 2   | device output |
-    /// | 3   | device input  |
-    fn try_from(value: u8) -> Result<Self, Self::Error> {
-        if u8_fits_n_bits(value, Self::BIT_RANGE.end) {
-            Ok(Self(u32::from(value)))
-        } else {
-            Err(FenceMaskConvError(value))
+    U8(u8),
+    ///
+    U16(u16),
+    ///
+    U32(u32),
+    ///
+    U64(u64),
+}
+
+impl Display for FenceMaskConvError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "invalid {}-bit unsigned immediate: ", FenceMask::NBITS)?;
+        match self {
+            FenceMaskConvError::U8(value) => write!(f, "{} (0x{:02x})", value, value),
+            FenceMaskConvError::U16(value) => write!(f, "{} (0x{:04x})", value, value),
+            FenceMaskConvError::U32(value) => write!(f, "{} (0x{:08x})", value, value),
+            FenceMaskConvError::U64(value) => write!(f, "{} (0x{:016x})", value, value),
         }
     }
 }
 
 #[test]
-fn try_from_u8() {
-    assert_eq!(FenceMask::try_from(0b0000), Ok(FenceMask(0b0000)));
-    assert_eq!(FenceMask::try_from(0b0010), Ok(FenceMask(0b0010)));
-    assert_eq!(FenceMask::try_from(0b0001), Ok(FenceMask(0b0001)));
-    assert_eq!(FenceMask::try_from(0b1000), Ok(FenceMask(0b1000)));
-    assert_eq!(FenceMask::try_from(0b0100), Ok(FenceMask(0b0100)));
-    assert_eq!(FenceMask::try_from(0b1111), Ok(FenceMask(0b1111)));
-
+fn conv_error_impl_display() {
     assert_eq!(
-        FenceMask::try_from(0b10000),
-        Err(FenceMaskConvError(0b10000))
+        FenceMask::try_from(0b100000u8).unwrap_err().to_string(),
+        format!(
+            "invalid {}-bit unsigned immediate: 32 (0x20)",
+            FenceMask::NBITS
+        )
     );
+    assert_eq!(
+        FenceMask::try_from(0b100000u16).unwrap_err().to_string(),
+        format!(
+            "invalid {}-bit unsigned immediate: 32 (0x0020)",
+            FenceMask::NBITS
+        )
+    );
+    assert_eq!(
+        FenceMask::try_from(0b100000u32).unwrap_err().to_string(),
+        format!(
+            "invalid {}-bit unsigned immediate: 32 (0x00000020)",
+            FenceMask::NBITS
+        )
+    );
+    assert_eq!(
+        FenceMask::try_from(0b100000u64).unwrap_err().to_string(),
+        format!(
+            "invalid {}-bit unsigned immediate: 32 (0x0000000000000020)",
+            FenceMask::NBITS
+        )
+    );
+}
+
+impl Error for FenceMaskConvError {}
+
+#[test]
+fn conv_error_impl_error() -> Result<(), Box<dyn Error>> {
+    assert_eq!(FenceMask::try_from(0u8)?, FenceMask(0));
+    Ok(())
 }
 
 /// [Fence mask](FenceMask) parse error
@@ -169,7 +412,7 @@ impl Display for FenceMaskParseError<'_> {
 impl Error for FenceMaskParseError<'_> {}
 
 #[test]
-fn parse_error() {
+fn parse_error_impl_display() {
     assert_eq!(
         FenceMaskParseError::invalid("iorwx", 'x').to_string(),
         r#"invalid fence mask "iorwx": invalid flag 'x'"#
@@ -178,6 +421,12 @@ fn parse_error() {
         FenceMaskParseError::duplicate("rwr", 'r').to_string(),
         r#"invalid fence mask "rwr": duplicate flag 'r'"#
     );
+}
+
+#[test]
+fn parse_error_impl_error() -> Result<(), Box<dyn Error>> {
+    assert_eq!(FenceMask::try_from("")?, FenceMask(0));
+    Ok(())
 }
 
 #[derive(Debug, PartialEq)]
@@ -194,15 +443,3 @@ impl Display for FenceMaskFlagErrorKind {
         })
     }
 }
-
-/// [FenceMask] conversion error
-#[derive(Debug, PartialEq, Eq)]
-pub struct FenceMaskConvError(u8);
-
-impl Display for FenceMaskConvError {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "invalid 4-bit fence mask: {} (0x{:02x})", self.0, self.0)
-    }
-}
-
-impl Error for FenceMaskConvError {}
