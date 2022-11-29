@@ -640,9 +640,9 @@ pub fn fence_tso() -> u32 {
 fn fence_instruction(fm: FenceMode, predecessor: FenceMask, successor: FenceMask) -> u32 {
     let mut imm = Imm12::ZERO;
     let imm_bits = imm.view_bits_mut();
-    imm_bits[0..4].clone_from_bitslice(predecessor.view_bits());
-    imm_bits[4..8].clone_from_bitslice(successor.view_bits());
-    imm_bits[8..12].clone_from_bitslice(fm.view_bits());
+    imm_bits[0..4].copy_from_bitslice(predecessor.view_bits());
+    imm_bits[4..8].copy_from_bitslice(successor.view_bits());
+    imm_bits[8..12].copy_from_bitslice(fm.view_bits());
     i_instruction(
         Opcode::MISC_MEM,
         X0,

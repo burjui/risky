@@ -20,14 +20,14 @@ use crate::util::u8_max_value;
 ///
 /// Refer to [TryFrom] implementations for creating a FenceMask.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub struct FenceMask(u8);
+pub struct FenceMask(u32);
 
 impl FenceMask {
     const BIT_RANGE: Range<usize> = 0..4;
 
     pub(crate) const RW: FenceMask = FenceMask(0b0011);
 
-    pub(crate) fn view_bits(&self) -> &BitSlice<u8, Lsb0> {
+    pub(crate) fn view_bits(&self) -> &BitSlice<u32, Lsb0> {
         &self.0.view_bits()[Self::BIT_RANGE]
     }
 }
@@ -76,7 +76,7 @@ impl TryFrom<u8> for FenceMask {
     /// | 3   | device input  |
     fn try_from(value: u8) -> Result<Self, Self::Error> {
         if value <= u8_max_value(Self::BIT_RANGE.end) {
-            Ok(Self(value))
+            Ok(Self(u32::from(value)))
         } else {
             Err(FenceMaskConvError(value))
         }
