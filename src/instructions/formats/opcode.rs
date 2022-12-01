@@ -1,10 +1,4 @@
-use bitvec::{
-    order::Lsb0,
-    slice::BitSlice,
-    view::BitView,
-};
-
-pub(crate) struct Opcode(u32);
+pub(crate) struct Opcode(pub(crate) u32);
 
 impl Opcode {
     pub(crate) const LUI: Self = Self(0b0110111);
@@ -20,10 +14,4 @@ impl Opcode {
 
     // M extension
     pub(crate) const SYSTEM: Self = Self(0b1110011);
-}
-
-impl Opcode {
-    pub(crate) fn view_bits(&self) -> &BitSlice<u32, Lsb0> {
-        &self.0.view_bits()[0..7]
-    }
 }

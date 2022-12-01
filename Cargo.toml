@@ -6,7 +6,6 @@ edition = "2021"
 authors = ["Artem Borisovsky <bytefu@gmail.com>"]
 
 [dependencies]
-bitvec = "1.0.1"
 
 [features]
 nightly = []

@@ -6,11 +6,6 @@ use std::{
     fmt::Display,
 };
 
-use bitvec::{
-    order::Lsb0,
-    view::BitView,
-};
-
 use crate::util::{
     u16_fits_n_bits,
     u32_fits_n_bits,
@@ -26,7 +21,7 @@ mod internal {
 
 /// 5-bit unsigned immediate value
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub struct Uimm5(u32);
+pub struct Uimm5(pub(crate) u32);
 
 impl Uimm5 {
     const NBITS: usize = 5;
@@ -78,10 +73,6 @@ impl Uimm5 {
     {
         Self(VALUE as u32)
     }
-
-    pub(crate) fn view_bits(&self) -> &bitvec::slice::BitSlice<u32, Lsb0> {
-        &self.0.view_bits()[0..Self::NBITS]
-    }
 }
 
 #[cfg(feature = "nightly")]
@@ -91,11 +82,6 @@ fn constructors() {
     let _ = Uimm5::from_u16::<0b11111>();
     let _ = Uimm5::from_u32::<0b11111>();
     let _ = Uimm5::from_u64::<0b11111>();
-}
-
-#[test]
-fn view_bits() {
-    assert_eq!(Uimm5(0b11111).view_bits().len(), Uimm5::NBITS);
 }
 
 impl Display for Uimm5 {

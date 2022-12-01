@@ -11,18 +11,12 @@ use std::fmt::{
     Write,
 };
 
-use bitvec::{
-    order::Lsb0,
-    slice::BitSlice,
-    view::BitView,
-};
-
 /// Number of `RISC-V` registers
 pub const NUMBER_OF_REGISTERS: usize = 32;
 
 /// Represents a `RISC-V` register
 #[derive(Debug, PartialEq, Eq, Hash, Clone, Copy)]
-pub struct Register(u32);
+pub struct Register(pub(crate) u32);
 
 impl Register {
     pub(crate) const fn new(index: usize) -> Result<Self, &'static str> {
@@ -31,10 +25,6 @@ impl Register {
         } else {
             Err("register index is greater than 31")
         }
-    }
-
-    pub(crate) fn view_bits(&self) -> &BitSlice<u32, Lsb0> {
-        &self.0.view_bits()[0..5]
     }
 }
 

@@ -6,12 +6,6 @@ use std::{
     fmt::Display,
 };
 
-use bitvec::{
-    order::Lsb0,
-    slice::BitSlice,
-    view::BitView,
-};
-
 use crate::util::{
     i16_fits_n_bits,
     i32_fits_n_bits,
@@ -26,7 +20,7 @@ mod internal {
 
 /// 13-bit signed immediate value used in branch instructions
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub struct BImm(u32);
+pub struct BImm(pub(crate) u32);
 
 impl BImm {
     const NBITS: usize = 13;
@@ -37,7 +31,7 @@ impl BImm {
     /// Creates an `BImm` from an [i8] constant
     #[must_use]
     pub const fn from_i8<const VALUE: i8>() -> Self {
-        Self(VALUE as u32)
+        Self(VALUE as u32 & !1)
     }
 
     #[doc = include_str!("../../doc/nightly_warning.html")]
@@ -49,7 +43,7 @@ impl BImm {
     where
         internal::Assert<{ i16_fits_n_bits(VALUE, Self::NBITS) }>: internal::Fits13BIts,
     {
-        Self(VALUE as u32)
+        Self(VALUE as u32 & !1)
     }
 
     #[doc = include_str!("../../doc/nightly_warning.html")]
@@ -61,7 +55,7 @@ impl BImm {
     where
         internal::Assert<{ i32_fits_n_bits(VALUE, Self::NBITS) }>: internal::Fits13BIts,
     {
-        Self(VALUE as u32)
+        Self(VALUE as u32 & !1)
     }
 
     #[doc = include_str!("../../doc/nightly_warning.html")]
@@ -73,11 +67,7 @@ impl BImm {
     where
         internal::Assert<{ i64_fits_n_bits(VALUE, Self::NBITS) }>: internal::Fits13BIts,
     {
-        Self(VALUE as u32)
-    }
-
-    pub(crate) fn view_bits(&self) -> &BitSlice<u32, Lsb0> {
-        &self.0.view_bits()[0..Self::NBITS]
+        Self(VALUE as u32 & !1)
     }
 }
 
@@ -94,15 +84,6 @@ fn constructors() {
     let _ = BImm::from_i64::<4095>();
 }
 
-#[test]
-fn view_bits() {
-    use bitvec::field::BitField;
-
-    let imm = BImm(-4096_i32 as u32);
-    assert_eq!(imm.view_bits().len(), BImm::NBITS);
-    assert_eq!(imm.view_bits().load_le::<i16>(), -4096);
-}
-
 impl Display for BImm {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         Display::fmt(&(self.0 as i32), f)
@@ -112,13 +93,13 @@ impl Display for BImm {
 #[test]
 fn display() -> Result<(), BImmConvError> {
     assert_eq!(BImm::try_from(-4096)?.to_string(), "-4096");
-    assert_eq!(BImm::try_from(4095)?.to_string(), "4095");
+    assert_eq!(BImm::try_from(4095)?.to_string(), "4094");
     Ok(())
 }
 
 impl From<i8> for BImm {
     fn from(value: i8) -> Self {
-        Self(value as u32)
+        Self(value as u32 & !1)
     }
 }
 
@@ -126,7 +107,7 @@ impl TryFrom<i16> for BImm {
     type Error = BImmConvError;
     fn try_from(value: i16) -> Result<Self, Self::Error> {
         if i16_fits_n_bits(value, Self::NBITS) {
-            Ok(Self(value as u32))
+            Ok(Self(value as u32 & !1))
         } else {
             Err(BImmConvError::I16(value))
         }
@@ -138,7 +119,7 @@ impl TryFrom<i32> for BImm {
 
     fn try_from(value: i32) -> Result<Self, Self::Error> {
         if i32_fits_n_bits(value, Self::NBITS) {
-            Ok(Self(value as u32))
+            Ok(Self(value as u32 & !1))
         } else {
             Err(BImmConvError::I32(value))
         }
@@ -150,7 +131,7 @@ impl TryFrom<i64> for BImm {
 
     fn try_from(value: i64) -> Result<Self, Self::Error> {
         if i64_fits_n_bits(value, Self::NBITS) {
-            Ok(Self(value as u32))
+            Ok(Self(value as u32 & !1))
         } else {
             Err(BImmConvError::I64(value))
         }
@@ -159,13 +140,13 @@ impl TryFrom<i64> for BImm {
 #[test]
 fn conversions() -> Result<(), BImmConvError> {
     assert_eq!(BImm::from(-128_i8), BImm(-128_i32 as u32));
-    assert_eq!(BImm::from(127_i8), BImm(127_i32 as u32));
+    assert_eq!(BImm::from(127_i8), BImm(126_i32 as u32));
     assert_eq!(BImm::try_from(-4096_i16)?, BImm(-4096_i32 as u32));
-    assert_eq!(BImm::try_from(4095_i16)?, BImm(4095_i32 as u32));
+    assert_eq!(BImm::try_from(4095_i16)?, BImm(4094_i32 as u32));
     assert_eq!(BImm::try_from(-4096_i32)?, BImm(-4096_i32 as u32));
-    assert_eq!(BImm::try_from(4095_i32)?, BImm(4095_i32 as u32));
+    assert_eq!(BImm::try_from(4095_i32)?, BImm(4094_i32 as u32));
     assert_eq!(BImm::try_from(-4096_i64)?, BImm(-4096_i32 as u32));
-    assert_eq!(BImm::try_from(4095_i64)?, BImm(4095_i32 as u32));
+    assert_eq!(BImm::try_from(4095_i64)?, BImm(4094_i32 as u32));
 
     assert!(matches!(
         BImm::try_from(-1048577_i32),

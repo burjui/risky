@@ -6,12 +6,6 @@ use std::{
     fmt::Display,
 };
 
-use bitvec::{
-    order::Lsb0,
-    slice::BitSlice,
-    view::BitView,
-};
-
 use crate::util::{
     i32_fits_n_bits,
     i64_fits_n_bits,
@@ -25,7 +19,7 @@ mod internal {
 
 /// 21-bit signed immediate value used in the [jal](crate::instructions::rv32i::jal) instruction
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub struct JImm(u32);
+pub struct JImm(pub(crate) u32);
 
 impl JImm {
     const NBITS: usize = 21;
@@ -33,13 +27,13 @@ impl JImm {
     /// Creates an `JImm` from an [i8] constant
     #[must_use]
     pub const fn from_i8<const VALUE: i8>() -> Self {
-        Self(VALUE as u32)
+        Self((VALUE & !1) as u32)
     }
 
     /// Creates an `JImm` from an [i16] constant
     #[must_use]
     pub const fn from_i16<const VALUE: i16>() -> Self {
-        Self(VALUE as u32)
+        Self((VALUE & !1) as u32)
     }
 
     #[doc = include_str!("../../doc/nightly_warning.html")]
@@ -51,7 +45,7 @@ impl JImm {
     where
         internal::Assert<{ i32_fits_n_bits(VALUE, Self::NBITS) }>: internal::Fits21BIts,
     {
-        Self(VALUE as u32)
+        Self((VALUE & !1) as u32)
     }
 
     #[doc = include_str!("../../doc/nightly_warning.html")]
@@ -63,11 +57,7 @@ impl JImm {
     where
         internal::Assert<{ i64_fits_n_bits(VALUE, Self::NBITS) }>: internal::Fits21BIts,
     {
-        Self(VALUE as u32)
-    }
-
-    pub(crate) fn view_bits(&self) -> &BitSlice<u32, Lsb0> {
-        &self.0.view_bits()[0..Self::NBITS]
+        Self((VALUE & !1) as u32)
     }
 }
 
@@ -84,11 +74,6 @@ fn constructors() {
     let _ = JImm::from_i64::<1048575>();
 }
 
-#[test]
-fn view_bits() {
-    assert_eq!(JImm(-1048576_i32 as u32).view_bits().len(), JImm::NBITS);
-}
-
 impl Display for JImm {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         Display::fmt(&(self.0 as i32), f)
@@ -98,19 +83,19 @@ impl Display for JImm {
 #[test]
 fn display() -> Result<(), JImmConvError> {
     assert_eq!(JImm::try_from(-1048576)?.to_string(), "-1048576");
-    assert_eq!(JImm::try_from(1048575)?.to_string(), "1048575");
+    assert_eq!(JImm::try_from(1048575)?.to_string(), "1048574");
     Ok(())
 }
 
 impl From<i8> for JImm {
     fn from(value: i8) -> Self {
-        Self(value as u32)
+        Self((value & !1) as u32)
     }
 }
 
 impl From<i16> for JImm {
     fn from(value: i16) -> Self {
-        Self(value as u32)
+        Self((value & !1) as u32)
     }
 }
 
@@ -119,7 +104,7 @@ impl TryFrom<i32> for JImm {
 
     fn try_from(value: i32) -> Result<Self, Self::Error> {
         if i32_fits_n_bits(value, Self::NBITS) {
-            Ok(Self(value as u32))
+            Ok(Self((value & !1) as u32))
         } else {
             Err(JImmConvError::I32(value))
         }
@@ -131,7 +116,7 @@ impl TryFrom<i64> for JImm {
 
     fn try_from(value: i64) -> Result<Self, Self::Error> {
         if i64_fits_n_bits(value, Self::NBITS) {
-            Ok(Self(value as u32))
+            Ok(Self((value & !1) as u32))
         } else {
             Err(JImmConvError::I64(value))
         }
@@ -140,13 +125,13 @@ impl TryFrom<i64> for JImm {
 #[test]
 fn conversions() -> Result<(), JImmConvError> {
     assert_eq!(JImm::from(-128_i8), JImm(-128_i32 as u32));
-    assert_eq!(JImm::from(127_i8), JImm(127_i32 as u32));
+    assert_eq!(JImm::from(127_i8), JImm(126_i32 as u32));
     assert_eq!(JImm::from(-32768_i16), JImm(-32768_i32 as u32));
-    assert_eq!(JImm::from(32767_i16), JImm(32767_i32 as u32));
+    assert_eq!(JImm::from(32767_i16), JImm(32766_i32 as u32));
     assert_eq!(JImm::try_from(-1048576_i32)?, JImm(-1048576_i32 as u32));
-    assert_eq!(JImm::try_from(1048575_i32)?, JImm(1048575_i32 as u32));
+    assert_eq!(JImm::try_from(1048575_i32)?, JImm(1048574_i32 as u32));
     assert_eq!(JImm::try_from(-1048576_i64)?, JImm(-1048576_i32 as u32));
-    assert_eq!(JImm::try_from(1048575_i64)?, JImm(1048575_i32 as u32));
+    assert_eq!(JImm::try_from(1048575_i64)?, JImm(1048574_i32 as u32));
 
     assert!(matches!(
         JImm::try_from(-1048577_i32),

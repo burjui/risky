@@ -7,4 +7,5 @@ pub mod abi;
 pub mod instructions;
 pub mod registers;
 
+pub(crate) mod bits;
 pub(crate) mod util;

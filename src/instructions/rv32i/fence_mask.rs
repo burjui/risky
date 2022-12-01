@@ -9,11 +9,6 @@ use std::{
     },
 };
 
-use bitvec::{
-    order::Lsb0,
-    view::BitView,
-};
-
 use crate::util::{
     u16_fits_n_bits,
     u32_fits_n_bits,
@@ -29,7 +24,7 @@ mod internal {
 
 /// 4-bit mask for the [fence](super::fence) instruction
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub struct FenceMask(u32);
+pub struct FenceMask(pub(crate) u32);
 
 impl FenceMask {
     const NBITS: usize = 4;
@@ -112,10 +107,6 @@ impl FenceMask {
     {
         Self(VALUE as u32)
     }
-
-    pub(crate) fn view_bits(&self) -> &bitvec::slice::BitSlice<u32, Lsb0> {
-        &self.0.view_bits()[0..Self::NBITS]
-    }
 }
 
 #[cfg(feature = "nightly")]
@@ -127,19 +118,11 @@ fn constructors() {
     let _ = FenceMask::from_u64::<0b1111>();
 }
 
-#[test]
-fn view_bits() {
-    assert_eq!(FenceMask(0b11111).view_bits().len(), FenceMask::NBITS);
-}
-
 impl Display for FenceMask {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let bits = self.view_bits();
         for (i, c) in Self::BIT_CHARS.char_indices() {
-            if let Some(value) = bits.get(i) {
-                if *value {
-                    f.write_char(c)?;
-                }
+            if (self.0 >> i) & 1 == 1 {
+                f.write_char(c)?;
             }
         }
         Ok(())
@@ -248,16 +231,15 @@ impl<'a> TryFrom<&'a str> for FenceMask {
     /// | i   | device input  |
     fn try_from(mask_spec: &'a str) -> Result<Self, Self::Error> {
         let mut mask = 0;
-        let mask_bits = &mut mask.view_bits_mut::<Lsb0>()[0..4];
         for flag in mask_spec.chars() {
             let Some(index) = "wroi".find(flag) else {
                 return Err(FenceMaskParseError::invalid(mask_spec, flag));
             };
 
-            if mask_bits[index] {
+            if (mask >> index) & 1 == 1 {
                 return Err(FenceMaskParseError::duplicate(mask_spec, flag));
             } else {
-                mask_bits.set(index, true)
+                mask |= 1 << index;
             }
         }
         Ok(Self(mask))

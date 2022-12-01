@@ -6,12 +6,6 @@ use std::{
     fmt::Display,
 };
 
-use bitvec::{
-    order::Lsb0,
-    slice::BitSlice,
-    view::BitView,
-};
-
 use crate::util::{
     i16_fits_n_bits,
     i32_fits_n_bits,
@@ -26,7 +20,7 @@ mod internal {
 
 /// 12-bit signed immediate value
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub struct Imm12(u32);
+pub struct Imm12(pub(crate) u32);
 
 impl Imm12 {
     const NBITS: usize = 12;
@@ -78,14 +72,6 @@ impl Imm12 {
     {
         Self(VALUE as u32)
     }
-
-    pub(crate) fn view_bits(&self) -> &BitSlice<u32, Lsb0> {
-        &self.0.view_bits()[0..Self::NBITS]
-    }
-
-    pub(crate) fn view_bits_mut(&mut self) -> &mut BitSlice<u32, Lsb0> {
-        &mut self.0.view_bits_mut()[0..Self::NBITS]
-    }
 }
 
 #[cfg(feature = "nightly")]
@@ -99,18 +85,6 @@ fn constructors() {
     let _ = Imm12::from_i32::<2047>();
     let _ = Imm12::from_i64::<-2048>();
     let _ = Imm12::from_i64::<2047>();
-}
-
-#[test]
-fn view_bits() {
-    use bitvec::field::BitField;
-
-    let mut imm = Imm12(-2048_i32 as u32);
-    assert_eq!(imm.view_bits().len(), Imm12::NBITS);
-    assert_eq!(imm.view_bits().load_le::<i16>(), -2048);
-
-    imm.view_bits_mut().store_le::<i16>(0x0000007FF);
-    assert_eq!(imm.view_bits().load_le::<i16>(), 2047);
 }
 
 impl Display for Imm12 {
