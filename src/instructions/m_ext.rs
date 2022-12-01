@@ -23,7 +23,8 @@ pub use crate::registers::*;
 /// Other arithmetic instructions:
 /// - M extension: [mulh], [mulhsu], [mulhu], [div], [divu], [rem], [remu]
 /// - RV32I: [add](super::add), [addi](super::addi), [sub](super::sub)
-pub fn mul(rd: Register, rs1: Register, rs2: Register) -> u32 {
+#[must_use]
+pub const fn mul(rd: Register, rs1: Register, rs2: Register) -> u32 {
     muldiv_instruction(rd, rs1, rs2, Funct3::MUL)
 }
 
@@ -41,7 +42,8 @@ pub fn mul(rd: Register, rs1: Register, rs2: Register) -> u32 {
 /// Other arithmetic instructions:
 /// - M extension: [mul], [mulhsu], [mulhu], [div], [divu], [rem], [remu]
 /// - RV32I: [add](super::add), [addi](super::addi), [sub](super::sub)
-pub fn mulh(rd: Register, rs1: Register, rs2: Register) -> u32 {
+#[must_use]
+pub const fn mulh(rd: Register, rs1: Register, rs2: Register) -> u32 {
     muldiv_instruction(rd, rs1, rs2, Funct3::MULH)
 }
 
@@ -59,7 +61,8 @@ pub fn mulh(rd: Register, rs1: Register, rs2: Register) -> u32 {
 /// Other arithmetic instructions:
 /// - M extension: [mul], [mulh], [mulhu], [div], [divu], [rem], [remu]
 /// - RV32I: [add](super::add), [addi](super::addi), [sub](super::sub)
-pub fn mulhsu(rd: Register, rs1: Register, rs2: Register) -> u32 {
+#[must_use]
+pub const fn mulhsu(rd: Register, rs1: Register, rs2: Register) -> u32 {
     muldiv_instruction(rd, rs1, rs2, Funct3::MULHSU)
 }
 
@@ -77,7 +80,8 @@ pub fn mulhsu(rd: Register, rs1: Register, rs2: Register) -> u32 {
 /// Other arithmetic instructions:
 /// - M extension: [mul], [mulh], [mulhsu], [div], [divu], [rem], [remu]
 /// - RV32I: [add](super::add), [addi](super::addi), [sub](super::sub)
-pub fn mulhu(rd: Register, rs1: Register, rs2: Register) -> u32 {
+#[must_use]
+pub const fn mulhu(rd: Register, rs1: Register, rs2: Register) -> u32 {
     muldiv_instruction(rd, rs1, rs2, Funct3::MULHU)
 }
 
@@ -97,7 +101,8 @@ pub fn mulhu(rd: Register, rs1: Register, rs2: Register) -> u32 {
 /// Other arithmetic instructions:
 /// - M extension: [divu], [rem], [remu], [mul], [mulh], [mulhsu], [mulhu]
 /// - RV32I: [add](super::add), [addi](super::addi), [sub](super::sub)
-pub fn div(rd: Register, rs1: Register, rs2: Register) -> u32 {
+#[must_use]
+pub const fn div(rd: Register, rs1: Register, rs2: Register) -> u32 {
     muldiv_instruction(rd, rs1, rs2, Funct3::DIV)
 }
 
@@ -116,7 +121,8 @@ pub fn div(rd: Register, rs1: Register, rs2: Register) -> u32 {
 /// Other arithmetic instructions:
 /// - M extension: [div], [rem], [remu], [mul], [mulh], [mulhsu], [mulhu]
 /// - RV32I: [add](super::add), [addi](super::addi), [sub](super::sub)
-pub fn divu(rd: Register, rs1: Register, rs2: Register) -> u32 {
+#[must_use]
+pub const fn divu(rd: Register, rs1: Register, rs2: Register) -> u32 {
     muldiv_instruction(rd, rs1, rs2, Funct3::DIVU)
 }
 
@@ -135,7 +141,8 @@ pub fn divu(rd: Register, rs1: Register, rs2: Register) -> u32 {
 /// Other arithmetic instructions:
 /// - M extension: [remu], [div], [divu], [mul], [mulh], [mulhsu], [mulhu]
 /// - RV32I: [add](super::add), [addi](super::addi), [sub](super::sub)
-pub fn rem(rd: Register, rs1: Register, rs2: Register) -> u32 {
+#[must_use]
+pub const fn rem(rd: Register, rs1: Register, rs2: Register) -> u32 {
     muldiv_instruction(rd, rs1, rs2, Funct3::REM)
 }
 
@@ -154,7 +161,8 @@ pub fn rem(rd: Register, rs1: Register, rs2: Register) -> u32 {
 /// Other arithmetic instructions:
 /// - M extension: [rem], [div], [divu], [mul], [mulh], [mulhsu], [mulhu]
 /// - RV32I: [add](super::add), [addi](super::addi), [sub](super::sub)
-pub fn remu(rd: Register, rs1: Register, rs2: Register) -> u32 {
+#[must_use]
+pub const fn remu(rd: Register, rs1: Register, rs2: Register) -> u32 {
     muldiv_instruction(rd, rs1, rs2, Funct3::REMU)
 }
 
@@ -172,7 +180,7 @@ pub fn remu(rd: Register, rs1: Register, rs2: Register) -> u32 {
 ///               | MULDIV |  divisor   |   dividend   | REM    | dest |   OP   |
 ///               | MULDIV |  divisor   |   dividend   | REMU   | dest |   OP   |
 /// ```
-fn muldiv_instruction(rd: Register, rs1: Register, rs2: Register, funct3: Funct3) -> u32 {
+const fn muldiv_instruction(rd: Register, rs1: Register, rs2: Register, funct3: Funct3) -> u32 {
     r_instruction(
         Opcode::OP,
         rd,

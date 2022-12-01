@@ -1,8 +1,10 @@
+#[must_use]
 pub const fn u8_fits_n_bits(value: u8, nbits: usize) -> bool {
     let max_value = if nbits < 8 { (1 << nbits) - 1 } else { u8::MAX };
     value <= max_value
 }
 
+#[must_use]
 pub const fn u16_fits_n_bits(value: u16, nbits: usize) -> bool {
     let max_value = if nbits < 16 {
         (1 << nbits) - 1
@@ -12,6 +14,7 @@ pub const fn u16_fits_n_bits(value: u16, nbits: usize) -> bool {
     value <= max_value
 }
 
+#[must_use]
 pub const fn u32_fits_n_bits(value: u32, nbits: usize) -> bool {
     let max_value = if nbits < 32 {
         (1 << nbits) - 1
@@ -21,6 +24,7 @@ pub const fn u32_fits_n_bits(value: u32, nbits: usize) -> bool {
     value <= max_value
 }
 
+#[must_use]
 pub const fn u64_fits_n_bits(value: u64, nbits: usize) -> bool {
     let max_value = if nbits < 64 {
         (1 << nbits) - 1
@@ -30,6 +34,7 @@ pub const fn u64_fits_n_bits(value: u64, nbits: usize) -> bool {
     value <= max_value
 }
 
+#[must_use]
 pub const fn i16_fits_n_bits(value: i16, nbits: usize) -> bool {
     let (min, max) = if nbits < 15 {
         (-(1 << (nbits - 1)), (1 << (nbits - 1)) - 1)
@@ -39,6 +44,7 @@ pub const fn i16_fits_n_bits(value: i16, nbits: usize) -> bool {
     value >= min && value <= max
 }
 
+#[must_use]
 pub const fn i32_fits_n_bits(value: i32, nbits: usize) -> bool {
     let (min, max) = if nbits < 31 {
         (-(1 << (nbits - 1)), (1 << (nbits - 1)) - 1)
@@ -48,6 +54,7 @@ pub const fn i32_fits_n_bits(value: i32, nbits: usize) -> bool {
     value >= min && value <= max
 }
 
+#[must_use]
 pub const fn i64_fits_n_bits(value: i64, nbits: usize) -> bool {
     let (min, max) = if nbits < 63 {
         (-(1 << (nbits - 1)), (1 << (nbits - 1)) - 1)

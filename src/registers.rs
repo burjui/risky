@@ -19,14 +19,6 @@ pub const NUMBER_OF_REGISTERS: usize = 32;
 pub struct Register(u8);
 
 impl Register {
-    pub(crate) const fn new(index: usize) -> Result<Self, &'static str> {
-        if index < NUMBER_OF_REGISTERS {
-            Ok(Self(index as u8))
-        } else {
-            Err("register index is greater than 31")
-        }
-    }
-
     pub(crate) const fn to_u32(self) -> u32 {
         self.0 as u32
     }
@@ -36,7 +28,7 @@ impl TryFrom<u8> for Register {
     type Error = &'static str;
 
     fn try_from(index: u8) -> Result<Self, Self::Error> {
-        Register::new(usize::from(index))
+        x(usize::from(index))
     }
 }
 
@@ -44,7 +36,7 @@ impl TryFrom<usize> for Register {
     type Error = &'static str;
 
     fn try_from(index: usize) -> Result<Self, Self::Error> {
-        Register::new(index)
+        x(index)
     }
 }
 
@@ -70,7 +62,11 @@ impl Display for Register {
 /// Returns a register corresponding to `index`, if `r` < [NUMBER_OF_REGISTERS].
 #[track_caller]
 pub const fn x(index: usize) -> Result<Register, &'static str> {
-    Register::new(index)
+    if index < NUMBER_OF_REGISTERS {
+        Ok(Register(index as u8))
+    } else {
+        Err("register index is greater than 31")
+    }
 }
 
 /// Hard-wired zero, ignores writes
