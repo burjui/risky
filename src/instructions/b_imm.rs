@@ -20,7 +20,7 @@ mod internal {
 
 /// 13-bit signed immediate value used in branch instructions
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub struct BImm(pub(crate) u32);
+pub struct BImm(i16);
 
 impl BImm {
     const NBITS: usize = 13;
@@ -31,7 +31,7 @@ impl BImm {
     /// Creates an `BImm` from an [i8] constant
     #[must_use]
     pub const fn from_i8<const VALUE: i8>() -> Self {
-        Self(VALUE as u32 & !1)
+        Self(VALUE as i16 & !1)
     }
 
     #[doc = include_str!("../../doc/nightly_warning.html")]
@@ -43,7 +43,7 @@ impl BImm {
     where
         internal::Assert<{ i16_fits_n_bits(VALUE, Self::NBITS) }>: internal::Fits13BIts,
     {
-        Self(VALUE as u32 & !1)
+        Self(VALUE & !1)
     }
 
     #[doc = include_str!("../../doc/nightly_warning.html")]
@@ -55,7 +55,7 @@ impl BImm {
     where
         internal::Assert<{ i32_fits_n_bits(VALUE, Self::NBITS) }>: internal::Fits13BIts,
     {
-        Self(VALUE as u32 & !1)
+        Self(VALUE as i16 & !1)
     }
 
     #[doc = include_str!("../../doc/nightly_warning.html")]
@@ -67,7 +67,11 @@ impl BImm {
     where
         internal::Assert<{ i64_fits_n_bits(VALUE, Self::NBITS) }>: internal::Fits13BIts,
     {
-        Self(VALUE as u32 & !1)
+        Self(VALUE as i16 & !1)
+    }
+
+    pub(crate) const fn to_u32(self) -> u32 {
+        self.0 as u32
     }
 }
 
@@ -99,7 +103,7 @@ fn display() -> Result<(), BImmConvError> {
 
 impl From<i8> for BImm {
     fn from(value: i8) -> Self {
-        Self(value as u32 & !1)
+        Self(value as i16 & !1)
     }
 }
 
@@ -107,7 +111,7 @@ impl TryFrom<i16> for BImm {
     type Error = BImmConvError;
     fn try_from(value: i16) -> Result<Self, Self::Error> {
         if i16_fits_n_bits(value, Self::NBITS) {
-            Ok(Self(value as u32 & !1))
+            Ok(Self(value & !1))
         } else {
             Err(BImmConvError::I16(value))
         }
@@ -119,7 +123,7 @@ impl TryFrom<i32> for BImm {
 
     fn try_from(value: i32) -> Result<Self, Self::Error> {
         if i32_fits_n_bits(value, Self::NBITS) {
-            Ok(Self(value as u32 & !1))
+            Ok(Self(value as i16 & !1))
         } else {
             Err(BImmConvError::I32(value))
         }
@@ -131,7 +135,7 @@ impl TryFrom<i64> for BImm {
 
     fn try_from(value: i64) -> Result<Self, Self::Error> {
         if i64_fits_n_bits(value, Self::NBITS) {
-            Ok(Self(value as u32 & !1))
+            Ok(Self(value as i16 & !1))
         } else {
             Err(BImmConvError::I64(value))
         }
@@ -139,14 +143,14 @@ impl TryFrom<i64> for BImm {
 }
 #[test]
 fn conversions() -> Result<(), BImmConvError> {
-    assert_eq!(BImm::from(-128_i8), BImm(-128_i32 as u32));
-    assert_eq!(BImm::from(127_i8), BImm(126_i32 as u32));
-    assert_eq!(BImm::try_from(-4096_i16)?, BImm(-4096_i32 as u32));
-    assert_eq!(BImm::try_from(4095_i16)?, BImm(4094_i32 as u32));
-    assert_eq!(BImm::try_from(-4096_i32)?, BImm(-4096_i32 as u32));
-    assert_eq!(BImm::try_from(4095_i32)?, BImm(4094_i32 as u32));
-    assert_eq!(BImm::try_from(-4096_i64)?, BImm(-4096_i32 as u32));
-    assert_eq!(BImm::try_from(4095_i64)?, BImm(4094_i32 as u32));
+    assert_eq!(BImm::from(-128_i8), BImm(-128));
+    assert_eq!(BImm::from(127_i8), BImm(126));
+    assert_eq!(BImm::try_from(-4096_i16)?, BImm(-4096));
+    assert_eq!(BImm::try_from(4095_i16)?, BImm(4094));
+    assert_eq!(BImm::try_from(-4096_i32)?, BImm(-4096));
+    assert_eq!(BImm::try_from(4095_i32)?, BImm(4094));
+    assert_eq!(BImm::try_from(-4096_i64)?, BImm(-4096));
+    assert_eq!(BImm::try_from(4095_i64)?, BImm(4094));
 
     assert!(matches!(
         BImm::try_from(-1048577_i32),

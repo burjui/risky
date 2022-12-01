@@ -21,7 +21,7 @@ mod internal {
 
 /// 5-bit unsigned immediate value
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub struct Uimm5(pub(crate) u32);
+pub struct Uimm5(u8);
 
 impl Uimm5 {
     const NBITS: usize = 5;
@@ -35,7 +35,7 @@ impl Uimm5 {
     where
         internal::Assert<{ u8_fits_n_bits(VALUE, Self::NBITS) }>: internal::Fits5BIts,
     {
-        Self(VALUE as u32)
+        Self(VALUE)
     }
 
     #[doc = include_str!("../../doc/nightly_warning.html")]
@@ -47,7 +47,7 @@ impl Uimm5 {
     where
         internal::Assert<{ u16_fits_n_bits(VALUE, Self::NBITS) }>: internal::Fits5BIts,
     {
-        Self(VALUE as u32)
+        Self(VALUE as u8)
     }
 
     #[doc = include_str!("../../doc/nightly_warning.html")]
@@ -59,7 +59,7 @@ impl Uimm5 {
     where
         internal::Assert<{ u32_fits_n_bits(VALUE, Self::NBITS) }>: internal::Fits5BIts,
     {
-        Self(VALUE)
+        Self(VALUE as u8)
     }
 
     #[doc = include_str!("../../doc/nightly_warning.html")]
@@ -71,7 +71,11 @@ impl Uimm5 {
     where
         internal::Assert<{ u64_fits_n_bits(VALUE, Self::NBITS) }>: internal::Fits5BIts,
     {
-        Self(VALUE as u32)
+        Self(VALUE as u8)
+    }
+
+    pub(crate) const fn to_u32(self) -> u32 {
+        self.0 as u32
     }
 }
 
@@ -101,7 +105,7 @@ impl TryFrom<u8> for Uimm5 {
 
     fn try_from(value: u8) -> Result<Self, Self::Error> {
         if u8_fits_n_bits(value, Self::NBITS) {
-            Ok(Self(value as u32))
+            Ok(Self(value))
         } else {
             Err(Uimm5ConvError::U8(value))
         }
@@ -113,7 +117,7 @@ impl TryFrom<u16> for Uimm5 {
 
     fn try_from(value: u16) -> Result<Self, Self::Error> {
         if u16_fits_n_bits(value, Self::NBITS) {
-            Ok(Self(value as u32))
+            Ok(Self(value as u8))
         } else {
             Err(Uimm5ConvError::U16(value))
         }
@@ -125,7 +129,7 @@ impl TryFrom<u32> for Uimm5 {
 
     fn try_from(value: u32) -> Result<Self, Self::Error> {
         if u32_fits_n_bits(value, Self::NBITS) {
-            Ok(Self(value))
+            Ok(Self(value as u8))
         } else {
             Err(Uimm5ConvError::U32(value))
         }
@@ -137,7 +141,7 @@ impl TryFrom<u64> for Uimm5 {
 
     fn try_from(value: u64) -> Result<Self, Self::Error> {
         if u64_fits_n_bits(value, Self::NBITS) {
-            Ok(Self(value as u32))
+            Ok(Self(value as u8))
         } else {
             Err(Uimm5ConvError::U64(value))
         }

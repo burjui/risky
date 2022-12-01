@@ -24,7 +24,7 @@ mod internal {
 
 /// 4-bit mask for the [fence](super::fence) instruction
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub struct FenceMask(pub(crate) u32);
+pub struct FenceMask(u8);
 
 impl FenceMask {
     const NBITS: usize = 4;
@@ -48,7 +48,7 @@ impl FenceMask {
     where
         internal::Assert<{ u8_fits_n_bits(VALUE, Self::NBITS) }>: internal::Fits4BIts,
     {
-        Self(VALUE as u32)
+        Self(VALUE)
     }
 
     #[doc = include_str!("../../../doc/nightly_warning.html")]
@@ -67,7 +67,7 @@ impl FenceMask {
     where
         internal::Assert<{ u16_fits_n_bits(VALUE, Self::NBITS) }>: internal::Fits4BIts,
     {
-        Self(VALUE as u32)
+        Self(VALUE as u8)
     }
 
     #[doc = include_str!("../../../doc/nightly_warning.html")]
@@ -86,7 +86,7 @@ impl FenceMask {
     where
         internal::Assert<{ u32_fits_n_bits(VALUE, Self::NBITS) }>: internal::Fits4BIts,
     {
-        Self(VALUE)
+        Self(VALUE as u8)
     }
 
     #[doc = include_str!("../../../doc/nightly_warning.html")]
@@ -105,7 +105,11 @@ impl FenceMask {
     where
         internal::Assert<{ u64_fits_n_bits(VALUE, Self::NBITS) }>: internal::Fits4BIts,
     {
-        Self(VALUE as u32)
+        Self(VALUE as u8)
+    }
+
+    pub(crate) const fn to_u32(self) -> u32 {
+        self.0 as u32
     }
 }
 
@@ -151,7 +155,7 @@ impl TryFrom<u8> for FenceMask {
     /// | 3   | device input  |
     fn try_from(value: u8) -> Result<Self, Self::Error> {
         if u8_fits_n_bits(value, Self::NBITS) {
-            Ok(Self(value as u32))
+            Ok(Self(value))
         } else {
             Err(FenceMaskConvError::U8(value))
         }
@@ -171,7 +175,7 @@ impl TryFrom<u16> for FenceMask {
     /// | 3   | device input  |
     fn try_from(value: u16) -> Result<Self, Self::Error> {
         if u16_fits_n_bits(value, Self::NBITS) {
-            Ok(Self(value as u32))
+            Ok(Self(value as u8))
         } else {
             Err(FenceMaskConvError::U16(value))
         }
@@ -191,7 +195,7 @@ impl TryFrom<u32> for FenceMask {
     /// | 3   | device input  |
     fn try_from(value: u32) -> Result<Self, Self::Error> {
         if u32_fits_n_bits(value, Self::NBITS) {
-            Ok(Self(value))
+            Ok(Self(value as u8))
         } else {
             Err(FenceMaskConvError::U32(value))
         }
@@ -211,7 +215,7 @@ impl TryFrom<u64> for FenceMask {
     /// | 3   | device input  |
     fn try_from(value: u64) -> Result<Self, Self::Error> {
         if u64_fits_n_bits(value, Self::NBITS) {
-            Ok(Self(value as u32))
+            Ok(Self(value as u8))
         } else {
             Err(FenceMaskConvError::U64(value))
         }

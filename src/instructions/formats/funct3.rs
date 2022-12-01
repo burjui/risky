@@ -1,4 +1,4 @@
-pub(crate) struct Funct3(pub(crate) u32);
+pub(crate) struct Funct3(u8);
 
 impl Funct3 {
     // RV32I
@@ -57,4 +57,8 @@ impl Funct3 {
     pub(crate) const DIVU: Self = Self(0b101);
     pub(crate) const REM: Self = Self(0b110);
     pub(crate) const REMU: Self = Self(0b111);
+
+    pub(crate) fn to_u32(&self) -> u32 {
+        self.0 as u32
+    }
 }

@@ -1,4 +1,4 @@
-pub(crate) struct Funct7(pub(crate) u32);
+pub(crate) struct Funct7(u8);
 
 impl Funct7 {
     // RV32I
@@ -13,4 +13,8 @@ impl Funct7 {
     pub(crate) const SLL: Self = Self(0b0000000);
     pub(crate) const SRL: Self = Self(0b0000000);
     pub(crate) const MULDIV: Self = Self(0b0000001);
+
+    pub(crate) fn to_u32(&self) -> u32 {
+        self.0 as u32
+    }
 }

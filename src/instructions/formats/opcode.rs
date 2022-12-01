@@ -1,4 +1,4 @@
-pub(crate) struct Opcode(pub(crate) u32);
+pub(crate) struct Opcode(u8);
 
 impl Opcode {
     pub(crate) const LUI: Self = Self(0b0110111);
@@ -14,4 +14,8 @@ impl Opcode {
 
     // M extension
     pub(crate) const SYSTEM: Self = Self(0b1110011);
+
+    pub(crate) fn to_u32(&self) -> u32 {
+        self.0 as u32
+    }
 }

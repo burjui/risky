@@ -23,10 +23,10 @@ pub(crate) enum RegOrUimm5 {
 }
 
 impl RegOrUimm5 {
-    fn u32(&self) -> u32 {
+    fn into_u32(self) -> u32 {
         match self {
-            RegOrUimm5::Register(reg) => reg.0,
-            RegOrUimm5::Uimm5(imm) => imm.0,
+            RegOrUimm5::Register(reg) => reg.to_u32(),
+            RegOrUimm5::Uimm5(imm) => imm.to_u32(),
         }
     }
 }
@@ -40,12 +40,12 @@ pub(crate) fn r_instruction(
     funct7: Funct7,
 ) -> u32 {
     merge_bitfields([
-        (0..7, opcode.0, 0..7),
-        (7..12, rd.0, 0..5),
-        (12..15, funct3.0, 0..3),
-        (15..20, rs1.0, 0..5),
-        (20..25, rs2.u32(), 0..5),
-        (25..32, funct7.0, 0..7),
+        (0..7, opcode.to_u32(), 0..7),
+        (7..12, rd.to_u32(), 0..5),
+        (12..15, funct3.to_u32(), 0..3),
+        (15..20, rs1.to_u32(), 0..5),
+        (20..25, rs2.into_u32(), 0..5),
+        (25..32, funct7.to_u32(), 0..7),
     ])
 }
 
@@ -57,11 +57,11 @@ pub(crate) fn i_instruction(
     imm: Imm12,
 ) -> u32 {
     merge_bitfields([
-        (0..7, opcode.0, 0..7),
-        (7..12, rd.0, 0..5),
-        (12..15, funct3.0, 0..3),
-        (15..20, rs1.u32(), 0..5),
-        (20..32, imm.0, 0..12),
+        (0..7, opcode.to_u32(), 0..7),
+        (7..12, rd.to_u32(), 0..5),
+        (12..15, funct3.to_u32(), 0..3),
+        (15..20, rs1.into_u32(), 0..5),
+        (20..32, imm.to_u32(), 0..12),
     ])
 }
 
@@ -73,12 +73,12 @@ pub(crate) fn s_instruction(
     rs2: Register,
 ) -> u32 {
     merge_bitfields([
-        (0..7, opcode.0, 0..7),
-        (7..12, imm.0, 0..5),
-        (12..15, funct3.0, 0..3),
-        (15..20, rs1.0, 0..5),
-        (20..25, rs2.0, 0..5),
-        (25..32, imm.0, 5..12),
+        (0..7, opcode.to_u32(), 0..7),
+        (7..12, imm.to_u32(), 0..5),
+        (12..15, funct3.to_u32(), 0..3),
+        (15..20, rs1.to_u32(), 0..5),
+        (20..25, rs2.to_u32(), 0..5),
+        (25..32, imm.to_u32(), 5..12),
     ])
 }
 
@@ -89,33 +89,35 @@ pub(crate) fn b_instruction(
     rs1: Register,
     rs2: Register,
 ) -> u32 {
+    let imm = imm.to_u32();
     merge_bitfields([
-        (0..7, opcode.0, 0..7),
-        (7..8, imm.0, 11..12),
-        (8..12, imm.0, 1..5),
-        (12..15, funct3.0, 0..3),
-        (15..20, rs1.0, 0..5),
-        (20..25, rs2.0, 0..5),
-        (25..31, imm.0, 5..11),
-        (31..32, imm.0, 12..13),
+        (0..7, opcode.to_u32(), 0..7),
+        (7..8, imm, 11..12),
+        (8..12, imm, 1..5),
+        (12..15, funct3.to_u32(), 0..3),
+        (15..20, rs1.to_u32(), 0..5),
+        (20..25, rs2.to_u32(), 0..5),
+        (25..31, imm, 5..11),
+        (31..32, imm, 12..13),
     ])
 }
 
 pub(crate) fn u_instruction(opcode: Opcode, rd: Register, imm: i32) -> u32 {
     merge_bitfields([
-        (0..7, opcode.0, 0..7),
-        (7..12, rd.0, 0..5),
+        (0..7, opcode.to_u32(), 0..7),
+        (7..12, rd.to_u32(), 0..5),
         (12..32, imm as u32, 12..32),
     ])
 }
 
 pub(crate) fn j_instruction(opcode: Opcode, rd: Register, imm: JImm) -> u32 {
+    let imm = imm.to_u32();
     merge_bitfields([
-        (0..7, opcode.0, 0..7),
-        (7..12, rd.0, 0..5),
-        (12..20, imm.0, 12..20),
-        (20..21, imm.0, 11..12),
-        (21..31, imm.0, 1..11),
-        (31..32, imm.0, 20..21),
+        (0..7, opcode.to_u32(), 0..7),
+        (7..12, rd.to_u32(), 0..5),
+        (12..20, imm, 12..20),
+        (20..21, imm, 11..12),
+        (21..31, imm, 1..11),
+        (31..32, imm, 20..21),
     ])
 }

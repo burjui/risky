@@ -20,7 +20,7 @@ mod internal {
 
 /// 12-bit signed immediate value
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub struct Imm12(pub(crate) u32);
+pub struct Imm12(pub(crate) i16);
 
 impl Imm12 {
     const NBITS: usize = 12;
@@ -29,12 +29,12 @@ impl Imm12 {
     pub const ZERO: Self = Self(0);
 
     pub(crate) const ONE: Self = Self(1);
-    pub(crate) const MINUS_ONE: Self = Self(-1_i32 as u32);
+    pub(crate) const MINUS_ONE: Self = Self(-1);
 
     /// Creates an `Imm12` from an [i8] constant
     #[must_use]
     pub const fn from_i8<const VALUE: i8>() -> Self {
-        Self(VALUE as u32)
+        Self(VALUE as i16)
     }
 
     #[doc = include_str!("../../doc/nightly_warning.html")]
@@ -46,7 +46,7 @@ impl Imm12 {
     where
         internal::Assert<{ i16_fits_n_bits(VALUE, Self::NBITS) }>: internal::Fits12BIts,
     {
-        Self(VALUE as u32)
+        Self(VALUE)
     }
 
     #[doc = include_str!("../../doc/nightly_warning.html")]
@@ -58,7 +58,7 @@ impl Imm12 {
     where
         internal::Assert<{ i32_fits_n_bits(VALUE, Self::NBITS) }>: internal::Fits12BIts,
     {
-        Self(VALUE as u32)
+        Self(VALUE as i16)
     }
 
     #[doc = include_str!("../../doc/nightly_warning.html")]
@@ -70,7 +70,11 @@ impl Imm12 {
     where
         internal::Assert<{ i64_fits_n_bits(VALUE, Self::NBITS) }>: internal::Fits12BIts,
     {
-        Self(VALUE as u32)
+        Self(VALUE as i16)
+    }
+
+    pub(crate) const fn to_u32(self) -> u32 {
+        self.0 as u32
     }
 }
 
@@ -102,7 +106,7 @@ fn display() -> Result<(), Imm12ConvError> {
 
 impl From<i8> for Imm12 {
     fn from(value: i8) -> Self {
-        Self(value as u32)
+        Self(value as i16)
     }
 }
 
@@ -110,7 +114,7 @@ impl TryFrom<i16> for Imm12 {
     type Error = Imm12ConvError;
     fn try_from(value: i16) -> Result<Self, Self::Error> {
         if i16_fits_n_bits(value, Self::NBITS) {
-            Ok(Self(value as u32))
+            Ok(Self(value))
         } else {
             Err(Imm12ConvError::I16(value))
         }
@@ -122,7 +126,7 @@ impl TryFrom<i32> for Imm12 {
 
     fn try_from(value: i32) -> Result<Self, Self::Error> {
         if i32_fits_n_bits(value, Self::NBITS) {
-            Ok(Self(value as u32))
+            Ok(Self(value as i16))
         } else {
             Err(Imm12ConvError::I32(value))
         }
@@ -134,7 +138,7 @@ impl TryFrom<i64> for Imm12 {
 
     fn try_from(value: i64) -> Result<Self, Self::Error> {
         if i64_fits_n_bits(value, Self::NBITS) {
-            Ok(Self(value as u32))
+            Ok(Self(value as i16))
         } else {
             Err(Imm12ConvError::I64(value))
         }
@@ -142,14 +146,14 @@ impl TryFrom<i64> for Imm12 {
 }
 #[test]
 fn conversions() -> Result<(), Imm12ConvError> {
-    assert_eq!(Imm12::from(-128_i8), Imm12(-128_i32 as u32));
-    assert_eq!(Imm12::from(127_i8), Imm12(127_i32 as u32));
-    assert_eq!(Imm12::try_from(-2048_i16)?, Imm12(-2048_i32 as u32));
-    assert_eq!(Imm12::try_from(2047_i16)?, Imm12(2047_i32 as u32));
-    assert_eq!(Imm12::try_from(-2048_i32)?, Imm12(-2048_i32 as u32));
-    assert_eq!(Imm12::try_from(2047_i32)?, Imm12(2047_i32 as u32));
-    assert_eq!(Imm12::try_from(-2048_i64)?, Imm12(-2048_i32 as u32));
-    assert_eq!(Imm12::try_from(2047_i64)?, Imm12(2047_i32 as u32));
+    assert_eq!(Imm12::from(-128_i8), Imm12(-128));
+    assert_eq!(Imm12::from(127_i8), Imm12(127));
+    assert_eq!(Imm12::try_from(-2048_i16)?, Imm12(-2048));
+    assert_eq!(Imm12::try_from(2047_i16)?, Imm12(2047));
+    assert_eq!(Imm12::try_from(-2048_i32)?, Imm12(-2048));
+    assert_eq!(Imm12::try_from(2047_i32)?, Imm12(2047));
+    assert_eq!(Imm12::try_from(-2048_i64)?, Imm12(-2048));
+    assert_eq!(Imm12::try_from(2047_i64)?, Imm12(2047));
 
     assert!(matches!(
         Imm12::try_from(-1048577_i32),

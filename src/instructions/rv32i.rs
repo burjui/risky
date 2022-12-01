@@ -639,17 +639,17 @@ pub fn fence_tso() -> u32 {
 /// Description   | fence mode | predecessor |  successor  |   0   | FENCE  |  0   | MISC_MEM |
 /// ```
 fn fence_instruction(fm: FenceMode, predecessor: FenceMask, successor: FenceMask) -> u32 {
-    let imm = Imm12(merge_bitfields([
-        (0..4, predecessor.0, 0..4),
-        (4..8, successor.0, 0..4),
-        (8..12, fm.0, 0..4),
-    ]));
+    let imm = merge_bitfields([
+        (0..4, predecessor.to_u32(), 0..4),
+        (4..8, successor.to_u32(), 0..4),
+        (8..12, fm.into_u32(), 0..4),
+    ]);
     i_instruction(
         Opcode::MISC_MEM,
         X0,
         Funct3::FENCE,
         RegOrUimm5::Register(X0),
-        imm,
+        Imm12(imm as i16),
     )
 }
 
