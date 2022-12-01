@@ -24,7 +24,7 @@ pub use super::{
     j_imm::*,
     uimm5::*,
 };
-use crate::bits::set_bits;
+use crate::bits::merge_bitfields;
 pub use crate::registers::*;
 
 /// "Load Upper Immediate" instruction is primarily used to build 32-bit constants. It places `imm`
@@ -639,14 +639,11 @@ pub fn fence_tso() -> u32 {
 /// Description   | fence mode | predecessor |  successor  |   0   | FENCE  |  0   | MISC_MEM |
 /// ```
 fn fence_instruction(fm: FenceMode, predecessor: FenceMask, successor: FenceMask) -> u32 {
-    let imm = Imm12(set_bits(
-        0,
-        [
-            (0..4, predecessor.0, 0..4),
-            (4..8, successor.0, 0..4),
-            (8..12, fm.0, 0..4),
-        ],
-    ));
+    let imm = Imm12(merge_bitfields([
+        (0..4, predecessor.0, 0..4),
+        (4..8, successor.0, 0..4),
+        (8..12, fm.0, 0..4),
+    ]));
     i_instruction(
         Opcode::MISC_MEM,
         X0,
