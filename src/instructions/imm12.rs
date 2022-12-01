@@ -10,6 +10,11 @@ use crate::util::{
     i16_fits_n_bits,
     i32_fits_n_bits,
     i64_fits_n_bits,
+    isize_fits_n_bits,
+    u16_fits_n_bits,
+    u32_fits_n_bits,
+    u64_fits_n_bits,
+    usize_fits_n_bits,
 };
 
 /// 12-bit signed immediate value
@@ -28,6 +33,12 @@ impl Imm12 {
     /// Creates an `Imm12` from an [i8] constant
     #[must_use]
     pub const fn from_i8<const VALUE: i8>() -> Self {
+        Self(VALUE as i16)
+    }
+
+    /// Creates an `Imm12` from an [u8] constant
+    #[must_use]
+    pub const fn from_u8<const VALUE: u8>() -> Self {
         Self(VALUE as i16)
     }
 
@@ -67,6 +78,66 @@ impl Imm12 {
         Self(VALUE as i16)
     }
 
+    #[doc = include_str!("../../doc/nightly_warning.html")]
+    ///
+    /// Creates an `Imm12` from an [isize] constant
+    #[cfg(feature = "nightly")]
+    #[must_use]
+    pub const fn from_isize<const VALUE: isize>() -> Self
+    where
+        internal::Assert<{ isize_fits_n_bits(VALUE, Self::NBITS) }>: internal::Fits12BIts,
+    {
+        Self(VALUE as i16)
+    }
+
+    #[doc = include_str!("../../doc/nightly_warning.html")]
+    ///
+    /// Creates an `Imm12` from an [u16] constant
+    #[cfg(feature = "nightly")]
+    #[must_use]
+    pub const fn from_u16<const VALUE: u16>() -> Self
+    where
+        internal::Assert<{ u16_fits_n_bits(VALUE, Self::NBITS - 1) }>: internal::Fits12BIts,
+    {
+        Self(VALUE as i16)
+    }
+
+    #[doc = include_str!("../../doc/nightly_warning.html")]
+    ///
+    /// Creates an `Imm12` from an [u32] constant
+    #[cfg(feature = "nightly")]
+    #[must_use]
+    pub const fn from_u32<const VALUE: u32>() -> Self
+    where
+        internal::Assert<{ u32_fits_n_bits(VALUE, Self::NBITS - 1) }>: internal::Fits12BIts,
+    {
+        Self(VALUE as i16)
+    }
+
+    #[doc = include_str!("../../doc/nightly_warning.html")]
+    ///
+    /// Creates an `Imm12` from an [u64] constant
+    #[cfg(feature = "nightly")]
+    #[must_use]
+    pub const fn from_u64<const VALUE: u64>() -> Self
+    where
+        internal::Assert<{ u64_fits_n_bits(VALUE, Self::NBITS - 1) }>: internal::Fits12BIts,
+    {
+        Self(VALUE as i16)
+    }
+
+    #[doc = include_str!("../../doc/nightly_warning.html")]
+    ///
+    /// Creates an `Imm12` from an [usize] constant
+    #[cfg(feature = "nightly")]
+    #[must_use]
+    pub const fn from_usize<const VALUE: usize>() -> Self
+    where
+        internal::Assert<{ usize_fits_n_bits(VALUE, Self::NBITS - 1) }>: internal::Fits12BIts,
+    {
+        Self(VALUE as i16)
+    }
+
     pub(crate) const fn to_u32(self) -> u32 {
         self.0 as u32
     }
@@ -77,12 +148,19 @@ impl Imm12 {
 fn constructors() {
     let _ = Imm12::from_i8::<-128>();
     let _ = Imm12::from_i8::<127>();
+    let _ = Imm12::from_u8::<255>();
     let _ = Imm12::from_i16::<-2048>();
     let _ = Imm12::from_i16::<2047>();
+    let _ = Imm12::from_u16::<2047>();
     let _ = Imm12::from_i32::<-2048>();
     let _ = Imm12::from_i32::<2047>();
+    let _ = Imm12::from_u32::<2047>();
     let _ = Imm12::from_i64::<-2048>();
     let _ = Imm12::from_i64::<2047>();
+    let _ = Imm12::from_u64::<2047>();
+    let _ = Imm12::from_isize::<-2048>();
+    let _ = Imm12::from_isize::<2047>();
+    let _ = Imm12::from_usize::<2047>();
 }
 
 impl Display for Imm12 {
@@ -100,6 +178,12 @@ fn display() -> Result<(), Imm12ConvError> {
 
 impl From<i8> for Imm12 {
     fn from(value: i8) -> Self {
+        Self(value as i16)
+    }
+}
+
+impl From<u8> for Imm12 {
+    fn from(value: u8) -> Self {
         Self(value as i16)
     }
 }
@@ -139,32 +223,133 @@ impl TryFrom<i64> for Imm12 {
     }
 }
 
+impl TryFrom<isize> for Imm12 {
+    type Error = Imm12ConvError;
+
+    fn try_from(value: isize) -> Result<Self, Self::Error> {
+        if isize_fits_n_bits(value, Self::NBITS) {
+            Ok(Self(value as i16))
+        } else {
+            Err(Imm12ConvError::Isize(value))
+        }
+    }
+}
+
+impl TryFrom<u16> for Imm12 {
+    type Error = Imm12ConvError;
+    fn try_from(value: u16) -> Result<Self, Self::Error> {
+        if u16_fits_n_bits(value, Self::NBITS - 1) {
+            Ok(Self(value as i16))
+        } else {
+            Err(Imm12ConvError::U16(value))
+        }
+    }
+}
+
+impl TryFrom<u32> for Imm12 {
+    type Error = Imm12ConvError;
+
+    fn try_from(value: u32) -> Result<Self, Self::Error> {
+        if u32_fits_n_bits(value, Self::NBITS - 1) {
+            Ok(Self(value as i16))
+        } else {
+            Err(Imm12ConvError::U32(value))
+        }
+    }
+}
+
+impl TryFrom<u64> for Imm12 {
+    type Error = Imm12ConvError;
+
+    fn try_from(value: u64) -> Result<Self, Self::Error> {
+        if u64_fits_n_bits(value, Self::NBITS - 1) {
+            Ok(Self(value as i16))
+        } else {
+            Err(Imm12ConvError::U64(value))
+        }
+    }
+}
+
+impl TryFrom<usize> for Imm12 {
+    type Error = Imm12ConvError;
+
+    fn try_from(value: usize) -> Result<Self, Self::Error> {
+        if usize_fits_n_bits(value, Self::NBITS - 1) {
+            Ok(Self(value as i16))
+        } else {
+            Err(Imm12ConvError::Usize(value))
+        }
+    }
+}
+
 #[test]
 fn conversions() -> Result<(), Imm12ConvError> {
-    assert_eq!(Imm12::from(-128_i8), Imm12(-128));
-    assert_eq!(Imm12::from(127_i8), Imm12(127));
     assert_eq!(Imm12::try_from(-2048_i16)?, Imm12(-2048));
     assert_eq!(Imm12::try_from(2047_i16)?, Imm12(2047));
+    assert!(matches!(
+        Imm12::try_from(-2049_i16),
+        Err(Imm12ConvError::I16(-2049))
+    ));
+    assert!(matches!(
+        dbg!(Imm12::try_from(2048_i16)),
+        Err(Imm12ConvError::I16(2048))
+    ));
+
+    assert_eq!(Imm12::try_from(2047_u16)?, Imm12(2047));
+    assert!(matches!(
+        Imm12::try_from(2048_u16),
+        Err(Imm12ConvError::U16(2048))
+    ));
+
     assert_eq!(Imm12::try_from(-2048_i32)?, Imm12(-2048));
     assert_eq!(Imm12::try_from(2047_i32)?, Imm12(2047));
+    assert!(matches!(
+        Imm12::try_from(-2049_i32),
+        Err(Imm12ConvError::I32(-2049))
+    ));
+    assert!(matches!(
+        Imm12::try_from(2048_i32),
+        Err(Imm12ConvError::I32(2048))
+    ));
+
+    assert_eq!(Imm12::try_from(2047_u32)?, Imm12(2047));
+    assert!(matches!(
+        Imm12::try_from(2048_u32),
+        Err(Imm12ConvError::U32(2048))
+    ));
+
     assert_eq!(Imm12::try_from(-2048_i64)?, Imm12(-2048));
     assert_eq!(Imm12::try_from(2047_i64)?, Imm12(2047));
+    assert!(matches!(
+        Imm12::try_from(-2049_i64),
+        Err(Imm12ConvError::I64(-2049))
+    ));
+    assert!(matches!(
+        Imm12::try_from(2048_i64),
+        Err(Imm12ConvError::I64(2048))
+    ));
 
+    assert_eq!(Imm12::try_from(2047_u64)?, Imm12(2047));
     assert!(matches!(
-        Imm12::try_from(-1048577_i32),
-        Err(Imm12ConvError::I32(-1048577))
+        Imm12::try_from(2048_u64),
+        Err(Imm12ConvError::U64(2048))
+    ));
+
+    assert_eq!(Imm12::try_from(-2048_isize)?, Imm12(-2048));
+    assert_eq!(Imm12::try_from(2047_isize)?, Imm12(2047));
+    assert!(matches!(
+        Imm12::try_from(-2049_isize),
+        Err(Imm12ConvError::Isize(-2049))
     ));
     assert!(matches!(
-        Imm12::try_from(1048576_i32),
-        Err(Imm12ConvError::I32(1048576))
+        Imm12::try_from(2048_isize),
+        Err(Imm12ConvError::Isize(2048))
     ));
+
+    assert_eq!(Imm12::try_from(2047_usize)?, Imm12(2047));
     assert!(matches!(
-        Imm12::try_from(-1048577_i64),
-        Err(Imm12ConvError::I64(-1048577))
-    ));
-    assert!(matches!(
-        Imm12::try_from(1048576_i64),
-        Err(Imm12ConvError::I64(1048576))
+        Imm12::try_from(2048_usize),
+        Err(Imm12ConvError::Usize(2048))
     ));
 
     Ok(())
@@ -179,6 +364,16 @@ pub enum Imm12ConvError {
     I32(i32),
     ///
     I64(i64),
+    ///
+    Isize(isize),
+    ///
+    U16(u16),
+    ///
+    U32(u32),
+    ///
+    U64(u64),
+    ///
+    Usize(usize),
 }
 
 impl Display for Imm12ConvError {
@@ -188,6 +383,11 @@ impl Display for Imm12ConvError {
             Imm12ConvError::I16(value) => write!(f, "{} (0x{:04x})", value, value),
             Imm12ConvError::I32(value) => write!(f, "{} (0x{:08x})", value, value),
             Imm12ConvError::I64(value) => write!(f, "{} (0x{:016x})", value, value),
+            Imm12ConvError::Isize(value) => write!(f, "{}", value),
+            Imm12ConvError::U16(value) => write!(f, "{} (0x{:04x})", value, value),
+            Imm12ConvError::U32(value) => write!(f, "{} (0x{:08x})", value, value),
+            Imm12ConvError::U64(value) => write!(f, "{} (0x{:016x})", value, value),
+            Imm12ConvError::Usize(value) => write!(f, "{}", value),
         }
     }
 }
@@ -207,6 +407,15 @@ fn conv_error_impl_display() {
             Imm12::NBITS
         )
     );
+
+    assert_eq!(
+        Imm12::try_from(2048_u16).unwrap_err().to_string(),
+        format!(
+            "invalid {}-bit signed immediate: 2048 (0x0800)",
+            Imm12::NBITS
+        )
+    );
+
     assert_eq!(
         Imm12::try_from(-2049_i32).unwrap_err().to_string(),
         format!(
@@ -221,6 +430,15 @@ fn conv_error_impl_display() {
             Imm12::NBITS
         )
     );
+
+    assert_eq!(
+        Imm12::try_from(2048_u32).unwrap_err().to_string(),
+        format!(
+            "invalid {}-bit signed immediate: 2048 (0x00000800)",
+            Imm12::NBITS
+        )
+    );
+
     assert_eq!(
         Imm12::try_from(-2049_i64).unwrap_err().to_string(),
         format!(
@@ -234,6 +452,28 @@ fn conv_error_impl_display() {
             "invalid {}-bit signed immediate: 2048 (0x0000000000000800)",
             Imm12::NBITS
         )
+    );
+
+    assert_eq!(
+        Imm12::try_from(2048_u64).unwrap_err().to_string(),
+        format!(
+            "invalid {}-bit signed immediate: 2048 (0x0000000000000800)",
+            Imm12::NBITS
+        )
+    );
+
+    assert_eq!(
+        Imm12::try_from(-2049_isize).unwrap_err().to_string(),
+        format!("invalid {}-bit signed immediate: -2049", Imm12::NBITS)
+    );
+    assert_eq!(
+        Imm12::try_from(2048_isize).unwrap_err().to_string(),
+        format!("invalid {}-bit signed immediate: 2048", Imm12::NBITS)
+    );
+
+    assert_eq!(
+        Imm12::try_from(2048_usize).unwrap_err().to_string(),
+        format!("invalid {}-bit signed immediate: 2048", Imm12::NBITS)
     );
 }
 
