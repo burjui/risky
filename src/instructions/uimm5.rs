@@ -13,12 +13,6 @@ use crate::util::{
     u8_fits_n_bits,
 };
 
-mod internal {
-    pub enum Assert<const CHECK: bool> {}
-    pub trait Fits5BIts {}
-    impl Fits5BIts for Assert<true> {}
-}
-
 /// 5-bit unsigned immediate value
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct Uimm5(u8);
@@ -235,4 +229,10 @@ impl Error for Uimm5ConvError {}
 fn conv_error_impl_error() -> Result<(), Box<dyn Error>> {
     assert_eq!(Uimm5::try_from(0u8)?, Uimm5(0));
     Ok(())
+}
+
+mod internal {
+    pub enum Assert<const CHECK: bool> {}
+    pub trait Fits5BIts {}
+    impl Fits5BIts for Assert<true> {}
 }

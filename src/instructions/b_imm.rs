@@ -10,13 +10,8 @@ use crate::util::{
     i16_fits_n_bits,
     i32_fits_n_bits,
     i64_fits_n_bits,
+    isize_fits_n_bits,
 };
-
-mod internal {
-    pub enum Assert<const CHECK: bool> {}
-    pub trait Fits13BIts {}
-    impl Fits13BIts for Assert<true> {}
-}
 
 /// 13-bit signed immediate value used in branch instructions
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
@@ -141,6 +136,19 @@ impl TryFrom<i64> for BImm {
         }
     }
 }
+
+impl TryFrom<isize> for BImm {
+    type Error = BImmConvError;
+
+    fn try_from(value: isize) -> Result<Self, Self::Error> {
+        if isize_fits_n_bits(value, Self::NBITS) {
+            Ok(Self(value as i16 & !1))
+        } else {
+            Err(BImmConvError::Isize(value))
+        }
+    }
+}
+
 #[test]
 fn conversions() -> Result<(), BImmConvError> {
     assert_eq!(BImm::from(-128_i8), BImm(-128));
@@ -168,6 +176,14 @@ fn conversions() -> Result<(), BImmConvError> {
         BImm::try_from(1048576_i64),
         Err(BImmConvError::I64(1048576))
     ));
+    assert!(matches!(
+        BImm::try_from(-1048577_isize),
+        Err(BImmConvError::Isize(-1048577))
+    ));
+    assert!(matches!(
+        BImm::try_from(1048576_isize),
+        Err(BImmConvError::Isize(1048576))
+    ));
 
     Ok(())
 }
@@ -181,6 +197,8 @@ pub enum BImmConvError {
     I32(i32),
     ///
     I64(i64),
+    ///
+    Isize(isize),
 }
 
 impl Display for BImmConvError {
@@ -190,6 +208,7 @@ impl Display for BImmConvError {
             BImmConvError::I16(value) => write!(f, "{} (0x{:04x})", value, value),
             BImmConvError::I32(value) => write!(f, "{} (0x{:08x})", value, value),
             BImmConvError::I64(value) => write!(f, "{} (0x{:016x})", value, value),
+            BImmConvError::Isize(value) => write!(f, "{}", value),
         }
     }
 }
@@ -237,6 +256,14 @@ fn conv_error_impl_display() {
             BImm::NBITS
         )
     );
+    assert_eq!(
+        BImm::try_from(-4097_isize).unwrap_err().to_string(),
+        format!("invalid {}-bit signed immediate: -4097", BImm::NBITS)
+    );
+    assert_eq!(
+        BImm::try_from(4096_isize).unwrap_err().to_string(),
+        format!("invalid {}-bit signed immediate: 4096", BImm::NBITS)
+    );
 }
 
 impl Error for BImmConvError {}
@@ -245,4 +272,10 @@ impl Error for BImmConvError {}
 fn conv_error_impl_error() -> Result<(), Box<dyn Error>> {
     assert_eq!(BImm::try_from(0)?, BImm(0));
     Ok(())
+}
+
+mod internal {
+    pub enum Assert<const CHECK: bool> {}
+    pub trait Fits13BIts {}
+    impl Fits13BIts for Assert<true> {}
 }

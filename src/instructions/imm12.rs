@@ -12,12 +12,6 @@ use crate::util::{
     i64_fits_n_bits,
 };
 
-mod internal {
-    pub enum Assert<const CHECK: bool> {}
-    pub trait Fits12BIts {}
-    impl Fits12BIts for Assert<true> {}
-}
-
 /// 12-bit signed immediate value
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct Imm12(pub(crate) i16);
@@ -144,6 +138,7 @@ impl TryFrom<i64> for Imm12 {
         }
     }
 }
+
 #[test]
 fn conversions() -> Result<(), Imm12ConvError> {
     assert_eq!(Imm12::from(-128_i8), Imm12(-128));
@@ -248,4 +243,9 @@ impl Error for Imm12ConvError {}
 fn conv_error_impl_error() -> Result<(), Box<dyn Error>> {
     assert_eq!(Imm12::try_from(0)?, Imm12(0));
     Ok(())
+}
+mod internal {
+    pub enum Assert<const CHECK: bool> {}
+    pub trait Fits12BIts {}
+    impl Fits12BIts for Assert<true> {}
 }

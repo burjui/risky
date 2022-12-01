@@ -16,12 +16,6 @@ use crate::util::{
     u8_fits_n_bits,
 };
 
-mod internal {
-    pub enum Assert<const CHECK: bool> {}
-    pub trait Fits4BIts {}
-    impl Fits4BIts for Assert<true> {}
-}
-
 /// 4-bit mask for the [fence](super::fence) instruction
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct FenceMask(u8);
@@ -428,4 +422,9 @@ impl Display for FenceMaskFlagErrorKind {
             Self::Duplicate => "duplicate",
         })
     }
+}
+mod internal {
+    pub enum Assert<const CHECK: bool> {}
+    pub trait Fits4BIts {}
+    impl Fits4BIts for Assert<true> {}
 }

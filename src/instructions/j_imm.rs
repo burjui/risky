@@ -11,12 +11,6 @@ use crate::util::{
     i64_fits_n_bits,
 };
 
-mod internal {
-    pub enum Assert<const CHECK: bool> {}
-    pub trait Fits21BIts {}
-    impl Fits21BIts for Assert<true> {}
-}
-
 /// 21-bit signed immediate value used in the [jal](crate::instructions::rv32i::jal) instruction
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct JImm(i32);
@@ -213,4 +207,9 @@ impl Error for JImmConvError {}
 fn conv_error_impl_error() -> Result<(), Box<dyn Error>> {
     assert_eq!(JImm::try_from(0)?, JImm(0));
     Ok(())
+}
+mod internal {
+    pub enum Assert<const CHECK: bool> {}
+    pub trait Fits21BIts {}
+    impl Fits21BIts for Assert<true> {}
 }
