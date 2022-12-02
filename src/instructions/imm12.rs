@@ -45,7 +45,7 @@ impl Imm12 {
 
     #[doc = include_str!("../../doc/nightly_warning.html")]
     ///
-    /// Creates an `Imm12` from an [i16] constant
+    /// Creates an `Imm12` from an [i16] constant, failing to compile if the constant does not fit 12-bit signed range
     #[cfg(feature = "nightly")]
     #[must_use]
     pub const fn from_i16<const VALUE: i16>() -> Self
@@ -57,7 +57,7 @@ impl Imm12 {
 
     #[doc = include_str!("../../doc/nightly_warning.html")]
     ///
-    /// Creates an `Imm12` from an [i32] constant
+    /// Creates an `Imm12` from an [i32] constant, failing to compile if the constant does not fit 12-bit signed range
     #[cfg(feature = "nightly")]
     #[must_use]
     pub const fn from_i32<const VALUE: i32>() -> Self
@@ -69,7 +69,7 @@ impl Imm12 {
 
     #[doc = include_str!("../../doc/nightly_warning.html")]
     ///
-    /// Creates an `Imm12` from an [i64] constant
+    /// Creates an `Imm12` from an [i64] constant, failing to compile if the constant does not fit 12-bit signed range
     #[cfg(feature = "nightly")]
     #[must_use]
     pub const fn from_i64<const VALUE: i64>() -> Self
@@ -81,7 +81,7 @@ impl Imm12 {
 
     #[doc = include_str!("../../doc/nightly_warning.html")]
     ///
-    /// Creates an `Imm12` from an [isize] constant
+    /// Creates an `Imm12` from an [isize] constant, failing to compile if the constant does not fit 12-bit signed range
     #[cfg(feature = "nightly")]
     #[must_use]
     pub const fn from_isize<const VALUE: isize>() -> Self
@@ -93,7 +93,7 @@ impl Imm12 {
 
     #[doc = include_str!("../../doc/nightly_warning.html")]
     ///
-    /// Creates an `Imm12` from an [u16] constant
+    /// Creates an `Imm12` from an [u16] constant, failing to compile if the constant does not fit 12-bit signed range
     #[cfg(feature = "nightly")]
     #[must_use]
     pub const fn from_u16<const VALUE: u16>() -> Self
@@ -105,7 +105,7 @@ impl Imm12 {
 
     #[doc = include_str!("../../doc/nightly_warning.html")]
     ///
-    /// Creates an `Imm12` from an [u32] constant
+    /// Creates an `Imm12` from an [u32] constant, failing to compile if the constant does not fit 12-bit signed range
     #[cfg(feature = "nightly")]
     #[must_use]
     pub const fn from_u32<const VALUE: u32>() -> Self
@@ -117,7 +117,7 @@ impl Imm12 {
 
     #[doc = include_str!("../../doc/nightly_warning.html")]
     ///
-    /// Creates an `Imm12` from an [u64] constant
+    /// Creates an `Imm12` from an [u64] constant, failing to compile if the constant does not fit 12-bit signed range
     #[cfg(feature = "nightly")]
     #[must_use]
     pub const fn from_u64<const VALUE: u64>() -> Self
@@ -129,7 +129,7 @@ impl Imm12 {
 
     #[doc = include_str!("../../doc/nightly_warning.html")]
     ///
-    /// Creates an `Imm12` from an [usize] constant
+    /// Creates an `Imm12` from an [usize] constant, failing to compile if the constant does not fit 12-bit signed range
     #[cfg(feature = "nightly")]
     #[must_use]
     pub const fn from_usize<const VALUE: usize>() -> Self
