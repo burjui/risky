@@ -4,6 +4,7 @@ use core::fmt;
 use std::{
     error::Error,
     fmt::Display,
+    ops::Neg,
 };
 
 use crate::util::{
@@ -174,6 +175,25 @@ fn display() -> Result<(), Imm12ConvError> {
     assert_eq!(Imm12::try_from(-2048)?.to_string(), "-2048");
     assert_eq!(Imm12::try_from(2047)?.to_string(), "2047");
     Ok(())
+}
+
+impl Neg for Imm12 {
+    type Output = Self;
+
+    fn neg(self) -> Self::Output {
+        if self.0 == (-(1 << (Self::NBITS - 1))) {
+            self
+        } else {
+            Self(-self.0)
+        }
+    }
+}
+
+#[test]
+fn neg() {
+    assert_eq!(-Imm12(2047), Imm12(-2047));
+    assert_eq!(-Imm12(-2047), Imm12(2047));
+    assert_eq!(-Imm12(-2048), Imm12(-2048));
 }
 
 impl From<i8> for Imm12 {

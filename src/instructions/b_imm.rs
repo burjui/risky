@@ -4,6 +4,7 @@ use core::fmt;
 use std::{
     error::Error,
     fmt::Display,
+    ops::Neg,
 };
 
 use crate::util::{
@@ -170,6 +171,25 @@ fn display() -> Result<(), BImmConvError> {
     assert_eq!(BImm::try_from(-4096)?.to_string(), "-4096");
     assert_eq!(BImm::try_from(4095)?.to_string(), "4094");
     Ok(())
+}
+
+impl Neg for BImm {
+    type Output = Self;
+
+    fn neg(self) -> Self::Output {
+        if self.0 == (-(1 << (Self::NBITS - 1))) {
+            self
+        } else {
+            Self(-self.0)
+        }
+    }
+}
+
+#[test]
+fn neg() {
+    assert_eq!(-BImm(4094), BImm(-4094));
+    assert_eq!(-BImm(-4094), BImm(4094));
+    assert_eq!(-BImm(-4096), BImm(-4096));
 }
 
 impl From<i8> for BImm {

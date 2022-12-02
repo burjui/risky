@@ -4,6 +4,7 @@ use core::fmt;
 use std::{
     error::Error,
     fmt::Display,
+    ops::Neg,
 };
 
 use crate::util::{
@@ -145,9 +146,28 @@ impl Display for JImm {
 
 #[test]
 fn display() -> Result<(), JImmConvError> {
-    assert_eq!(JImm::try_from(-1048576)?.to_string(), "-1048576");
+    assert_eq!(JImm::try_from(-1048575)?.to_string(), "-1048576");
     assert_eq!(JImm::try_from(1048575)?.to_string(), "1048574");
     Ok(())
+}
+
+impl Neg for JImm {
+    type Output = Self;
+
+    fn neg(self) -> Self::Output {
+        if self.0 == (-(1 << (Self::NBITS - 1))) {
+            self
+        } else {
+            Self(-self.0)
+        }
+    }
+}
+
+#[test]
+fn neg() {
+    assert_eq!(-JImm(1048574), JImm(-1048574));
+    assert_eq!(-JImm(-1048574), JImm(1048574));
+    assert_eq!(-JImm(-1048576), JImm(-1048576));
 }
 
 impl From<i8> for JImm {
