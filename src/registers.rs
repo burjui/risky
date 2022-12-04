@@ -9,7 +9,7 @@ Editors Kito Cheng and Jessica Clarke, RISC-V International, November 2022.
 use core::fmt;
 use std::{
     error::Error,
-    fmt::{Display, Write},
+    fmt::{Debug, Display, Write},
 };
 
 use crate::util::{
@@ -85,7 +85,7 @@ pub const X30: Register = Register(30);
 pub const X31: Register = Register(31);
 
 /// Represents a `RISC-V` register
-#[derive(Debug, PartialEq, Eq, Hash, Clone, Copy)]
+#[derive(PartialEq, Eq, Hash, Clone, Copy)]
 pub struct Register(u8);
 
 impl Register {
@@ -216,6 +216,37 @@ impl Register {
     }
 }
 
+#[cfg(feature = "nightly")]
+#[test]
+fn constructors() {
+    assert_eq!(Register::from_i8::<31>(), Register(31));
+    assert_eq!(Register::from_u8::<31>(), Register(31));
+    assert_eq!(Register::from_i16::<31>(), Register(31));
+    assert_eq!(Register::from_u16::<31>(), Register(31));
+    assert_eq!(Register::from_i32::<31>(), Register(31));
+    assert_eq!(Register::from_u32::<31>(), Register(31));
+    assert_eq!(Register::from_i64::<31>(), Register(31));
+    assert_eq!(Register::from_u64::<31>(), Register(31));
+    assert_eq!(Register::from_isize::<31>(), Register(31));
+    assert_eq!(Register::from_usize::<31>(), Register(31));
+}
+
+#[test]
+fn into_u32() {
+    assert_eq!(X22.into_u32(), 22);
+}
+
+impl Debug for Register {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "Register({})", self.0)
+    }
+}
+
+#[test]
+fn register_debug() {
+    assert_eq!(format!("{:?}", X22), "Register(22)");
+}
+
 impl Display for Register {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.write_char('x')?;
@@ -224,26 +255,11 @@ impl Display for Register {
 }
 
 #[test]
-fn display() -> Result<(), RegisterConvError> {
+fn register_display() -> Result<(), RegisterConvError> {
     for i in 0..NUMBER_OF_REGISTERS {
         assert_eq!(Register::try_from(i)?.to_string(), format!("x{i}"));
     }
     Ok(())
-}
-
-#[cfg(feature = "nightly")]
-#[test]
-fn constructors() {
-    let _ = Register::from_i8::<31>();
-    let _ = Register::from_u8::<31>();
-    let _ = Register::from_i16::<31>();
-    let _ = Register::from_u16::<31>();
-    let _ = Register::from_i32::<31>();
-    let _ = Register::from_u32::<31>();
-    let _ = Register::from_i64::<31>();
-    let _ = Register::from_u64::<31>();
-    let _ = Register::from_isize::<31>();
-    let _ = Register::from_usize::<31>();
 }
 
 impl TryFrom<u8> for Register {
@@ -453,7 +469,6 @@ fn conversions_from() -> Result<(), RegisterConvError> {
 }
 
 /// `Register` conversion error
-#[derive(Debug)]
 pub enum RegisterConvError {
     ///
     I8(i8),
@@ -475,6 +490,45 @@ pub enum RegisterConvError {
     Isize(isize),
     ///
     Usize(usize),
+}
+
+impl Debug for RegisterConvError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            RegisterConvError::I8(value) => write!(f, "RegisterConvError::I8({value})"),
+            RegisterConvError::U8(value) => write!(f, "RegisterConvError::U8({value})"),
+            RegisterConvError::I16(value) => write!(f, "RegisterConvError::I16({value})"),
+            RegisterConvError::U16(value) => write!(f, "RegisterConvError::U16({value})"),
+            RegisterConvError::I32(value) => write!(f, "RegisterConvError::I32({value})"),
+            RegisterConvError::U32(value) => write!(f, "RegisterConvError::U32({value})"),
+            RegisterConvError::I64(value) => write!(f, "RegisterConvError::I64({value})"),
+            RegisterConvError::U64(value) => write!(f, "RegisterConvError::U64({value})"),
+            RegisterConvError::Isize(value) => write!(f, "RegisterConvError::Isize({value})"),
+            RegisterConvError::Usize(value) => write!(f, "RegisterConvError::Usize({value})"),
+        }
+    }
+}
+
+#[test]
+fn conv_error_impl_debug() {
+    use RegisterConvError as RCE;
+
+    assert_eq!(format!("{:?}", RCE::I8(32)), "RegisterConvError::I8(32)");
+    assert_eq!(format!("{:?}", RCE::U8(32)), "RegisterConvError::U8(32)");
+    assert_eq!(format!("{:?}", RCE::I16(32)), "RegisterConvError::I16(32)");
+    assert_eq!(format!("{:?}", RCE::U16(32)), "RegisterConvError::U16(32)");
+    assert_eq!(format!("{:?}", RCE::I32(32)), "RegisterConvError::I32(32)");
+    assert_eq!(format!("{:?}", RCE::U32(32)), "RegisterConvError::U32(32)");
+    assert_eq!(format!("{:?}", RCE::I64(32)), "RegisterConvError::I64(32)");
+    assert_eq!(format!("{:?}", RCE::U64(32)), "RegisterConvError::U64(32)");
+    assert_eq!(
+        format!("{:?}", RCE::Isize(32)),
+        "RegisterConvError::Isize(32)"
+    );
+    assert_eq!(
+        format!("{:?}", RCE::Usize(32)),
+        "RegisterConvError::Usize(32)"
+    );
 }
 
 impl Display for RegisterConvError {

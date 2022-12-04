@@ -1,13 +1,14 @@
 use core::fmt;
 use std::{
     error::Error,
-    fmt::{Display, Write},
+    fmt::{Debug, Display, Write},
+    hash::Hash,
 };
 
 use crate::util::{u16_fits_n_bits, u32_fits_n_bits, u64_fits_n_bits, u8_fits_n_bits};
 
 /// 4-bit mask for the [fence](super::fence) instruction
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Clone, Copy, PartialEq, Eq, Hash)]
 pub struct FenceMask(u8);
 
 impl FenceMask {
@@ -100,10 +101,46 @@ impl FenceMask {
 #[cfg(feature = "nightly")]
 #[test]
 fn constructors() {
-    let _ = FenceMask::from_u8::<0b1111>();
-    let _ = FenceMask::from_u16::<0b1111>();
-    let _ = FenceMask::from_u32::<0b1111>();
-    let _ = FenceMask::from_u64::<0b1111>();
+    assert_eq!(FenceMask::from_u8::<0b1111>(), FenceMask(0b1111));
+    assert_eq!(FenceMask::from_u16::<0b1111>(), FenceMask(0b1111));
+    assert_eq!(FenceMask::from_u32::<0b1111>(), FenceMask(0b1111));
+    assert_eq!(FenceMask::from_u64::<0b1111>(), FenceMask(0b1111));
+}
+
+#[test]
+fn into_u32() {
+    assert_eq!(FenceMask::RW.into_u32(), 0b0011);
+}
+
+#[test]
+fn derived_impls() {
+    // Clone
+    #[allow(clippy::clone_on_copy)]
+    let rw = FenceMask::RW.clone();
+
+    // PartialEq
+    assert_eq!(rw, FenceMask::RW);
+
+    // Eq
+    fn _dummy() -> impl Eq {
+        FenceMask::RW
+    }
+
+    // Hash
+    use std::collections::hash_map::DefaultHasher;
+    let mut hasher = DefaultHasher::new();
+    rw.hash(&mut hasher);
+}
+
+impl Debug for FenceMask {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "FenceMask(0b{:08b})", self.0)
+    }
+}
+
+#[test]
+fn debug() {
+    assert_eq!(format!("{:?}", FenceMask::RW), "FenceMask(0b00000011)");
 }
 
 impl Display for FenceMask {
@@ -119,10 +156,8 @@ impl Display for FenceMask {
 
 #[test]
 fn display() -> Result<(), FenceMaskConvError> {
-    assert_eq!(
-        FenceMask::try_from(0b1111u8)?.to_string(),
-        FenceMask::BIT_CHARS
-    );
+    assert_eq!(FenceMask(0).to_string(), "");
+    assert_eq!(FenceMask(0b1111).to_string(), FenceMask::BIT_CHARS);
     Ok(())
 }
 
@@ -261,28 +296,35 @@ fn conversions() -> Result<(), FenceMaskConvError> {
         Err(FenceMaskConvError::U64(0b10000))
     ));
 
-    assert_eq!(FenceMask::try_from(""), Ok(FenceMask(0b0000)));
-    assert_eq!(FenceMask::try_from("r"), Ok(FenceMask(0b0010)));
-    assert_eq!(FenceMask::try_from("w"), Ok(FenceMask(0b0001)));
-    assert_eq!(FenceMask::try_from("i"), Ok(FenceMask(0b1000)));
-    assert_eq!(FenceMask::try_from("o"), Ok(FenceMask(0b0100)));
-    assert_eq!(FenceMask::try_from("riow"), Ok(FenceMask(0b1111)));
+    assert!(matches!(FenceMask::try_from(""), Ok(FenceMask(0b0000))));
+    assert!(matches!(FenceMask::try_from("r"), Ok(FenceMask(0b0010))));
+    assert!(matches!(FenceMask::try_from("w"), Ok(FenceMask(0b0001))));
+    assert!(matches!(FenceMask::try_from("i"), Ok(FenceMask(0b1000))));
+    assert!(matches!(FenceMask::try_from("o"), Ok(FenceMask(0b0100))));
+    assert!(matches!(FenceMask::try_from("riow"), Ok(FenceMask(0b1111))));
 
-    assert_eq!(
+    assert!(matches!(
         FenceMask::try_from("rwr"),
-        Err(FenceMaskParseError::duplicate("rwr", 'r'))
-    );
+        Err(FenceMaskParseError {
+            mask: "rwr",
+            flag: 'r',
+            kind: FenceMaskFlagErrorKind::Duplicate
+        })
+    ));
 
-    assert_eq!(
+    assert!(matches!(
         FenceMask::try_from("iorwx"),
-        Err(FenceMaskParseError::invalid("iorwx", 'x'))
-    );
+        Err(FenceMaskParseError {
+            mask: "iorwx",
+            flag: 'x',
+            kind: FenceMaskFlagErrorKind::Invalid
+        })
+    ));
 
     Ok(())
 }
 
 /// `FenceMask` conversion error
-#[derive(Debug)]
 pub enum FenceMaskConvError {
     ///
     U8(u8),
@@ -292,6 +334,37 @@ pub enum FenceMaskConvError {
     U32(u32),
     ///
     U64(u64),
+}
+
+impl Debug for FenceMaskConvError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            FenceMaskConvError::U8(value) => write!(f, "FenceMaskConvError::U8({value})"),
+            FenceMaskConvError::U16(value) => write!(f, "FenceMaskConvError::U16({value})"),
+            FenceMaskConvError::U32(value) => write!(f, "FenceMaskConvError::U32({value})"),
+            FenceMaskConvError::U64(value) => write!(f, "FenceMaskConvError::U64({value})"),
+        }
+    }
+}
+
+#[test]
+fn conv_error_impl_debug() {
+    assert_eq!(
+        format!("{:?}", FenceMaskConvError::U8(0b10000)),
+        "FenceMaskConvError::U8(16)"
+    );
+    assert_eq!(
+        format!("{:?}", FenceMaskConvError::U16(0b10000)),
+        "FenceMaskConvError::U16(16)"
+    );
+    assert_eq!(
+        format!("{:?}", FenceMaskConvError::U32(0b10000)),
+        "FenceMaskConvError::U32(16)"
+    );
+    assert_eq!(
+        format!("{:?}", FenceMaskConvError::U64(0b10000)),
+        "FenceMaskConvError::U64(16)"
+    );
 }
 
 impl Display for FenceMaskConvError {
@@ -347,7 +420,7 @@ fn conv_error_impl_error() -> Result<(), Box<dyn Error>> {
 }
 
 /// [Fence mask](FenceMask) parse error
-#[derive(Debug, PartialEq)]
+#[derive(Debug)]
 pub struct FenceMaskParseError<'a> {
     mask: &'a str,
     flag: char,
@@ -370,6 +443,12 @@ impl<'a> FenceMaskParseError<'a> {
             kind: FenceMaskFlagErrorKind::Duplicate,
         }
     }
+}
+
+#[test]
+fn parse_error_impl_debug() {
+    // Don't check the result, since it is unstable, just satisfy grcov
+    format!("{:?}", FenceMaskParseError::duplicate("x", 'x'));
 }
 
 impl Display for FenceMaskParseError<'_> {
@@ -402,10 +481,30 @@ fn parse_error_impl_error() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-#[derive(Debug, PartialEq)]
 enum FenceMaskFlagErrorKind {
     Invalid,
     Duplicate,
+}
+
+impl Debug for FenceMaskFlagErrorKind {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str(match self {
+            Self::Invalid => "FenceMaskFlagErrorKind::Invalid",
+            Self::Duplicate => "FenceMaskFlagErrorKind::Duplicate",
+        })
+    }
+}
+
+#[test]
+fn error_kind_debug() {
+    assert_eq!(
+        format!("{:?}", FenceMaskFlagErrorKind::Invalid),
+        "FenceMaskFlagErrorKind::Invalid"
+    );
+    assert_eq!(
+        format!("{:?}", FenceMaskFlagErrorKind::Duplicate),
+        "FenceMaskFlagErrorKind::Duplicate"
+    );
 }
 
 impl Display for FenceMaskFlagErrorKind {
@@ -416,6 +515,13 @@ impl Display for FenceMaskFlagErrorKind {
         })
     }
 }
+
+#[test]
+fn error_kind_display() {
+    assert_eq!(FenceMaskFlagErrorKind::Invalid.to_string(), "invalid");
+    assert_eq!(FenceMaskFlagErrorKind::Duplicate.to_string(), "duplicate");
+}
+
 mod internal {
     pub enum Assert<const CHECK: bool> {}
     pub trait Fits4BIts {}

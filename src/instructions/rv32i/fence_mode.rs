@@ -8,3 +8,8 @@ impl FenceMode {
         self.0 as u32
     }
 }
+
+#[test]
+fn into_u32() {
+    assert_eq!(FenceMode::FENCE_TSO.into_u32(), 0b1000);
+}

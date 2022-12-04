@@ -133,24 +133,33 @@ impl Imm12 {
     }
 }
 
-#[cfg(feature = "nightly")]
 #[test]
 fn constructors() {
-    let _ = Imm12::from_i8::<-128>();
-    let _ = Imm12::from_i8::<127>();
-    let _ = Imm12::from_u8::<255>();
-    let _ = Imm12::from_i16::<-2048>();
-    let _ = Imm12::from_i16::<2047>();
-    let _ = Imm12::from_u16::<2047>();
-    let _ = Imm12::from_i32::<-2048>();
-    let _ = Imm12::from_i32::<2047>();
-    let _ = Imm12::from_u32::<2047>();
-    let _ = Imm12::from_i64::<-2048>();
-    let _ = Imm12::from_i64::<2047>();
-    let _ = Imm12::from_u64::<2047>();
-    let _ = Imm12::from_isize::<-2048>();
-    let _ = Imm12::from_isize::<2047>();
-    let _ = Imm12::from_usize::<2047>();
+    assert_eq!(Imm12::from_i8::<-128>(), Imm12(-128));
+    assert_eq!(Imm12::from_i8::<127>(), Imm12(127));
+    assert_eq!(Imm12::from_u8::<255>(), Imm12(255));
+}
+
+#[cfg(feature = "nightly")]
+#[test]
+fn const_constructors() {
+    assert_eq!(Imm12::from_i16::<-2048>(), Imm12(-2048));
+    assert_eq!(Imm12::from_i16::<2047>(), Imm12(2047));
+    assert_eq!(Imm12::from_u16::<2047>(), Imm12(2047));
+    assert_eq!(Imm12::from_i32::<-2048>(), Imm12(-2048));
+    assert_eq!(Imm12::from_i32::<2047>(), Imm12(2047));
+    assert_eq!(Imm12::from_u32::<2047>(), Imm12(2047));
+    assert_eq!(Imm12::from_i64::<-2048>(), Imm12(-2048));
+    assert_eq!(Imm12::from_i64::<2047>(), Imm12(2047));
+    assert_eq!(Imm12::from_u64::<2047>(), Imm12(2047));
+    assert_eq!(Imm12::from_isize::<-2048>(), Imm12(-2048));
+    assert_eq!(Imm12::from_isize::<2047>(), Imm12(2047));
+    assert_eq!(Imm12::from_usize::<2047>(), Imm12(2047));
+}
+
+#[test]
+fn into_u32() {
+    assert_eq!(Imm12(-2048).into_u32(), 0xFFFFF800);
 }
 
 impl Display for Imm12 {
@@ -301,6 +310,11 @@ impl TryFrom<usize> for Imm12 {
 
 #[test]
 fn conversions() -> Result<(), Imm12ConvError> {
+    assert_eq!(Imm12::from(-128_i8), Imm12(-128));
+    assert_eq!(Imm12::from(127_i8), Imm12(127));
+
+    assert_eq!(Imm12::from(255_u8), Imm12(255));
+
     assert_eq!(Imm12::try_from(-2048_i16)?, Imm12(-2048));
     assert_eq!(Imm12::try_from(2047_i16)?, Imm12(2047));
     assert!(matches!(

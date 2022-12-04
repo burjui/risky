@@ -1,5 +1,8 @@
 use core::fmt;
-use std::{error::Error, fmt::Display};
+use std::{
+    error::Error,
+    fmt::{Debug, Display},
+};
 
 use crate::util::{u16_fits_n_bits, u32_fits_n_bits, u64_fits_n_bits, u8_fits_n_bits};
 
@@ -70,6 +73,11 @@ fn constructors() {
     let _ = Uimm5::from_u16::<0b11111>();
     let _ = Uimm5::from_u32::<0b11111>();
     let _ = Uimm5::from_u64::<0b11111>();
+}
+
+#[test]
+fn into_u32() {
+    assert_eq!(Uimm5(0xFF).into_u32(), 0xFF);
 }
 
 impl Display for Uimm5 {
@@ -163,7 +171,6 @@ fn conversions() -> Result<(), Uimm5ConvError> {
 }
 
 /// Uimm5 conversion error
-#[derive(Debug)]
 pub enum Uimm5ConvError {
     ///
     U8(u8),
@@ -173,6 +180,26 @@ pub enum Uimm5ConvError {
     U32(u32),
     ///
     U64(u64),
+}
+
+impl Debug for Uimm5ConvError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Uimm5ConvError::U8(value) => write!(f, "Uimm5ConvError::U8({value})"),
+            Uimm5ConvError::U16(value) => write!(f, "Uimm5ConvError::U16({value})"),
+            Uimm5ConvError::U32(value) => write!(f, "Uimm5ConvError::U32({value})"),
+            Uimm5ConvError::U64(value) => write!(f, "Uimm5ConvError::U64({value})"),
+        }
+    }
+}
+
+#[test]
+fn conv_error_impl_debug() {
+    use Uimm5ConvError as UCE;
+    assert_eq!(format!("{:?}", UCE::U8(32)), "Uimm5ConvError::U8(32)");
+    assert_eq!(format!("{:?}", UCE::U16(32)), "Uimm5ConvError::U16(32)");
+    assert_eq!(format!("{:?}", UCE::U32(32)), "Uimm5ConvError::U32(32)");
+    assert_eq!(format!("{:?}", UCE::U64(32)), "Uimm5ConvError::U64(32)");
 }
 
 impl Display for Uimm5ConvError {

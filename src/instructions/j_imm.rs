@@ -1,5 +1,9 @@
 use core::fmt;
-use std::{error::Error, fmt::Display, ops::Neg};
+use std::{
+    error::Error,
+    fmt::{Debug, Display},
+    ops::Neg,
+};
 
 use crate::util::{
     i32_fits_n_bits, i64_fits_n_bits, isize_fits_n_bits, u32_fits_n_bits, u64_fits_n_bits,
@@ -115,18 +119,33 @@ impl JImm {
     }
 }
 
-#[cfg(feature = "nightly")]
 #[test]
 fn constructors() {
-    let _ = JImm::from_i32::<-1048576>();
-    let _ = JImm::from_i32::<1048575>();
-    let _ = JImm::from_u32::<1048575>();
-    let _ = JImm::from_i64::<-1048576>();
-    let _ = JImm::from_i64::<1048575>();
-    let _ = JImm::from_u64::<1048575>();
-    let _ = JImm::from_isize::<-1048576>();
-    let _ = JImm::from_isize::<1048575>();
-    let _ = JImm::from_usize::<1048575>();
+    assert_eq!(JImm::from_i8::<-128>(), JImm(-128));
+    assert_eq!(JImm::from_i8::<127>(), JImm(126));
+    assert_eq!(JImm::from_u8::<255>(), JImm(254));
+    assert_eq!(JImm::from_i16::<-32768>(), JImm(-32768));
+    assert_eq!(JImm::from_i16::<32767>(), JImm(32766));
+    assert_eq!(JImm::from_u16::<65535>(), JImm(65534));
+}
+
+#[cfg(feature = "nightly")]
+#[test]
+fn const_constructors() {
+    assert_eq!(JImm::from_i32::<-1048576>(), JImm(-1048576));
+    assert_eq!(JImm::from_i32::<1048575>(), JImm(1048574));
+    assert_eq!(JImm::from_u32::<1048575>(), JImm(1048574));
+    assert_eq!(JImm::from_i64::<-1048576>(), JImm(-1048576));
+    assert_eq!(JImm::from_i64::<1048575>(), JImm(1048574));
+    assert_eq!(JImm::from_u64::<1048575>(), JImm(1048574));
+    assert_eq!(JImm::from_isize::<-1048576>(), JImm(-1048576));
+    assert_eq!(JImm::from_isize::<1048575>(), JImm(1048574));
+    assert_eq!(JImm::from_usize::<1048575>(), JImm(1048574));
+}
+
+#[test]
+fn into_u32() {
+    assert_eq!(JImm(-1048576).into_u32(), 0xFFF00000);
 }
 
 impl Display for JImm {
@@ -266,12 +285,19 @@ impl TryFrom<usize> for JImm {
 fn conversions() -> Result<(), JImmConvError> {
     assert_eq!(JImm::from(-128_i8), JImm(-128));
     assert_eq!(JImm::from(127_i8), JImm(126));
+    assert_eq!(JImm::from(255_u8), JImm(254));
     assert_eq!(JImm::from(-32768_i16), JImm(-32768));
     assert_eq!(JImm::from(32767_i16), JImm(32766));
+    assert_eq!(JImm::from(65535_u16), JImm(65534));
     assert_eq!(JImm::try_from(-1_048_576_i32)?, JImm(-1_048_576));
     assert_eq!(JImm::try_from(1_048_575_i32)?, JImm(1_048_574));
+    assert_eq!(JImm::try_from(1_048_575_u32)?, JImm(1_048_574));
     assert_eq!(JImm::try_from(-1_048_576_i64)?, JImm(-1_048_576));
     assert_eq!(JImm::try_from(1_048_575_i64)?, JImm(1_048_574));
+    assert_eq!(JImm::try_from(1_048_575_u64)?, JImm(1_048_574));
+    assert_eq!(JImm::try_from(-1_048_576_isize)?, JImm(-1_048_576));
+    assert_eq!(JImm::try_from(1_048_575_isize)?, JImm(1_048_574));
+    assert_eq!(JImm::try_from(1_048_575_usize)?, JImm(1_048_574));
 
     assert!(matches!(
         JImm::try_from(-1_048_577_i32),
@@ -294,7 +320,6 @@ fn conversions() -> Result<(), JImmConvError> {
 }
 
 /// [`JImm`] conversion error
-#[derive(Debug)]
 pub enum JImmConvError {
     ///
     I32(i32),
@@ -322,6 +347,64 @@ impl Display for JImmConvError {
             JImmConvError::Usize(value) => write!(f, "{value}"),
         }
     }
+}
+
+impl Debug for JImmConvError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            JImmConvError::I32(value) => write!(f, "JImmConvError::I32({value})"),
+            JImmConvError::I64(value) => write!(f, "JImmConvError::I64({value})"),
+            JImmConvError::Isize(value) => write!(f, "JImmConvError::Isize({value})"),
+            JImmConvError::U32(value) => write!(f, "JImmConvError::U32({value})"),
+            JImmConvError::U64(value) => write!(f, "JImmConvError::U64({value})"),
+            JImmConvError::Usize(value) => write!(f, "JImmConvError::Usize({value})"),
+        }
+    }
+}
+
+#[test]
+fn conv_error_impl_debug() {
+    assert_eq!(
+        format!("{:?}", JImmConvError::I32(-1_048_577)),
+        "JImmConvError::I32(-1048577)"
+    );
+    assert_eq!(
+        format!("{:?}", JImmConvError::I32(1_048_576)),
+        "JImmConvError::I32(1048576)"
+    );
+
+    assert_eq!(
+        format!("{:?}", JImmConvError::U32(1_048_576)),
+        "JImmConvError::U32(1048576)"
+    );
+
+    assert_eq!(
+        format!("{:?}", JImmConvError::I64(-1_048_577)),
+        "JImmConvError::I64(-1048577)"
+    );
+    assert_eq!(
+        format!("{:?}", JImmConvError::I64(1_048_576)),
+        "JImmConvError::I64(1048576)"
+    );
+
+    assert_eq!(
+        format!("{:?}", JImmConvError::U64(1_048_576)),
+        "JImmConvError::U64(1048576)"
+    );
+
+    assert_eq!(
+        format!("{:?}", JImmConvError::Isize(-1_048_577)),
+        "JImmConvError::Isize(-1048577)"
+    );
+    assert_eq!(
+        format!("{:?}", JImmConvError::Isize(1_048_576)),
+        "JImmConvError::Isize(1048576)"
+    );
+
+    assert_eq!(
+        format!("{:?}", JImmConvError::Usize(1_048_576)),
+        "JImmConvError::Usize(1048576)"
+    );
 }
 
 #[test]

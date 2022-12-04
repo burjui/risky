@@ -1,5 +1,9 @@
 use core::fmt;
-use std::{error::Error, fmt::Display, ops::Neg};
+use std::{
+    error::Error,
+    fmt::{Debug, Display},
+    ops::Neg,
+};
 
 use crate::util::{
     i16_fits_n_bits, i32_fits_n_bits, i64_fits_n_bits, isize_fits_n_bits, u16_fits_n_bits,
@@ -130,24 +134,33 @@ impl BImm {
     }
 }
 
-#[cfg(feature = "nightly")]
 #[test]
 fn constructors() {
-    let _ = BImm::from_i8::<-128>();
-    let _ = BImm::from_i8::<127>();
-    let _ = BImm::from_u8::<255>();
-    let _ = BImm::from_i16::<-4096>();
-    let _ = BImm::from_i16::<4095>();
-    let _ = BImm::from_u16::<4095>();
-    let _ = BImm::from_i32::<-4096>();
-    let _ = BImm::from_i32::<4095>();
-    let _ = BImm::from_u32::<4095>();
-    let _ = BImm::from_i64::<-4096>();
-    let _ = BImm::from_i64::<4095>();
-    let _ = BImm::from_u64::<4095>();
-    let _ = BImm::from_isize::<-4096>();
-    let _ = BImm::from_isize::<4095>();
-    let _ = BImm::from_usize::<4095>();
+    assert_eq!(BImm::from_i8::<-128>(), BImm(-128));
+    assert_eq!(BImm::from_i8::<127>(), BImm(126));
+    assert_eq!(BImm::from_u8::<255>(), BImm(254));
+}
+
+#[cfg(feature = "nightly")]
+#[test]
+fn const_constructors() {
+    assert_eq!(BImm::from_i16::<-4096>(), BImm(-4096));
+    assert_eq!(BImm::from_i16::<4095>(), BImm(4094));
+    assert_eq!(BImm::from_u16::<4095>(), BImm(4094));
+    assert_eq!(BImm::from_i32::<-4096>(), BImm(-4096));
+    assert_eq!(BImm::from_i32::<4095>(), BImm(4094));
+    assert_eq!(BImm::from_u32::<4095>(), BImm(4094));
+    assert_eq!(BImm::from_i64::<-4096>(), BImm(-4096));
+    assert_eq!(BImm::from_i64::<4095>(), BImm(4094));
+    assert_eq!(BImm::from_u64::<4095>(), BImm(4094));
+    assert_eq!(BImm::from_isize::<-4096>(), BImm(-4096));
+    assert_eq!(BImm::from_isize::<4095>(), BImm(4094));
+    assert_eq!(BImm::from_usize::<4095>(), BImm(4094));
+}
+
+#[test]
+fn into_u32() {
+    assert_eq!(BImm(-4096).into_u32(), 0xFFFFF000);
 }
 
 impl Display for BImm {
@@ -374,7 +387,6 @@ fn conversions() -> Result<(), BImmConvError> {
 }
 
 /// [`BImm`] conversion error
-#[derive(Debug)]
 pub enum BImmConvError {
     ///
     I16(i16),
@@ -394,6 +406,80 @@ pub enum BImmConvError {
     Usize(usize),
 }
 
+impl Debug for BImmConvError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            BImmConvError::I16(value) => write!(f, "BImmConvError::I16({value})"),
+            BImmConvError::I32(value) => write!(f, "BImmConvError::I32({value})"),
+            BImmConvError::I64(value) => write!(f, "BImmConvError::I64({value})"),
+            BImmConvError::Isize(value) => write!(f, "BImmConvError::Isize({value})"),
+            BImmConvError::U16(value) => write!(f, "BImmConvError::U16({value})"),
+            BImmConvError::U32(value) => write!(f, "BImmConvError::U32({value})"),
+            BImmConvError::U64(value) => write!(f, "BImmConvError::U64({value})"),
+            BImmConvError::Usize(value) => write!(f, "BImmConvError::Usize({value})"),
+        }
+    }
+}
+
+#[test]
+fn conv_error_impl_debug() {
+    assert_eq!(
+        format!("{:?}", BImmConvError::I16(-4097)),
+        "BImmConvError::I16(-4097)"
+    );
+    assert_eq!(
+        format!("{:?}", BImmConvError::I16(4096)),
+        "BImmConvError::I16(4096)"
+    );
+
+    assert_eq!(
+        format!("{:?}", BImmConvError::U16(4096)),
+        "BImmConvError::U16(4096)"
+    );
+
+    assert_eq!(
+        format!("{:?}", BImmConvError::I32(-4097)),
+        "BImmConvError::I32(-4097)"
+    );
+    assert_eq!(
+        format!("{:?}", BImmConvError::I32(4096)),
+        "BImmConvError::I32(4096)"
+    );
+
+    assert_eq!(
+        format!("{:?}", BImmConvError::U32(4096)),
+        "BImmConvError::U32(4096)"
+    );
+
+    assert_eq!(
+        format!("{:?}", BImmConvError::I64(-4097)),
+        "BImmConvError::I64(-4097)"
+    );
+    assert_eq!(
+        format!("{:?}", BImmConvError::I64(4096)),
+        "BImmConvError::I64(4096)"
+    );
+
+    assert_eq!(
+        format!("{:?}", BImmConvError::U64(4096)),
+        "BImmConvError::U64(4096)"
+    );
+
+    assert_eq!(
+        format!("{:?}", BImmConvError::Isize(-4097)),
+        "BImmConvError::Isize(-4097)"
+    );
+    assert_eq!(
+        format!("{:?}", BImmConvError::Isize(4096)),
+        "BImmConvError::Isize(4096)"
+    );
+
+    assert_eq!(
+        format!("{:?}", BImmConvError::Usize(4096)),
+        "BImmConvError::Usize(4096)"
+    );
+}
+
 impl Display for BImmConvError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "invalid {}-bit signed immediate: ", BImm::NBITS)?;
@@ -409,6 +495,7 @@ impl Display for BImmConvError {
         }
     }
 }
+
 #[test]
 fn conv_error_impl_display() {
     assert_eq!(
