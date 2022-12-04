@@ -7,23 +7,10 @@ pub use fence_mask::*;
 use fence_mode::FenceMode;
 
 use super::formats::{
-    b_instruction,
-    funct3::Funct3,
-    funct7::Funct7,
-    i_instruction,
-    j_instruction,
-    opcode::Opcode,
-    r_instruction,
-    s_instruction,
-    u_instruction,
-    RegOrUimm5,
+    b_instruction, funct3::Funct3, funct7::Funct7, i_instruction, j_instruction, opcode::Opcode,
+    r_instruction, s_instruction, u_instruction, RegOrUimm5,
 };
-pub use super::{
-    b_imm::*,
-    imm12::*,
-    j_imm::*,
-    uimm5::*,
-};
+pub use super::{b_imm::*, imm12::*, j_imm::*, uimm5::*};
 use crate::bits::merge_bitfields;
 pub use crate::registers::*;
 
@@ -89,7 +76,8 @@ pub const fn jalr(rd: Register, rs1: Register, imm: Imm12) -> u32 {
     )
 }
 
-/// "Branch if EQual" instruction takes the branch if `rs1` = `rs2`, using the 13-bit immediate
+#[doc = r#""Branch if EQual""#]
+/// instruction takes the branch if `rs1` = `rs2`, using the 13-bit immediate
 /// `imm` as an offset from the address of the branch instruction (pc). The lower bit if `imm` is
 /// ignored, so the effective offset is always in multiples of 2. The branch range is ±4&nbsp;KiB.
 ///
@@ -313,7 +301,8 @@ pub const fn addi(rd: Register, rs1: Register, imm: Imm12) -> u32 {
     )
 }
 
-/// "MoVe" pseudoinstruction copies the register `rs1` to the register `rd`.
+#[doc = r#""MoVe""#]
+/// pseudoinstruction copies the register `rs1` to the register `rd`.
 ///
 /// `mv rd, rs1` is encoded as <code>[addi] rd, rs1, 0</code>.
 ///
@@ -326,7 +315,8 @@ pub const fn mv(rd: Register, rs1: Register) -> u32 {
     addi(rd, rs1, Imm12::ZERO)
 }
 
-/// "No OPeration" instruction does not change any architecturally visible state, except for
+#[doc = r#""No OPeration""#]
+/// instruction does not change any architecturally visible state, except for
 /// advancing the pc and incrementing any applicable performance counters.
 ///
 /// `nop` is encoded as <code>[addi] x0, x0, 0</code>.
@@ -372,8 +362,8 @@ pub const fn sltiu(rd: Register, rs1: Register, imm: Imm12) -> u32 {
     )
 }
 
-/// "Set EQual to Zero" pseudoinstruction places the value 1 in register `rd` if register `rs1` = 0,
-/// else 0 is written to `rd`.
+#[doc = r#""Set EQual to Zero""#]
+/// pseudoinstruction places the value 1 in register `rd` if register `rs1` = 0, else 0 is written to `rd`.
 ///
 /// `seqz rd, rs1` is encoded as <code>[sltiu] rd, rs1, 1</code>.
 ///
@@ -521,7 +511,8 @@ pub const fn add(rd: Register, rs1: Register, rs2: Register) -> u32 {
     )
 }
 
-/// "SUBtract" instruction performs the subtraction of registers `rs1` and `rs2` and places the
+#[doc = r#""SUBtract""#]
+/// instruction performs the subtraction of registers `rs1` and `rs2` and places the
 /// result in the register `rd`. Overflows are ignored and the low XLEN bits of results are written
 /// to the destination `rd`.
 ///
@@ -696,9 +687,9 @@ pub const fn and(rd: Register, rs1: Register, rs2: Register) -> u32 {
 }
 
 /// "FENCE" instruction orders all memory operations in its `predecessor` set before all memory
-/// operations in its `successor` set. Refer to [FenceMask] documentation for further details.
+/// operations in its `successor` set. Refer to [`FenceMask`] documentation for further details.
 ///
-/// Note, [fence_tso] instruction is encoded as a [fence] instruction with `fm` = 1000 (refer to the
+/// Note, [`fence_tso`] instruction is encoded as a [fence] instruction with `fm` = 1000 (refer to the
 /// instruction manual for this field), `predecessor` = "rw", and `successor` = "rw".
 #[must_use]
 #[inline]
@@ -726,10 +717,11 @@ pub const fn fence_tso() -> u32 {
 /// Field name    |    fm      | PI PO PR PW | SI SO SR SW |  rs1  | funct3 |  rd  |  opcode  |
 /// Description   | fence mode | predecessor |  successor  |   0   | FENCE  |  0   | MISC_MEM |
 /// ```
+#[allow(clippy::cast_possible_truncation)]
 const fn fence_instruction(fm: FenceMode, predecessor: FenceMask, successor: FenceMask) -> u32 {
-    let imm = merge_bitfields([
-        (0..4, predecessor.to_u32(), 0..4),
-        (4..8, successor.to_u32(), 0..4),
+    let imm = merge_bitfields(&[
+        (0..4, predecessor.into_u32(), 0..4),
+        (4..8, successor.into_u32(), 0..4),
         (8..12, fm.into_u32(), 0..4),
     ]);
     i_instruction(

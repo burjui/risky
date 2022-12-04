@@ -58,7 +58,7 @@ impl Funct3 {
     pub(crate) const REM: Self = Self(0b110);
     pub(crate) const REMU: Self = Self(0b111);
 
-    pub(crate) const fn to_u32(&self) -> u32 {
+    pub(crate) const fn into_u32(self) -> u32 {
         self.0 as u32
     }
 }

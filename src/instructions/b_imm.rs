@@ -1,21 +1,9 @@
-//! Defines [BImm] and relevant trait implementations
-
 use core::fmt;
-use std::{
-    error::Error,
-    fmt::Display,
-    ops::Neg,
-};
+use std::{error::Error, fmt::Display, ops::Neg};
 
 use crate::util::{
-    i16_fits_n_bits,
-    i32_fits_n_bits,
-    i64_fits_n_bits,
-    isize_fits_n_bits,
-    u16_fits_n_bits,
-    u32_fits_n_bits,
-    u64_fits_n_bits,
-    usize_fits_n_bits,
+    i16_fits_n_bits, i32_fits_n_bits, i64_fits_n_bits, isize_fits_n_bits, u16_fits_n_bits,
+    u32_fits_n_bits, u64_fits_n_bits, usize_fits_n_bits,
 };
 
 /// 13-bit signed immediate value used in branch instructions
@@ -35,6 +23,7 @@ impl BImm {
     }
 
     /// Creates an `BImm` from an [u8] constant
+    #[must_use]
     pub const fn from_u8<const VALUE: u8>() -> Self {
         Self(VALUE as i16 & !1)
     }
@@ -135,7 +124,8 @@ impl BImm {
         Self(VALUE as i16 & !1)
     }
 
-    pub(crate) const fn to_u32(self) -> u32 {
+    #[allow(clippy::cast_sign_loss)]
+    pub(crate) const fn into_u32(self) -> u32 {
         self.0 as u32
     }
 }
@@ -162,7 +152,7 @@ fn constructors() {
 
 impl Display for BImm {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        Display::fmt(&(self.0 as i32), f)
+        Display::fmt(&i32::from(self.0), f)
     }
 }
 
@@ -194,13 +184,13 @@ fn neg() {
 
 impl From<i8> for BImm {
     fn from(value: i8) -> Self {
-        Self(value as i16 & !1)
+        Self(i16::from(value) & !1)
     }
 }
 
 impl From<u8> for BImm {
     fn from(value: u8) -> Self {
-        Self(value as i16 & !1)
+        Self(i16::from(value) & !1)
     }
 }
 
@@ -218,6 +208,7 @@ impl TryFrom<i16> for BImm {
 impl TryFrom<i32> for BImm {
     type Error = BImmConvError;
 
+    #[allow(clippy::cast_possible_truncation)]
     fn try_from(value: i32) -> Result<Self, Self::Error> {
         if i32_fits_n_bits(value, Self::NBITS) {
             Ok(Self(value as i16 & !1))
@@ -230,6 +221,7 @@ impl TryFrom<i32> for BImm {
 impl TryFrom<i64> for BImm {
     type Error = BImmConvError;
 
+    #[allow(clippy::cast_possible_truncation)]
     fn try_from(value: i64) -> Result<Self, Self::Error> {
         if i64_fits_n_bits(value, Self::NBITS) {
             Ok(Self(value as i16 & !1))
@@ -242,6 +234,7 @@ impl TryFrom<i64> for BImm {
 impl TryFrom<isize> for BImm {
     type Error = BImmConvError;
 
+    #[allow(clippy::cast_possible_truncation)]
     fn try_from(value: isize) -> Result<Self, Self::Error> {
         if isize_fits_n_bits(value, Self::NBITS) {
             Ok(Self(value as i16 & !1))
@@ -253,6 +246,8 @@ impl TryFrom<isize> for BImm {
 
 impl TryFrom<u16> for BImm {
     type Error = BImmConvError;
+
+    #[allow(clippy::cast_possible_wrap, clippy::cast_possible_truncation)]
     fn try_from(value: u16) -> Result<Self, Self::Error> {
         if u16_fits_n_bits(value, Self::NBITS - 1) {
             Ok(Self(value as i16 & !1))
@@ -265,6 +260,7 @@ impl TryFrom<u16> for BImm {
 impl TryFrom<u32> for BImm {
     type Error = BImmConvError;
 
+    #[allow(clippy::cast_possible_truncation)]
     fn try_from(value: u32) -> Result<Self, Self::Error> {
         if u32_fits_n_bits(value, Self::NBITS - 1) {
             Ok(Self(value as i16 & !1))
@@ -277,6 +273,7 @@ impl TryFrom<u32> for BImm {
 impl TryFrom<u64> for BImm {
     type Error = BImmConvError;
 
+    #[allow(clippy::cast_possible_truncation)]
     fn try_from(value: u64) -> Result<Self, Self::Error> {
         if u64_fits_n_bits(value, Self::NBITS - 1) {
             Ok(Self(value as i16 & !1))
@@ -289,6 +286,7 @@ impl TryFrom<u64> for BImm {
 impl TryFrom<usize> for BImm {
     type Error = BImmConvError;
 
+    #[allow(clippy::cast_possible_wrap, clippy::cast_possible_truncation)]
     fn try_from(value: usize) -> Result<Self, Self::Error> {
         if usize_fits_n_bits(value, Self::NBITS - 1) {
             Ok(Self(value as i16 & !1))
@@ -375,7 +373,7 @@ fn conversions() -> Result<(), BImmConvError> {
     Ok(())
 }
 
-/// [BImm] conversion error
+/// [`BImm`] conversion error
 #[derive(Debug)]
 pub enum BImmConvError {
     ///
@@ -400,14 +398,14 @@ impl Display for BImmConvError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "invalid {}-bit signed immediate: ", BImm::NBITS)?;
         match self {
-            BImmConvError::I16(value) => write!(f, "{} (0x{:04x})", value, value),
-            BImmConvError::I32(value) => write!(f, "{} (0x{:08x})", value, value),
-            BImmConvError::I64(value) => write!(f, "{} (0x{:016x})", value, value),
-            BImmConvError::Isize(value) => write!(f, "{}", value),
-            BImmConvError::U16(value) => write!(f, "{} (0x{:04x})", value, value),
-            BImmConvError::U32(value) => write!(f, "{} (0x{:08x})", value, value),
-            BImmConvError::U64(value) => write!(f, "{} (0x{:016x})", value, value),
-            BImmConvError::Usize(value) => write!(f, "{}", value),
+            BImmConvError::I16(value) => write!(f, "{value} (0x{value:04x})"),
+            BImmConvError::I32(value) => write!(f, "{value} (0x{value:08x})"),
+            BImmConvError::I64(value) => write!(f, "{value} (0x{value:016x})"),
+            BImmConvError::Isize(value) => write!(f, "{value}"),
+            BImmConvError::U16(value) => write!(f, "{value} (0x{value:04x})"),
+            BImmConvError::U32(value) => write!(f, "{value} (0x{value:08x})"),
+            BImmConvError::U64(value) => write!(f, "{value} (0x{value:016x})"),
+            BImmConvError::Usize(value) => write!(f, "{value}"),
         }
     }
 }

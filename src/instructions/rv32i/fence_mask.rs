@@ -1,20 +1,10 @@
-//! Defines [FenceMask] and relevant trait implementations
-
 use core::fmt;
 use std::{
     error::Error,
-    fmt::{
-        Display,
-        Write,
-    },
+    fmt::{Display, Write},
 };
 
-use crate::util::{
-    u16_fits_n_bits,
-    u32_fits_n_bits,
-    u64_fits_n_bits,
-    u8_fits_n_bits,
-};
+use crate::util::{u16_fits_n_bits, u32_fits_n_bits, u64_fits_n_bits, u8_fits_n_bits};
 
 /// 4-bit mask for the [fence](super::fence) instruction
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
@@ -102,7 +92,7 @@ impl FenceMask {
         Self(VALUE as u8)
     }
 
-    pub(crate) const fn to_u32(self) -> u32 {
+    pub(crate) const fn into_u32(self) -> u32 {
         self.0 as u32
     }
 }
@@ -139,7 +129,7 @@ fn display() -> Result<(), FenceMaskConvError> {
 impl TryFrom<u8> for FenceMask {
     type Error = FenceMaskConvError;
 
-    /// Creates a FenceMask from [u8], the lower 4 bits of which specify the flags to be set:
+    /// Creates a `FenceMask` from [u8], the lower 4 bits of which specify the flags to be set:
     ///
     /// | Bit | Flag          |
     /// |-----|---------------|
@@ -159,7 +149,7 @@ impl TryFrom<u8> for FenceMask {
 impl TryFrom<u16> for FenceMask {
     type Error = FenceMaskConvError;
 
-    /// Creates a FenceMask from [u16], the lower 4 bits of which specify the flags to be set:
+    /// Creates a `FenceMask` from [u16], the lower 4 bits of which specify the flags to be set:
     ///
     /// | Bit | Flag          |
     /// |-----|---------------|
@@ -167,6 +157,7 @@ impl TryFrom<u16> for FenceMask {
     /// | 1   | memory reads  |
     /// | 2   | device output |
     /// | 3   | device input  |
+    #[allow(clippy::cast_possible_truncation)]
     fn try_from(value: u16) -> Result<Self, Self::Error> {
         if u16_fits_n_bits(value, Self::NBITS) {
             Ok(Self(value as u8))
@@ -179,7 +170,7 @@ impl TryFrom<u16> for FenceMask {
 impl TryFrom<u32> for FenceMask {
     type Error = FenceMaskConvError;
 
-    /// Creates a FenceMask from [u32], the lower 4 bits of which specify the flags to be set:
+    /// Creates a `FenceMask` from [u32], the lower 4 bits of which specify the flags to be set:
     ///
     /// | Bit | Flag          |
     /// |-----|---------------|
@@ -187,6 +178,7 @@ impl TryFrom<u32> for FenceMask {
     /// | 1   | memory reads  |
     /// | 2   | device output |
     /// | 3   | device input  |
+    #[allow(clippy::cast_possible_truncation)]
     fn try_from(value: u32) -> Result<Self, Self::Error> {
         if u32_fits_n_bits(value, Self::NBITS) {
             Ok(Self(value as u8))
@@ -199,7 +191,7 @@ impl TryFrom<u32> for FenceMask {
 impl TryFrom<u64> for FenceMask {
     type Error = FenceMaskConvError;
 
-    /// Creates a FenceMask from [u64], the lower 4 bits of which specify the flags to be set:
+    /// Creates a `FenceMask` from [u64], the lower 4 bits of which specify the flags to be set:
     ///
     /// | Bit | Flag          |
     /// |-----|---------------|
@@ -207,6 +199,7 @@ impl TryFrom<u64> for FenceMask {
     /// | 1   | memory reads  |
     /// | 2   | device output |
     /// | 3   | device input  |
+    #[allow(clippy::cast_possible_truncation)]
     fn try_from(value: u64) -> Result<Self, Self::Error> {
         if u64_fits_n_bits(value, Self::NBITS) {
             Ok(Self(value as u8))
@@ -219,7 +212,7 @@ impl TryFrom<u64> for FenceMask {
 impl<'a> TryFrom<&'a str> for FenceMask {
     type Error = FenceMaskParseError<'a>;
 
-    /// Creates a FenceMask from an [str], the characters of which specify the flags to be set:
+    /// Creates a `FenceMask` from an [str], the characters of which specify the flags to be set:
     ///
     /// | Bit | Flag          |
     /// |-----|---------------|
@@ -236,9 +229,9 @@ impl<'a> TryFrom<&'a str> for FenceMask {
 
             if (mask >> index) & 1 == 1 {
                 return Err(FenceMaskParseError::duplicate(mask_spec, flag));
-            } else {
-                mask |= 1 << index;
             }
+
+            mask |= 1 << index;
         }
         Ok(Self(mask))
     }
@@ -288,7 +281,7 @@ fn conversions() -> Result<(), FenceMaskConvError> {
     Ok(())
 }
 
-/// FenceMask conversion error
+/// `FenceMask` conversion error
 #[derive(Debug)]
 pub enum FenceMaskConvError {
     ///
@@ -305,10 +298,10 @@ impl Display for FenceMaskConvError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "invalid {}-bit unsigned immediate: ", FenceMask::NBITS)?;
         match self {
-            FenceMaskConvError::U8(value) => write!(f, "{} (0x{:02x})", value, value),
-            FenceMaskConvError::U16(value) => write!(f, "{} (0x{:04x})", value, value),
-            FenceMaskConvError::U32(value) => write!(f, "{} (0x{:08x})", value, value),
-            FenceMaskConvError::U64(value) => write!(f, "{} (0x{:016x})", value, value),
+            FenceMaskConvError::U8(value) => write!(f, "{value} (0x{value:02x})"),
+            FenceMaskConvError::U16(value) => write!(f, "{value} (0x{value:04x})"),
+            FenceMaskConvError::U32(value) => write!(f, "{value} (0x{value:08x})"),
+            FenceMaskConvError::U64(value) => write!(f, "{value} (0x{value:016x})"),
         }
     }
 }
@@ -316,28 +309,28 @@ impl Display for FenceMaskConvError {
 #[test]
 fn conv_error_impl_display() {
     assert_eq!(
-        FenceMask::try_from(0b100000u8).unwrap_err().to_string(),
+        FenceMask::try_from(0b10_0000_u8).unwrap_err().to_string(),
         format!(
             "invalid {}-bit unsigned immediate: 32 (0x20)",
             FenceMask::NBITS
         )
     );
     assert_eq!(
-        FenceMask::try_from(0b100000u16).unwrap_err().to_string(),
+        FenceMask::try_from(0b10_0000_u16).unwrap_err().to_string(),
         format!(
             "invalid {}-bit unsigned immediate: 32 (0x0020)",
             FenceMask::NBITS
         )
     );
     assert_eq!(
-        FenceMask::try_from(0b100000u32).unwrap_err().to_string(),
+        FenceMask::try_from(0b10_0000_u32).unwrap_err().to_string(),
         format!(
             "invalid {}-bit unsigned immediate: 32 (0x00000020)",
             FenceMask::NBITS
         )
     );
     assert_eq!(
-        FenceMask::try_from(0b100000u64).unwrap_err().to_string(),
+        FenceMask::try_from(0b10_0000_u64).unwrap_err().to_string(),
         format!(
             "invalid {}-bit unsigned immediate: 32 (0x0000000000000020)",
             FenceMask::NBITS

@@ -1,22 +1,12 @@
-//! Defines [JImm] and relevant trait implementations
-
 use core::fmt;
-use std::{
-    error::Error,
-    fmt::Display,
-    ops::Neg,
-};
+use std::{error::Error, fmt::Display, ops::Neg};
 
 use crate::util::{
-    i32_fits_n_bits,
-    i64_fits_n_bits,
-    isize_fits_n_bits,
-    u32_fits_n_bits,
-    u64_fits_n_bits,
+    i32_fits_n_bits, i64_fits_n_bits, isize_fits_n_bits, u32_fits_n_bits, u64_fits_n_bits,
     usize_fits_n_bits,
 };
 
-/// 21-bit signed immediate value used in the [jal](crate::instructions::rv32i::jal) instruction
+/// 21-bit signed immediate value used in the [jal](super::rv32i::jal) instruction
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct JImm(i32);
 
@@ -119,7 +109,8 @@ impl JImm {
         Self(VALUE as i32 & !1)
     }
 
-    pub(crate) const fn to_u32(self) -> u32 {
+    #[allow(clippy::cast_sign_loss)]
+    pub(crate) const fn into_u32(self) -> u32 {
         self.0 as u32
     }
 }
@@ -146,8 +137,8 @@ impl Display for JImm {
 
 #[test]
 fn display() -> Result<(), JImmConvError> {
-    assert_eq!(JImm::try_from(-1048575)?.to_string(), "-1048576");
-    assert_eq!(JImm::try_from(1048575)?.to_string(), "1048574");
+    assert_eq!(JImm::try_from(-1_048_575)?.to_string(), "-1048576");
+    assert_eq!(JImm::try_from(1_048_575)?.to_string(), "1048574");
     Ok(())
 }
 
@@ -165,32 +156,32 @@ impl Neg for JImm {
 
 #[test]
 fn neg() {
-    assert_eq!(-JImm(1048574), JImm(-1048574));
-    assert_eq!(-JImm(-1048574), JImm(1048574));
-    assert_eq!(-JImm(-1048576), JImm(-1048576));
+    assert_eq!(-JImm(1_048_574), JImm(-1_048_574));
+    assert_eq!(-JImm(-1_048_574), JImm(1_048_574));
+    assert_eq!(-JImm(-1_048_576), JImm(-1_048_576));
 }
 
 impl From<i8> for JImm {
     fn from(value: i8) -> Self {
-        Self((value as i32) & !1)
+        Self(i32::from(value) & !1)
     }
 }
 
 impl From<i16> for JImm {
     fn from(value: i16) -> Self {
-        Self((value as i32) & !1)
+        Self(i32::from(value) & !1)
     }
 }
 
 impl From<u8> for JImm {
     fn from(value: u8) -> Self {
-        Self((value as i32) & !1)
+        Self(i32::from(value) & !1)
     }
 }
 
 impl From<u16> for JImm {
     fn from(value: u16) -> Self {
-        Self((value as i32) & !1)
+        Self(i32::from(value) & !1)
     }
 }
 
@@ -209,6 +200,7 @@ impl TryFrom<i32> for JImm {
 impl TryFrom<i64> for JImm {
     type Error = JImmConvError;
 
+    #[allow(clippy::cast_possible_truncation)]
     fn try_from(value: i64) -> Result<Self, Self::Error> {
         if i64_fits_n_bits(value, Self::NBITS) {
             Ok(Self(value as i32 & !1))
@@ -221,6 +213,7 @@ impl TryFrom<i64> for JImm {
 impl TryFrom<isize> for JImm {
     type Error = JImmConvError;
 
+    #[allow(clippy::cast_possible_truncation)]
     fn try_from(value: isize) -> Result<Self, Self::Error> {
         if isize_fits_n_bits(value, Self::NBITS) {
             Ok(Self(value as i32 & !1))
@@ -233,6 +226,7 @@ impl TryFrom<isize> for JImm {
 impl TryFrom<u32> for JImm {
     type Error = JImmConvError;
 
+    #[allow(clippy::cast_possible_wrap)]
     fn try_from(value: u32) -> Result<Self, Self::Error> {
         if u32_fits_n_bits(value, Self::NBITS - 1) {
             Ok(Self(value as i32 & !1))
@@ -245,6 +239,7 @@ impl TryFrom<u32> for JImm {
 impl TryFrom<u64> for JImm {
     type Error = JImmConvError;
 
+    #[allow(clippy::cast_possible_truncation)]
     fn try_from(value: u64) -> Result<Self, Self::Error> {
         if u64_fits_n_bits(value, Self::NBITS - 1) {
             Ok(Self(value as i32 & !1))
@@ -257,6 +252,7 @@ impl TryFrom<u64> for JImm {
 impl TryFrom<usize> for JImm {
     type Error = JImmConvError;
 
+    #[allow(clippy::cast_possible_wrap, clippy::cast_possible_truncation)]
     fn try_from(value: usize) -> Result<Self, Self::Error> {
         if usize_fits_n_bits(value, Self::NBITS - 1) {
             Ok(Self(value as i32 & !1))
@@ -272,32 +268,32 @@ fn conversions() -> Result<(), JImmConvError> {
     assert_eq!(JImm::from(127_i8), JImm(126));
     assert_eq!(JImm::from(-32768_i16), JImm(-32768));
     assert_eq!(JImm::from(32767_i16), JImm(32766));
-    assert_eq!(JImm::try_from(-1048576_i32)?, JImm(-1048576));
-    assert_eq!(JImm::try_from(1048575_i32)?, JImm(1048574));
-    assert_eq!(JImm::try_from(-1048576_i64)?, JImm(-1048576));
-    assert_eq!(JImm::try_from(1048575_i64)?, JImm(1048574));
+    assert_eq!(JImm::try_from(-1_048_576_i32)?, JImm(-1_048_576));
+    assert_eq!(JImm::try_from(1_048_575_i32)?, JImm(1_048_574));
+    assert_eq!(JImm::try_from(-1_048_576_i64)?, JImm(-1_048_576));
+    assert_eq!(JImm::try_from(1_048_575_i64)?, JImm(1_048_574));
 
     assert!(matches!(
-        JImm::try_from(-1048577_i32),
-        Err(JImmConvError::I32(-1048577))
+        JImm::try_from(-1_048_577_i32),
+        Err(JImmConvError::I32(-1_048_577))
     ));
     assert!(matches!(
-        JImm::try_from(1048576_i32),
-        Err(JImmConvError::I32(1048576))
+        JImm::try_from(1_048_576_i32),
+        Err(JImmConvError::I32(1_048_576))
     ));
     assert!(matches!(
-        JImm::try_from(-1048577_i64),
-        Err(JImmConvError::I64(-1048577))
+        JImm::try_from(-1_048_577_i64),
+        Err(JImmConvError::I64(-1_048_577))
     ));
     assert!(matches!(
-        JImm::try_from(1048576_i64),
-        Err(JImmConvError::I64(1048576))
+        JImm::try_from(1_048_576_i64),
+        Err(JImmConvError::I64(1_048_576))
     ));
 
     Ok(())
 }
 
-/// [JImm] conversion error
+/// [`JImm`] conversion error
 #[derive(Debug)]
 pub enum JImmConvError {
     ///
@@ -318,12 +314,12 @@ impl Display for JImmConvError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "invalid {}-bit signed immediate: ", JImm::NBITS)?;
         match self {
-            JImmConvError::I32(value) => write!(f, "{} (0x{:08x})", value, value),
-            JImmConvError::I64(value) => write!(f, "{} (0x{:016x})", value, value),
-            JImmConvError::Isize(value) => write!(f, "{}", value),
-            JImmConvError::U32(value) => write!(f, "{} (0x{:08x})", value, value),
-            JImmConvError::U64(value) => write!(f, "{} (0x{:016x})", value, value),
-            JImmConvError::Usize(value) => write!(f, "{}", value),
+            JImmConvError::I32(value) => write!(f, "{value} (0x{value:08x})"),
+            JImmConvError::I64(value) => write!(f, "{value} (0x{value:016x})"),
+            JImmConvError::Isize(value) => write!(f, "{value}"),
+            JImmConvError::U32(value) => write!(f, "{value} (0x{value:08x})"),
+            JImmConvError::U64(value) => write!(f, "{value} (0x{value:016x})"),
+            JImmConvError::Usize(value) => write!(f, "{value}"),
         }
     }
 }
@@ -331,14 +327,14 @@ impl Display for JImmConvError {
 #[test]
 fn conv_error_impl_display() {
     assert_eq!(
-        JImm::try_from(-1048577_i32).unwrap_err().to_string(),
+        JImm::try_from(-1_048_577_i32).unwrap_err().to_string(),
         format!(
             "invalid {}-bit signed immediate: -1048577 (0xffefffff)",
             JImm::NBITS
         )
     );
     assert_eq!(
-        JImm::try_from(1048576_i32).unwrap_err().to_string(),
+        JImm::try_from(1_048_576_i32).unwrap_err().to_string(),
         format!(
             "invalid {}-bit signed immediate: 1048576 (0x00100000)",
             JImm::NBITS
@@ -346,7 +342,7 @@ fn conv_error_impl_display() {
     );
 
     assert_eq!(
-        JImm::try_from(1048576_u32).unwrap_err().to_string(),
+        JImm::try_from(1_048_576_u32).unwrap_err().to_string(),
         format!(
             "invalid {}-bit signed immediate: 1048576 (0x00100000)",
             JImm::NBITS
@@ -354,21 +350,21 @@ fn conv_error_impl_display() {
     );
 
     assert_eq!(
-        JImm::try_from(-1048577_i64).unwrap_err().to_string(),
+        JImm::try_from(-1_048_577_i64).unwrap_err().to_string(),
         format!(
             "invalid {}-bit signed immediate: -1048577 (0xffffffffffefffff)",
             JImm::NBITS
         )
     );
     assert_eq!(
-        JImm::try_from(1048576_i64).unwrap_err().to_string(),
+        JImm::try_from(1_048_576_i64).unwrap_err().to_string(),
         format!(
             "invalid {}-bit signed immediate: 1048576 (0x0000000000100000)",
             JImm::NBITS
         )
     );
     assert_eq!(
-        JImm::try_from(1048576_u64).unwrap_err().to_string(),
+        JImm::try_from(1_048_576_u64).unwrap_err().to_string(),
         format!(
             "invalid {}-bit signed immediate: 1048576 (0x0000000000100000)",
             JImm::NBITS
@@ -376,15 +372,15 @@ fn conv_error_impl_display() {
     );
 
     assert_eq!(
-        JImm::try_from(-1048577_isize).unwrap_err().to_string(),
+        JImm::try_from(-1_048_577_isize).unwrap_err().to_string(),
         format!("invalid {}-bit signed immediate: -1048577", JImm::NBITS)
     );
     assert_eq!(
-        JImm::try_from(1048576_isize).unwrap_err().to_string(),
+        JImm::try_from(1_048_576_isize).unwrap_err().to_string(),
         format!("invalid {}-bit signed immediate: 1048576", JImm::NBITS)
     );
     assert_eq!(
-        JImm::try_from(1048576_usize).unwrap_err().to_string(),
+        JImm::try_from(1_048_576_usize).unwrap_err().to_string(),
         format!("invalid {}-bit signed immediate: 1048576", JImm::NBITS)
     );
 }

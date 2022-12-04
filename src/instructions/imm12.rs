@@ -1,21 +1,9 @@
-//! Defines [Imm12] and relevant trait implementations
-
 use core::fmt;
-use std::{
-    error::Error,
-    fmt::Display,
-    ops::Neg,
-};
+use std::{error::Error, fmt::Display, ops::Neg};
 
 use crate::util::{
-    i16_fits_n_bits,
-    i32_fits_n_bits,
-    i64_fits_n_bits,
-    isize_fits_n_bits,
-    u16_fits_n_bits,
-    u32_fits_n_bits,
-    u64_fits_n_bits,
-    usize_fits_n_bits,
+    i16_fits_n_bits, i32_fits_n_bits, i64_fits_n_bits, isize_fits_n_bits, u16_fits_n_bits,
+    u32_fits_n_bits, u64_fits_n_bits, usize_fits_n_bits,
 };
 
 /// 12-bit signed immediate value
@@ -139,7 +127,8 @@ impl Imm12 {
         Self(VALUE as i16)
     }
 
-    pub(crate) const fn to_u32(self) -> u32 {
+    #[allow(clippy::cast_sign_loss)]
+    pub(crate) const fn into_u32(self) -> u32 {
         self.0 as u32
     }
 }
@@ -166,7 +155,7 @@ fn constructors() {
 
 impl Display for Imm12 {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        Display::fmt(&(self.0 as i32), f)
+        Display::fmt(&i32::from(self.0), f)
     }
 }
 
@@ -198,13 +187,13 @@ fn neg() {
 
 impl From<i8> for Imm12 {
     fn from(value: i8) -> Self {
-        Self(value as i16)
+        Self(i16::from(value))
     }
 }
 
 impl From<u8> for Imm12 {
     fn from(value: u8) -> Self {
-        Self(value as i16)
+        Self(i16::from(value))
     }
 }
 
@@ -222,6 +211,7 @@ impl TryFrom<i16> for Imm12 {
 impl TryFrom<i32> for Imm12 {
     type Error = Imm12ConvError;
 
+    #[allow(clippy::cast_possible_truncation)]
     fn try_from(value: i32) -> Result<Self, Self::Error> {
         if i32_fits_n_bits(value, Self::NBITS) {
             Ok(Self(value as i16))
@@ -234,6 +224,7 @@ impl TryFrom<i32> for Imm12 {
 impl TryFrom<i64> for Imm12 {
     type Error = Imm12ConvError;
 
+    #[allow(clippy::cast_possible_truncation)]
     fn try_from(value: i64) -> Result<Self, Self::Error> {
         if i64_fits_n_bits(value, Self::NBITS) {
             Ok(Self(value as i16))
@@ -246,6 +237,7 @@ impl TryFrom<i64> for Imm12 {
 impl TryFrom<isize> for Imm12 {
     type Error = Imm12ConvError;
 
+    #[allow(clippy::cast_possible_truncation)]
     fn try_from(value: isize) -> Result<Self, Self::Error> {
         if isize_fits_n_bits(value, Self::NBITS) {
             Ok(Self(value as i16))
@@ -257,6 +249,8 @@ impl TryFrom<isize> for Imm12 {
 
 impl TryFrom<u16> for Imm12 {
     type Error = Imm12ConvError;
+
+    #[allow(clippy::cast_possible_wrap)]
     fn try_from(value: u16) -> Result<Self, Self::Error> {
         if u16_fits_n_bits(value, Self::NBITS - 1) {
             Ok(Self(value as i16))
@@ -269,6 +263,7 @@ impl TryFrom<u16> for Imm12 {
 impl TryFrom<u32> for Imm12 {
     type Error = Imm12ConvError;
 
+    #[allow(clippy::cast_possible_truncation)]
     fn try_from(value: u32) -> Result<Self, Self::Error> {
         if u32_fits_n_bits(value, Self::NBITS - 1) {
             Ok(Self(value as i16))
@@ -281,6 +276,7 @@ impl TryFrom<u32> for Imm12 {
 impl TryFrom<u64> for Imm12 {
     type Error = Imm12ConvError;
 
+    #[allow(clippy::cast_possible_truncation)]
     fn try_from(value: u64) -> Result<Self, Self::Error> {
         if u64_fits_n_bits(value, Self::NBITS - 1) {
             Ok(Self(value as i16))
@@ -293,6 +289,7 @@ impl TryFrom<u64> for Imm12 {
 impl TryFrom<usize> for Imm12 {
     type Error = Imm12ConvError;
 
+    #[allow(clippy::cast_possible_wrap, clippy::cast_possible_truncation)]
     fn try_from(value: usize) -> Result<Self, Self::Error> {
         if usize_fits_n_bits(value, Self::NBITS - 1) {
             Ok(Self(value as i16))
@@ -400,14 +397,14 @@ impl Display for Imm12ConvError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "invalid {}-bit signed immediate: ", Imm12::NBITS)?;
         match self {
-            Imm12ConvError::I16(value) => write!(f, "{} (0x{:04x})", value, value),
-            Imm12ConvError::I32(value) => write!(f, "{} (0x{:08x})", value, value),
-            Imm12ConvError::I64(value) => write!(f, "{} (0x{:016x})", value, value),
-            Imm12ConvError::Isize(value) => write!(f, "{}", value),
-            Imm12ConvError::U16(value) => write!(f, "{} (0x{:04x})", value, value),
-            Imm12ConvError::U32(value) => write!(f, "{} (0x{:08x})", value, value),
-            Imm12ConvError::U64(value) => write!(f, "{} (0x{:016x})", value, value),
-            Imm12ConvError::Usize(value) => write!(f, "{}", value),
+            Imm12ConvError::I16(value) => write!(f, "{value} (0x{value:04x})"),
+            Imm12ConvError::I32(value) => write!(f, "{value} (0x{value:08x})"),
+            Imm12ConvError::I64(value) => write!(f, "{value} (0x{value:016x})"),
+            Imm12ConvError::Isize(value) => write!(f, "{value}"),
+            Imm12ConvError::U16(value) => write!(f, "{value} (0x{value:04x})"),
+            Imm12ConvError::U32(value) => write!(f, "{value} (0x{value:08x})"),
+            Imm12ConvError::U64(value) => write!(f, "{value} (0x{value:016x})"),
+            Imm12ConvError::Usize(value) => write!(f, "{value}"),
         }
     }
 }

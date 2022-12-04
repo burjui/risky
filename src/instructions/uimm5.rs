@@ -1,17 +1,7 @@
-//! Defines [Uimm5] and relevant trait implementations
-
 use core::fmt;
-use std::{
-    error::Error,
-    fmt::Display,
-};
+use std::{error::Error, fmt::Display};
 
-use crate::util::{
-    u16_fits_n_bits,
-    u32_fits_n_bits,
-    u64_fits_n_bits,
-    u8_fits_n_bits,
-};
+use crate::util::{u16_fits_n_bits, u32_fits_n_bits, u64_fits_n_bits, u8_fits_n_bits};
 
 /// 5-bit unsigned immediate value
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
@@ -68,7 +58,7 @@ impl Uimm5 {
         Self(VALUE as u8)
     }
 
-    pub(crate) const fn to_u32(self) -> u32 {
+    pub(crate) const fn into_u32(self) -> u32 {
         self.0 as u32
     }
 }
@@ -109,6 +99,7 @@ impl TryFrom<u8> for Uimm5 {
 impl TryFrom<u16> for Uimm5 {
     type Error = Uimm5ConvError;
 
+    #[allow(clippy::cast_possible_truncation)]
     fn try_from(value: u16) -> Result<Self, Self::Error> {
         if u16_fits_n_bits(value, Self::NBITS) {
             Ok(Self(value as u8))
@@ -121,6 +112,7 @@ impl TryFrom<u16> for Uimm5 {
 impl TryFrom<u32> for Uimm5 {
     type Error = Uimm5ConvError;
 
+    #[allow(clippy::cast_possible_truncation)]
     fn try_from(value: u32) -> Result<Self, Self::Error> {
         if u32_fits_n_bits(value, Self::NBITS) {
             Ok(Self(value as u8))
@@ -133,6 +125,7 @@ impl TryFrom<u32> for Uimm5 {
 impl TryFrom<u64> for Uimm5 {
     type Error = Uimm5ConvError;
 
+    #[allow(clippy::cast_possible_truncation)]
     fn try_from(value: u64) -> Result<Self, Self::Error> {
         if u64_fits_n_bits(value, Self::NBITS) {
             Ok(Self(value as u8))
@@ -150,20 +143,20 @@ fn conversions() -> Result<(), Uimm5ConvError> {
     assert_eq!(Uimm5::try_from(0b11111u64)?, Uimm5(0b11111));
 
     assert!(matches!(
-        Uimm5::try_from(0b100000u8),
-        Err(Uimm5ConvError::U8(0b100000))
+        Uimm5::try_from(0b10_0000_u8),
+        Err(Uimm5ConvError::U8(0b10_0000))
     ));
     assert!(matches!(
-        Uimm5::try_from(0b100000u16),
-        Err(Uimm5ConvError::U16(0b100000))
+        Uimm5::try_from(0b10_0000_u16),
+        Err(Uimm5ConvError::U16(0b10_0000))
     ));
     assert!(matches!(
-        Uimm5::try_from(0b100000u32),
-        Err(Uimm5ConvError::U32(0b100000))
+        Uimm5::try_from(0b10_0000_u32),
+        Err(Uimm5ConvError::U32(0b10_0000))
     ));
     assert!(matches!(
-        Uimm5::try_from(0b100000u64),
-        Err(Uimm5ConvError::U64(0b100000))
+        Uimm5::try_from(0b10_0000_u64),
+        Err(Uimm5ConvError::U64(0b10_0000))
     ));
 
     Ok(())
@@ -186,10 +179,10 @@ impl Display for Uimm5ConvError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "invalid {}-bit unsigned immediate: ", Uimm5::NBITS)?;
         match self {
-            Uimm5ConvError::U8(value) => write!(f, "{} (0x{:02x})", value, value),
-            Uimm5ConvError::U16(value) => write!(f, "{} (0x{:04x})", value, value),
-            Uimm5ConvError::U32(value) => write!(f, "{} (0x{:08x})", value, value),
-            Uimm5ConvError::U64(value) => write!(f, "{} (0x{:016x})", value, value),
+            Uimm5ConvError::U8(value) => write!(f, "{value} (0x{value:02x})"),
+            Uimm5ConvError::U16(value) => write!(f, "{value} (0x{value:04x})"),
+            Uimm5ConvError::U32(value) => write!(f, "{value} (0x{value:08x})"),
+            Uimm5ConvError::U64(value) => write!(f, "{value} (0x{value:016x})"),
         }
     }
 }
@@ -197,25 +190,25 @@ impl Display for Uimm5ConvError {
 #[test]
 fn conv_error_impl_display() {
     assert_eq!(
-        Uimm5::try_from(0b100000u8).unwrap_err().to_string(),
+        Uimm5::try_from(0b10_0000_u8).unwrap_err().to_string(),
         format!("invalid {}-bit unsigned immediate: 32 (0x20)", Uimm5::NBITS)
     );
     assert_eq!(
-        Uimm5::try_from(0b100000u16).unwrap_err().to_string(),
+        Uimm5::try_from(0b10_0000_u16).unwrap_err().to_string(),
         format!(
             "invalid {}-bit unsigned immediate: 32 (0x0020)",
             Uimm5::NBITS
         )
     );
     assert_eq!(
-        Uimm5::try_from(0b100000u32).unwrap_err().to_string(),
+        Uimm5::try_from(0b10_0000_u32).unwrap_err().to_string(),
         format!(
             "invalid {}-bit unsigned immediate: 32 (0x00000020)",
             Uimm5::NBITS
         )
     );
     assert_eq!(
-        Uimm5::try_from(0b100000u64).unwrap_err().to_string(),
+        Uimm5::try_from(0b10_0000_u64).unwrap_err().to_string(),
         format!(
             "invalid {}-bit unsigned immediate: 32 (0x0000000000000020)",
             Uimm5::NBITS

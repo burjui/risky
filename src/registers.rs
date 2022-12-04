@@ -9,18 +9,11 @@ Editors Kito Cheng and Jessica Clarke, RISC-V International, November 2022.
 use core::fmt;
 use std::{
     error::Error,
-    fmt::{
-        Display,
-        Write,
-    },
+    fmt::{Display, Write},
 };
 
 use crate::util::{
-    u16_fits_n_bits,
-    u32_fits_n_bits,
-    u64_fits_n_bits,
-    u8_fits_n_bits,
-    usize_fits_n_bits,
+    u16_fits_n_bits, u32_fits_n_bits, u64_fits_n_bits, u8_fits_n_bits, usize_fits_n_bits,
 };
 
 /// Number of `RISC-V` registers
@@ -218,7 +211,7 @@ impl Register {
         Self(VALUE as u8)
     }
 
-    pub(crate) const fn to_u32(self) -> u32 {
+    pub(crate) const fn into_u32(self) -> u32 {
         self.0 as u32
     }
 }
@@ -268,6 +261,7 @@ impl TryFrom<u8> for Register {
 impl TryFrom<u16> for Register {
     type Error = RegisterConvError;
 
+    #[allow(clippy::cast_possible_truncation)]
     fn try_from(value: u16) -> Result<Self, Self::Error> {
         if u16_fits_n_bits(value, Self::NBITS) {
             Ok(Self(value as u8))
@@ -280,6 +274,7 @@ impl TryFrom<u16> for Register {
 impl TryFrom<u32> for Register {
     type Error = RegisterConvError;
 
+    #[allow(clippy::cast_possible_truncation)]
     fn try_from(value: u32) -> Result<Self, Self::Error> {
         if u32_fits_n_bits(value, Self::NBITS) {
             Ok(Self(value as u8))
@@ -292,6 +287,7 @@ impl TryFrom<u32> for Register {
 impl TryFrom<u64> for Register {
     type Error = RegisterConvError;
 
+    #[allow(clippy::cast_possible_truncation)]
     fn try_from(value: u64) -> Result<Self, Self::Error> {
         if u64_fits_n_bits(value, Self::NBITS) {
             Ok(Self(value as u8))
@@ -304,6 +300,7 @@ impl TryFrom<u64> for Register {
 impl TryFrom<usize> for Register {
     type Error = RegisterConvError;
 
+    #[allow(clippy::cast_possible_truncation)]
     fn try_from(value: usize) -> Result<Self, Self::Error> {
         if usize_fits_n_bits(value, Self::NBITS) {
             Ok(Self(value as u8))
@@ -316,6 +313,7 @@ impl TryFrom<usize> for Register {
 impl TryFrom<i8> for Register {
     type Error = RegisterConvError;
 
+    #[allow(clippy::cast_sign_loss)]
     fn try_from(value: i8) -> Result<Self, Self::Error> {
         if (value as usize) < NUMBER_OF_REGISTERS {
             Ok(Self(value as u8))
@@ -328,6 +326,7 @@ impl TryFrom<i8> for Register {
 impl TryFrom<i16> for Register {
     type Error = RegisterConvError;
 
+    #[allow(clippy::cast_sign_loss, clippy::cast_possible_truncation)]
     fn try_from(value: i16) -> Result<Self, Self::Error> {
         if (value as usize) < NUMBER_OF_REGISTERS {
             Ok(Self(value as u8))
@@ -340,6 +339,7 @@ impl TryFrom<i16> for Register {
 impl TryFrom<i32> for Register {
     type Error = RegisterConvError;
 
+    #[allow(clippy::cast_sign_loss, clippy::cast_possible_truncation)]
     fn try_from(value: i32) -> Result<Self, Self::Error> {
         if (value as usize) < NUMBER_OF_REGISTERS {
             Ok(Self(value as u8))
@@ -352,6 +352,7 @@ impl TryFrom<i32> for Register {
 impl TryFrom<i64> for Register {
     type Error = RegisterConvError;
 
+    #[allow(clippy::cast_sign_loss, clippy::cast_possible_truncation)]
     fn try_from(value: i64) -> Result<Self, Self::Error> {
         if (value as usize) < NUMBER_OF_REGISTERS {
             Ok(Self(value as u8))
@@ -364,6 +365,7 @@ impl TryFrom<i64> for Register {
 impl TryFrom<isize> for Register {
     type Error = RegisterConvError;
 
+    #[allow(clippy::cast_sign_loss, clippy::cast_possible_truncation)]
     fn try_from(value: isize) -> Result<Self, Self::Error> {
         if (value as usize) < NUMBER_OF_REGISTERS {
             Ok(Self(value as u8))
@@ -478,16 +480,16 @@ pub enum RegisterConvError {
 impl Display for RegisterConvError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            RegisterConvError::I8(value) => write!(f, "invalid register index: {}", value),
-            RegisterConvError::U8(value) => write!(f, "invalid register index: {}", value),
-            RegisterConvError::I16(value) => write!(f, "invalid register index: {}", value),
-            RegisterConvError::U16(value) => write!(f, "invalid register index: {}", value),
-            RegisterConvError::I32(value) => write!(f, "invalid register index: {}", value),
-            RegisterConvError::U32(value) => write!(f, "invalid register index: {}", value),
-            RegisterConvError::I64(value) => write!(f, "invalid register index: {}", value),
-            RegisterConvError::U64(value) => write!(f, "invalid register index: {}", value),
-            RegisterConvError::Isize(value) => write!(f, "invalid register index: {}", value),
-            RegisterConvError::Usize(value) => write!(f, "invalid register index: {}", value),
+            RegisterConvError::I8(value) => write!(f, "invalid register index: {value}"),
+            RegisterConvError::U8(value) => write!(f, "invalid register index: {value}"),
+            RegisterConvError::I16(value) => write!(f, "invalid register index: {value}"),
+            RegisterConvError::U16(value) => write!(f, "invalid register index: {value}"),
+            RegisterConvError::I32(value) => write!(f, "invalid register index: {value}"),
+            RegisterConvError::U32(value) => write!(f, "invalid register index: {value}"),
+            RegisterConvError::I64(value) => write!(f, "invalid register index: {value}"),
+            RegisterConvError::U64(value) => write!(f, "invalid register index: {value}"),
+            RegisterConvError::Isize(value) => write!(f, "invalid register index: {value}"),
+            RegisterConvError::Usize(value) => write!(f, "invalid register index: {value}"),
         }
     }
 }
@@ -595,6 +597,7 @@ impl From<Register> for usize {
 }
 
 impl From<Register> for i8 {
+    #[allow(clippy::cast_possible_wrap)]
     fn from(r: Register) -> Self {
         r.0 as i8 // safe because r.0 < NUMBER_OF_REGISTERS
     }
