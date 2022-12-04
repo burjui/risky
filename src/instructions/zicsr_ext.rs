@@ -26,6 +26,7 @@ pub use crate::registers::*;
 /// Other instructions for accessing CSRs:
 /// [csrrwi], [csrrs], [csrrsi], [csrs], [csrsi], [csrrc], [csrrci], [csrc], [csrci], [csrr]
 #[must_use]
+#[inline]
 pub const fn csrrw(rd: Register, rs1: Register, csr: Imm12) -> u32 {
     csr_instruction(rd, RegOrUimm5::Register(rs1), csr, Funct3::CSRRW)
 }
@@ -45,6 +46,7 @@ pub const fn csrrw(rd: Register, rs1: Register, csr: Imm12) -> u32 {
 /// Other instructions for accessing CSRs:
 /// [csrrsi], [csrrw], [csrrwi], [csrs], [csrsi], [csrrc], [csrrci], [csrc], [csrci], [csrr]
 #[must_use]
+#[inline]
 pub const fn csrrs(rd: Register, rs1: Register, csr: Imm12) -> u32 {
     csr_instruction(rd, RegOrUimm5::Register(rs1), csr, Funct3::CSRRS)
 }
@@ -58,6 +60,7 @@ pub const fn csrrs(rd: Register, rs1: Register, csr: Imm12) -> u32 {
 /// Other instructions for accessing CSRs:
 /// [csrrs], [csrrsi], [csrrw], [csrrwi], [csrs], [csrsi], [csrrc], [csrrci], [csrc], [csrci]
 #[must_use]
+#[inline]
 pub const fn csrr(rd: Register, csr: Imm12) -> u32 {
     csrrs(rd, X0, csr)
 }
@@ -78,6 +81,7 @@ pub const fn csrr(rd: Register, csr: Imm12) -> u32 {
 /// Other instructions for accessing CSRs:
 /// [csrsi], [csrrs], [csrrsi], [csrrw], [csrrwi], [csrrc], [csrrci], [csrc], [csrci], [csrr]
 #[must_use]
+#[inline]
 pub const fn csrs(rs1: Register, csr: Imm12) -> u32 {
     csrrs(X0, rs1, csr)
 }
@@ -97,6 +101,7 @@ pub const fn csrs(rs1: Register, csr: Imm12) -> u32 {
 /// Other instructions for accessing CSRs:
 /// [csrrci], [csrc], [csrci], [csrrw], [csrrwi], [csrrs], [csrrsi], [csrs], [csrsi], [csrr]
 #[must_use]
+#[inline]
 pub const fn csrrc(rd: Register, rs1: Register, csr: Imm12) -> u32 {
     csr_instruction(rd, RegOrUimm5::Register(rs1), csr, Funct3::CSRRC)
 }
@@ -117,6 +122,7 @@ pub const fn csrrc(rd: Register, rs1: Register, csr: Imm12) -> u32 {
 /// Other instructions for accessing CSRs:
 /// [csrci], [csrrc], [csrrci], [csrrw], [csrrwi], [csrrs], [csrrsi], [csrs], [csrsi], [csrr]
 #[must_use]
+#[inline]
 pub const fn csrc(rs1: Register, csr: Imm12) -> u32 {
     csrrc(X0, rs1, csr)
 }
@@ -130,6 +136,7 @@ pub const fn csrc(rs1: Register, csr: Imm12) -> u32 {
 /// Other instructions for accessing CSRs:
 /// [csrrw], [csrrs], [csrrsi], [csrs], [csrsi], [csrrc], [csrrci], [csrc], [csrci], [csrr]
 #[must_use]
+#[inline]
 pub const fn csrrwi(rd: Register, uimm: Uimm5, csr: Imm12) -> u32 {
     csr_instruction(rd, RegOrUimm5::Uimm5(uimm), csr, Funct3::CSRRWI)
 }
@@ -145,6 +152,7 @@ pub const fn csrrwi(rd: Register, uimm: Uimm5, csr: Imm12) -> u32 {
 /// Other instructions for accessing CSRs:
 /// [csrrs], [csrs], [csrsi], [csrrw], [csrrwi], [csrrc], [csrrci], [csrc], [csrci], [csrr]
 #[must_use]
+#[inline]
 pub const fn csrrsi(rd: Register, uimm: Uimm5, csr: Imm12) -> u32 {
     csr_instruction(rd, RegOrUimm5::Uimm5(uimm), csr, Funct3::CSRRSI)
 }
@@ -161,6 +169,7 @@ pub const fn csrrsi(rd: Register, uimm: Uimm5, csr: Imm12) -> u32 {
 /// Other instructions for accessing CSRs:
 /// [csrrs], [csrrsi], [csrs], [csrrw], [csrrwi], [csrrc], [csrrci], [csrc], [csrci], [csrr]
 #[must_use]
+#[inline]
 pub const fn csrsi(uimm: Uimm5, csr: Imm12) -> u32 {
     csrrsi(X0, uimm, csr)
 }
@@ -176,6 +185,7 @@ pub const fn csrsi(uimm: Uimm5, csr: Imm12) -> u32 {
 /// Other instructions for accessing CSRs:
 /// [csrrc], [csrc], [csrci], [csrrw], [csrrwi], [csrrs], [csrrsi], [csrs], [csrsi], [csrr]
 #[must_use]
+#[inline]
 pub const fn csrrci(rd: Register, uimm: Uimm5, csr: Imm12) -> u32 {
     csr_instruction(rd, RegOrUimm5::Uimm5(uimm), csr, Funct3::CSRRCI)
 }
@@ -192,6 +202,7 @@ pub const fn csrrci(rd: Register, uimm: Uimm5, csr: Imm12) -> u32 {
 /// Other instructions for accessing CSRs:
 /// [csrrc], [csrrci], [csrc], [csrrw], [csrrwi], [csrrs], [csrrsi], [csrs], [csrsi], [csrr]
 #[must_use]
+#[inline]
 pub const fn csrci(uimm: Uimm5, csr: Imm12) -> u32 {
     csrrci(X0, uimm, csr)
 }

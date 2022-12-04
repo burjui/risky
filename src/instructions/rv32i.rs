@@ -36,6 +36,7 @@ pub use crate::registers::*;
 /// - Storing to memory: [sb], [sh], [sw]
 /// - Indirect jumps: [jalr]
 #[must_use]
+#[inline]
 pub const fn lui(rd: Register, imm: i32) -> u32 {
     u_instruction(Opcode::LUI, rd, imm)
 }
@@ -46,6 +47,7 @@ pub const fn lui(rd: Register, imm: i32) -> u32 {
 ///
 /// For a pc-relative jump, use [jal].
 #[must_use]
+#[inline]
 pub const fn auipc(rd: Register, imm: i32) -> u32 {
     u_instruction(Opcode::AUIPC, rd, imm)
 }
@@ -60,6 +62,7 @@ pub const fn auipc(rd: Register, imm: i32) -> u32 {
 /// For an indirect jump, use [jalr].<br/>
 /// For just retrieving the value of `pc`, use [auipc].
 #[must_use]
+#[inline]
 pub const fn jal(rd: Register, imm: JImm) -> u32 {
     j_instruction(Opcode::JAL, rd, imm)
 }
@@ -75,6 +78,7 @@ pub const fn jal(rd: Register, imm: JImm) -> u32 {
 /// For a pc-relative jump, use [jal].<br/>
 /// For just retrieving the value of `pc`, use [auipc].
 #[must_use]
+#[inline]
 pub const fn jalr(rd: Register, rs1: Register, imm: Imm12) -> u32 {
     i_instruction(
         Opcode::JALR,
@@ -91,6 +95,7 @@ pub const fn jalr(rd: Register, rs1: Register, imm: Imm12) -> u32 {
 ///
 /// Other branch instructions with different conditions: [bne], [blt], [bltu], [bge], [bgeu].
 #[must_use]
+#[inline]
 pub const fn beq(imm: BImm, rs1: Register, rs2: Register) -> u32 {
     b_instruction(Opcode::BRANCH, imm, Funct3::BEQ, rs1, rs2)
 }
@@ -101,6 +106,7 @@ pub const fn beq(imm: BImm, rs1: Register, rs2: Register) -> u32 {
 ///
 /// Other branch instructions with different conditions: [beq], [blt], [bltu], [bge], [bgeu].
 #[must_use]
+#[inline]
 pub const fn bne(imm: BImm, rs1: Register, rs2: Register) -> u32 {
     b_instruction(Opcode::BRANCH, imm, Funct3::BNE, rs1, rs2)
 }
@@ -112,6 +118,7 @@ pub const fn bne(imm: BImm, rs1: Register, rs2: Register) -> u32 {
 ///
 /// Other branch instructions with different conditions: [bltu], [bge], [bgeu], [beq], [bne].
 #[must_use]
+#[inline]
 pub const fn blt(imm: BImm, rs1: Register, rs2: Register) -> u32 {
     b_instruction(Opcode::BRANCH, imm, Funct3::BLT, rs1, rs2)
 }
@@ -126,6 +133,7 @@ pub const fn blt(imm: BImm, rs1: Register, rs2: Register) -> u32 {
 ///
 /// Other branch instructions with different conditions: [blt], [bge], [bgeu], [beq], [bne]
 #[must_use]
+#[inline]
 pub const fn bltu(imm: BImm, rs1: Register, rs2: Register) -> u32 {
     b_instruction(Opcode::BRANCH, imm, Funct3::BLTU, rs1, rs2)
 }
@@ -137,6 +145,7 @@ pub const fn bltu(imm: BImm, rs1: Register, rs2: Register) -> u32 {
 ///
 /// Other branch instructions with different conditions: [bgeu], [blt], [bltu], [beq], [bne].
 #[must_use]
+#[inline]
 pub const fn bge(imm: BImm, rs1: Register, rs2: Register) -> u32 {
     b_instruction(Opcode::BRANCH, imm, Funct3::BGE, rs1, rs2)
 }
@@ -148,6 +157,7 @@ pub const fn bge(imm: BImm, rs1: Register, rs2: Register) -> u32 {
 ///
 /// Other branch instructions with different conditions: [bge], [blt], [bltu], [beq], [bne].
 #[must_use]
+#[inline]
 pub const fn bgeu(imm: BImm, rs1: Register, rs2: Register) -> u32 {
     b_instruction(Opcode::BRANCH, imm, Funct3::BGEU, rs1, rs2)
 }
@@ -162,6 +172,7 @@ pub const fn bgeu(imm: BImm, rs1: Register, rs2: Register) -> u32 {
 /// Store instructions: [sb], [sh], [sw]<br/>
 /// Copying values between registers: [mv]
 #[must_use]
+#[inline]
 pub const fn lb(rd: Register, rs1: Register, imm: Imm12) -> u32 {
     i_instruction(Opcode::LOAD, rd, Funct3::LB, RegOrUimm5::Register(rs1), imm)
 }
@@ -176,6 +187,7 @@ pub const fn lb(rd: Register, rs1: Register, imm: Imm12) -> u32 {
 /// Store instructions: [sb], [sh], [sw]<br/>
 /// Copying values between registers: [mv]
 #[must_use]
+#[inline]
 pub const fn lbu(rd: Register, rs1: Register, imm: Imm12) -> u32 {
     i_instruction(
         Opcode::LOAD,
@@ -196,6 +208,7 @@ pub const fn lbu(rd: Register, rs1: Register, imm: Imm12) -> u32 {
 /// Store instructions: [sb], [sh], [sw]<br/>
 /// Copying values between registers: [mv]
 #[must_use]
+#[inline]
 pub const fn lh(rd: Register, rs1: Register, imm: Imm12) -> u32 {
     i_instruction(Opcode::LOAD, rd, Funct3::LH, RegOrUimm5::Register(rs1), imm)
 }
@@ -210,6 +223,7 @@ pub const fn lh(rd: Register, rs1: Register, imm: Imm12) -> u32 {
 /// Store instructions: [sb], [sh], [sw]<br/>
 /// Copying values between registers: [mv]
 #[must_use]
+#[inline]
 pub const fn lhu(rd: Register, rs1: Register, imm: Imm12) -> u32 {
     i_instruction(
         Opcode::LOAD,
@@ -229,6 +243,7 @@ pub const fn lhu(rd: Register, rs1: Register, imm: Imm12) -> u32 {
 /// Store instructions: [sb], [sh], [sw]<br/>
 /// Copying values between registers: [mv]
 #[must_use]
+#[inline]
 pub const fn lw(rd: Register, rs1: Register, imm: Imm12) -> u32 {
     i_instruction(Opcode::LOAD, rd, Funct3::LW, RegOrUimm5::Register(rs1), imm)
 }
@@ -242,6 +257,7 @@ pub const fn lw(rd: Register, rs1: Register, imm: Imm12) -> u32 {
 /// Load instructions: [lb], [lbu], [lh], [lhu], [lw]<br/>
 /// Copying values between registers: [mv]
 #[must_use]
+#[inline]
 pub const fn sb(rs1: Register, imm: Imm12, rs2: Register) -> u32 {
     s_instruction(Opcode::STORE, imm, Funct3::SB, rs1, rs2)
 }
@@ -256,6 +272,7 @@ pub const fn sb(rs1: Register, imm: Imm12, rs2: Register) -> u32 {
 /// Load instructions: [lb], [lbu], [lh], [lhu], [lw]<br/>
 /// Copying values between registers: [mv]
 #[must_use]
+#[inline]
 pub const fn sh(rs1: Register, imm: Imm12, rs2: Register) -> u32 {
     s_instruction(Opcode::STORE, imm, Funct3::SH, rs1, rs2)
 }
@@ -269,6 +286,7 @@ pub const fn sh(rs1: Register, imm: Imm12, rs2: Register) -> u32 {
 /// Load instructions: [lb], [lbu], [lh], [lhu], [lw]<br/>
 /// Copying values between registers: [mv]
 #[must_use]
+#[inline]
 pub const fn sw(rs1: Register, imm: Imm12, rs2: Register) -> u32 {
     s_instruction(Opcode::STORE, imm, Funct3::SW, rs1, rs2)
 }
@@ -284,6 +302,7 @@ pub const fn sw(rs1: Register, imm: Imm12, rs2: Register) -> u32 {
 /// [mulhu](super::mulhu), [div](super::div), [divu](super::divu), [rem](super::rem),
 /// [remu](super::remu)
 #[must_use]
+#[inline]
 pub const fn addi(rd: Register, rs1: Register, imm: Imm12) -> u32 {
     i_instruction(
         Opcode::OP_IMM,
@@ -302,6 +321,7 @@ pub const fn addi(rd: Register, rs1: Register, imm: Imm12) -> u32 {
 /// - Loading from memory: [lb], [lbu], [lh], [lhu], [lw]
 /// - Storing to memory: [sb], [sh], [sw]
 #[must_use]
+#[inline]
 pub const fn mv(rd: Register, rs1: Register) -> u32 {
     addi(rd, rs1, Imm12::ZERO)
 }
@@ -311,6 +331,7 @@ pub const fn mv(rd: Register, rs1: Register) -> u32 {
 ///
 /// `nop` is encoded as <code>[addi] x0, x0, 0</code>.
 #[must_use]
+#[inline]
 pub const fn nop() -> u32 {
     addi(X0, X0, Imm12::ZERO)
 }
@@ -321,6 +342,7 @@ pub const fn nop() -> u32 {
 ///
 /// Other comparison instructions: [slt], [sltu], [sltiu], [seqz], [snez]
 #[must_use]
+#[inline]
 pub const fn slti(rd: Register, rs1: Register, imm: Imm12) -> u32 {
     i_instruction(
         Opcode::OP_IMM,
@@ -339,6 +361,7 @@ pub const fn slti(rd: Register, rs1: Register, imm: Imm12) -> u32 {
 ///
 /// Other comparison instructions: [slt], [sltu], [slti], [seqz], [snez]
 #[must_use]
+#[inline]
 pub const fn sltiu(rd: Register, rs1: Register, imm: Imm12) -> u32 {
     i_instruction(
         Opcode::OP_IMM,
@@ -356,6 +379,7 @@ pub const fn sltiu(rd: Register, rs1: Register, imm: Imm12) -> u32 {
 ///
 /// Other comparison instructions: [slt], [sltu], [slti], [sltiu], [snez]
 #[must_use]
+#[inline]
 pub const fn seqz(rd: Register, rs1: Register) -> u32 {
     sltiu(rd, rs1, Imm12::ONE)
 }
@@ -367,6 +391,7 @@ pub const fn seqz(rd: Register, rs1: Register) -> u32 {
 ///
 /// Other logical operations: [xor], [or], [ori], [and], [andi], [not]
 #[must_use]
+#[inline]
 pub const fn xori(rd: Register, rs1: Register, imm: Imm12) -> u32 {
     i_instruction(
         Opcode::OP_IMM,
@@ -384,6 +409,7 @@ pub const fn xori(rd: Register, rs1: Register, imm: Imm12) -> u32 {
 ///
 /// Other logical operations: [xor], [xori], [or], [ori], [and], [andi]
 #[must_use]
+#[inline]
 pub const fn not(rd: Register, rs1: Register) -> u32 {
     xori(rd, rs1, Imm12::MINUS_ONE)
 }
@@ -393,6 +419,7 @@ pub const fn not(rd: Register, rs1: Register) -> u32 {
 ///
 /// Other logical operations: [or], [xor], [xori], [and], [andi], [not]
 #[must_use]
+#[inline]
 pub const fn ori(rd: Register, rs1: Register, imm: Imm12) -> u32 {
     i_instruction(
         Opcode::OP_IMM,
@@ -408,6 +435,7 @@ pub const fn ori(rd: Register, rs1: Register, imm: Imm12) -> u32 {
 ///
 /// Other logical operations: [and], [xor], [xori], [or], [ori], [not]
 #[must_use]
+#[inline]
 pub const fn andi(rd: Register, rs1: Register, imm: Imm12) -> u32 {
     i_instruction(
         Opcode::OP_IMM,
@@ -424,6 +452,7 @@ pub const fn andi(rd: Register, rs1: Register, imm: Imm12) -> u32 {
 ///
 /// Other shift instructions: [sll], [srl], [srli], [sra], [srai]
 #[must_use]
+#[inline]
 pub const fn slli(rd: Register, rs1: Register, shamt: Uimm5) -> u32 {
     r_instruction(
         Opcode::OP_IMM,
@@ -441,6 +470,7 @@ pub const fn slli(rd: Register, rs1: Register, shamt: Uimm5) -> u32 {
 ///
 /// Other shift instructions: [srl], [sra], [srai], [slli], [sll],
 #[must_use]
+#[inline]
 pub const fn srli(rd: Register, rs1: Register, shamt: Uimm5) -> u32 {
     r_instruction(
         Opcode::OP_IMM,
@@ -457,6 +487,7 @@ pub const fn srli(rd: Register, rs1: Register, shamt: Uimm5) -> u32 {
 ///
 /// Other shift instructions: [sra], [srl], [srli], [sll], [slli]
 #[must_use]
+#[inline]
 pub const fn srai(rd: Register, rs1: Register, shamt: Uimm5) -> u32 {
     r_instruction(
         Opcode::OP_IMM,
@@ -478,6 +509,7 @@ pub const fn srai(rd: Register, rs1: Register, shamt: Uimm5) -> u32 {
 /// [mulhu](super::mulhu), [div](super::div), [divu](super::divu), [rem](super::rem),
 /// [remu](super::remu)
 #[must_use]
+#[inline]
 pub const fn add(rd: Register, rs1: Register, rs2: Register) -> u32 {
     r_instruction(
         Opcode::OP,
@@ -499,6 +531,7 @@ pub const fn add(rd: Register, rs1: Register, rs2: Register) -> u32 {
 /// [mulhu](super::mulhu), [div](super::div), [divu](super::divu), [rem](super::rem),
 /// [remu](super::remu)
 #[must_use]
+#[inline]
 pub const fn sub(rd: Register, rs1: Register, rs2: Register) -> u32 {
     r_instruction(
         Opcode::OP,
@@ -516,6 +549,7 @@ pub const fn sub(rd: Register, rs1: Register, rs2: Register) -> u32 {
 ///
 /// Other shift instructions: [slli], [srl], [sra], [srli], [srai]
 #[must_use]
+#[inline]
 pub const fn sll(rd: Register, rs1: Register, rs2: Register) -> u32 {
     r_instruction(
         Opcode::OP,
@@ -533,6 +567,7 @@ pub const fn sll(rd: Register, rs1: Register, rs2: Register) -> u32 {
 ///
 /// Other shift instructions: [srli], [sra], [srai], [sll], [slli]
 #[must_use]
+#[inline]
 pub const fn srl(rd: Register, rs1: Register, rs2: Register) -> u32 {
     r_instruction(
         Opcode::OP,
@@ -550,6 +585,7 @@ pub const fn srl(rd: Register, rs1: Register, rs2: Register) -> u32 {
 ///
 /// Other shift instructions: [srai], [srl], [srli], [sll], [slli]
 #[must_use]
+#[inline]
 pub const fn sra(rd: Register, rs1: Register, rs2: Register) -> u32 {
     r_instruction(
         Opcode::OP,
@@ -566,6 +602,7 @@ pub const fn sra(rd: Register, rs1: Register, rs2: Register) -> u32 {
 ///
 /// Other comparison instructions: [sltu], [slti], [sltiu], [seqz], [snez]
 #[must_use]
+#[inline]
 pub const fn slt(rd: Register, rs1: Register, rs2: Register) -> u32 {
     r_instruction(
         Opcode::OP,
@@ -584,6 +621,7 @@ pub const fn slt(rd: Register, rs1: Register, rs2: Register) -> u32 {
 ///
 /// Other comparison instructions: [slt], [slti], [sltiu], [seqz], [snez]
 #[must_use]
+#[inline]
 pub const fn sltu(rd: Register, rs1: Register, rs2: Register) -> u32 {
     r_instruction(
         Opcode::OP,
@@ -601,6 +639,7 @@ pub const fn sltu(rd: Register, rs1: Register, rs2: Register) -> u32 {
 ///
 /// Other comparison instructions: [slt], [sltu], [slti], [sltiu], [seqz]
 #[must_use]
+#[inline]
 pub const fn snez(rd: Register, rs2: Register) -> u32 {
     sltu(rd, X0, rs2)
 }
@@ -610,6 +649,7 @@ pub const fn snez(rd: Register, rs2: Register) -> u32 {
 ///
 /// Other logical operations: [xori], [or], [ori], [and], [andi], [not]
 #[must_use]
+#[inline]
 pub const fn xor(rd: Register, rs1: Register, rs2: Register) -> u32 {
     r_instruction(
         Opcode::OP,
@@ -626,6 +666,7 @@ pub const fn xor(rd: Register, rs1: Register, rs2: Register) -> u32 {
 ///
 /// Other logical operations: [ori], [xor], [xori], [and], [andi], [not]
 #[must_use]
+#[inline]
 pub const fn or(rd: Register, rs1: Register, rs2: Register) -> u32 {
     r_instruction(
         Opcode::OP,
@@ -642,6 +683,7 @@ pub const fn or(rd: Register, rs1: Register, rs2: Register) -> u32 {
 ///
 /// Other logical operations: [andi], [xor], [xori], [or], [ori], [not]
 #[must_use]
+#[inline]
 pub const fn and(rd: Register, rs1: Register, rs2: Register) -> u32 {
     r_instruction(
         Opcode::OP,
@@ -659,6 +701,7 @@ pub const fn and(rd: Register, rs1: Register, rs2: Register) -> u32 {
 /// Note, [fence_tso] instruction is encoded as a [fence] instruction with `fm` = 1000 (refer to the
 /// instruction manual for this field), `predecessor` = "rw", and `successor` = "rw".
 #[must_use]
+#[inline]
 pub const fn fence(predecessor: FenceMask, successor: FenceMask) -> u32 {
     fence_instruction(FenceMode::FENCE, predecessor, successor)
 }
@@ -671,6 +714,7 @@ pub const fn fence(predecessor: FenceMask, successor: FenceMask) -> u32 {
 /// `fence_tso` instruction is encoded as a [fence] instruction with `fm` = 1000 (refer to the
 /// instruction manual for this field), `predecessor` = "rw", and `successor` = "rw".
 #[must_use]
+#[inline]
 pub const fn fence_tso() -> u32 {
     fence_instruction(FenceMode::FENCE_TSO, FenceMask::RW, FenceMask::RW)
 }
@@ -703,6 +747,7 @@ const fn fence_instruction(fm: FenceMode, predecessor: FenceMask, successor: Fen
 ///
 /// Other environment instructions: [ebreak].
 #[must_use]
+#[inline]
 pub const fn ecall() -> u32 {
     i_instruction(
         Opcode::SYSTEM,
@@ -730,6 +775,7 @@ pub const fn ecall() -> u32 {
 ///
 /// Other environment instructions: [ecall]
 #[must_use]
+#[inline]
 pub const fn ebreak() -> u32 {
     i_instruction(
         Opcode::SYSTEM,

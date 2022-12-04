@@ -24,6 +24,7 @@ pub use crate::registers::*;
 /// - M extension: [mulh], [mulhsu], [mulhu], [div], [divu], [rem], [remu]
 /// - RV32I: [add](super::add), [addi](super::addi), [sub](super::sub)
 #[must_use]
+#[inline]
 pub const fn mul(rd: Register, rs1: Register, rs2: Register) -> u32 {
     muldiv_instruction(rd, rs1, rs2, Funct3::MUL)
 }
@@ -43,6 +44,7 @@ pub const fn mul(rd: Register, rs1: Register, rs2: Register) -> u32 {
 /// - M extension: [mul], [mulhsu], [mulhu], [div], [divu], [rem], [remu]
 /// - RV32I: [add](super::add), [addi](super::addi), [sub](super::sub)
 #[must_use]
+#[inline]
 pub const fn mulh(rd: Register, rs1: Register, rs2: Register) -> u32 {
     muldiv_instruction(rd, rs1, rs2, Funct3::MULH)
 }
@@ -62,6 +64,7 @@ pub const fn mulh(rd: Register, rs1: Register, rs2: Register) -> u32 {
 /// - M extension: [mul], [mulh], [mulhu], [div], [divu], [rem], [remu]
 /// - RV32I: [add](super::add), [addi](super::addi), [sub](super::sub)
 #[must_use]
+#[inline]
 pub const fn mulhsu(rd: Register, rs1: Register, rs2: Register) -> u32 {
     muldiv_instruction(rd, rs1, rs2, Funct3::MULHSU)
 }
@@ -81,6 +84,7 @@ pub const fn mulhsu(rd: Register, rs1: Register, rs2: Register) -> u32 {
 /// - M extension: [mul], [mulh], [mulhsu], [div], [divu], [rem], [remu]
 /// - RV32I: [add](super::add), [addi](super::addi), [sub](super::sub)
 #[must_use]
+#[inline]
 pub const fn mulhu(rd: Register, rs1: Register, rs2: Register) -> u32 {
     muldiv_instruction(rd, rs1, rs2, Funct3::MULHU)
 }
@@ -102,6 +106,7 @@ pub const fn mulhu(rd: Register, rs1: Register, rs2: Register) -> u32 {
 /// - M extension: [divu], [rem], [remu], [mul], [mulh], [mulhsu], [mulhu]
 /// - RV32I: [add](super::add), [addi](super::addi), [sub](super::sub)
 #[must_use]
+#[inline]
 pub const fn div(rd: Register, rs1: Register, rs2: Register) -> u32 {
     muldiv_instruction(rd, rs1, rs2, Funct3::DIV)
 }
@@ -122,6 +127,7 @@ pub const fn div(rd: Register, rs1: Register, rs2: Register) -> u32 {
 /// - M extension: [div], [rem], [remu], [mul], [mulh], [mulhsu], [mulhu]
 /// - RV32I: [add](super::add), [addi](super::addi), [sub](super::sub)
 #[must_use]
+#[inline]
 pub const fn divu(rd: Register, rs1: Register, rs2: Register) -> u32 {
     muldiv_instruction(rd, rs1, rs2, Funct3::DIVU)
 }
@@ -142,6 +148,7 @@ pub const fn divu(rd: Register, rs1: Register, rs2: Register) -> u32 {
 /// - M extension: [remu], [div], [divu], [mul], [mulh], [mulhsu], [mulhu]
 /// - RV32I: [add](super::add), [addi](super::addi), [sub](super::sub)
 #[must_use]
+#[inline]
 pub const fn rem(rd: Register, rs1: Register, rs2: Register) -> u32 {
     muldiv_instruction(rd, rs1, rs2, Funct3::REM)
 }
@@ -162,6 +169,7 @@ pub const fn rem(rd: Register, rs1: Register, rs2: Register) -> u32 {
 /// - M extension: [rem], [div], [divu], [mul], [mulh], [mulhsu], [mulhu]
 /// - RV32I: [add](super::add), [addi](super::addi), [sub](super::sub)
 #[must_use]
+#[inline]
 pub const fn remu(rd: Register, rs1: Register, rs2: Register) -> u32 {
     muldiv_instruction(rd, rs1, rs2, Funct3::REMU)
 }
