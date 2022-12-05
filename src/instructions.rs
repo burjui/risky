@@ -9,4 +9,5 @@ Document Version 20191214-draft"](https://github.com/riscv/riscv-isa-manual),
 Editors Andrew Waterman and Krste Asanović, RISC-V International, December 2019.
 */
 
+pub mod raw;
 pub mod strongly_typed;

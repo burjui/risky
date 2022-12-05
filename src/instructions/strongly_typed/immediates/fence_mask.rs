@@ -9,7 +9,7 @@ use std::{
 
 use crate::util::{u16_fits_n_bits, u32_fits_n_bits, u64_fits_n_bits, u8_fits_n_bits};
 
-/// 4-bit mask for the [fence](super::fence) instruction
+/// 4-bit mask for the [fence](crate::instructions::strongly_typed::rv32i::fence) instruction
 #[derive(Clone, Copy, PartialEq, Eq, Hash)]
 pub struct FenceMask(u8);
 

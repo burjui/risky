@@ -1,0 +1,55 @@
+pub(crate) const JALR: u8 = 0b000;
+pub(crate) const BEQ: u8 = 0b000;
+pub(crate) const BNE: u8 = 0b001;
+pub(crate) const BLT: u8 = 0b100;
+pub(crate) const BGE: u8 = 0b101;
+pub(crate) const BLTU: u8 = 0b110;
+pub(crate) const BGEU: u8 = 0b111;
+pub(crate) const LB: u8 = 0b000;
+pub(crate) const LH: u8 = 0b001;
+pub(crate) const LW: u8 = 0b010;
+pub(crate) const LBU: u8 = 0b100;
+pub(crate) const LHU: u8 = 0b101;
+pub(crate) const SB: u8 = 0b000;
+pub(crate) const SH: u8 = 0b001;
+pub(crate) const SW: u8 = 0b010;
+pub(crate) const ADDI: u8 = 0b000;
+pub(crate) const SLTI: u8 = 0b010;
+pub(crate) const SLTIU: u8 = 0b011;
+pub(crate) const XORI: u8 = 0b100;
+pub(crate) const ORI: u8 = 0b110;
+pub(crate) const ANDI: u8 = 0b111;
+pub(crate) const SLLI: u8 = 0b001;
+pub(crate) const SRLI: u8 = 0b101;
+pub(crate) const SRAI: u8 = 0b101;
+pub(crate) const ADD: u8 = 0b000;
+pub(crate) const SUB: u8 = 0b000;
+pub(crate) const SLL: u8 = 0b001;
+pub(crate) const SLT: u8 = 0b010;
+pub(crate) const SLTU: u8 = 0b011;
+pub(crate) const XOR: u8 = 0b100;
+pub(crate) const SRL: u8 = 0b101;
+pub(crate) const SRA: u8 = 0b101;
+pub(crate) const OR: u8 = 0b110;
+pub(crate) const AND: u8 = 0b111;
+pub(crate) const FENCE: u8 = 0b000;
+pub(crate) const ECALL: u8 = 0b000;
+pub(crate) const EBREAK: u8 = 0b000;
+
+// Zicsr standard extension
+pub(crate) const CSRRW: u8 = 0b001;
+pub(crate) const CSRRS: u8 = 0b010;
+pub(crate) const CSRRC: u8 = 0b011;
+pub(crate) const CSRRWI: u8 = 0b101;
+pub(crate) const CSRRSI: u8 = 0b110;
+pub(crate) const CSRRCI: u8 = 0b111;
+
+// M standard extension
+pub(crate) const MUL: u8 = 0b000;
+pub(crate) const MULH: u8 = 0b001;
+pub(crate) const MULHSU: u8 = 0b010;
+pub(crate) const MULHU: u8 = 0b011;
+pub(crate) const DIV: u8 = 0b100;
+pub(crate) const DIVU: u8 = 0b101;
+pub(crate) const REM: u8 = 0b110;
+pub(crate) const REMU: u8 = 0b111;
