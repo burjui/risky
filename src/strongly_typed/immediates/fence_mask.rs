@@ -9,7 +9,7 @@ use std::{
 
 use crate::util::{u16_fits_n_bits, u32_fits_n_bits, u64_fits_n_bits, u8_fits_n_bits};
 
-/// 4-bit mask for the [fence](crate::instructions::strongly_typed::rv32i::fence) instruction
+/// 4-bit mask for the [fence](crate::strongly_typed::rv32i::fence) instruction
 #[derive(Clone, Copy, PartialEq, Eq, Hash)]
 pub struct FenceMask(u8);
 
@@ -19,7 +19,7 @@ impl FenceMask {
 
     pub(crate) const RW: Self = Self(0b0011);
 
-    #[doc = include_str!("../../../../doc/nightly_warning.html")]
+    #[doc = include_str!("../../../doc/nightly_warning.html")]
     ///
     /// Creates an `FenceMask` from an [u8] constant, the lower 4 bits of which specify the flags to be set:
     ///
@@ -38,7 +38,7 @@ impl FenceMask {
         Self(VALUE)
     }
 
-    #[doc = include_str!("../../../../doc/nightly_warning.html")]
+    #[doc = include_str!("../../../doc/nightly_warning.html")]
     ///
     /// Creates an `FenceMask` from an [u16] constant, the lower 4 bits of which specify the flags to be set:
     ///
@@ -57,7 +57,7 @@ impl FenceMask {
         Self(VALUE as u8)
     }
 
-    #[doc = include_str!("../../../../doc/nightly_warning.html")]
+    #[doc = include_str!("../../../doc/nightly_warning.html")]
     ///
     /// Creates an `FenceMask` from an [u32] constant, the lower 4 bits of which specify the flags to be set:
     ///
@@ -76,7 +76,7 @@ impl FenceMask {
         Self(VALUE as u8)
     }
 
-    #[doc = include_str!("../../../../doc/nightly_warning.html")]
+    #[doc = include_str!("../../../doc/nightly_warning.html")]
     ///
     /// Creates an `FenceMask` from an [u64] constant, the lower 4 bits of which specify the flags to be set:
     ///

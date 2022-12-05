@@ -8,7 +8,7 @@ use funct7::Funct7;
 use opcode::Opcode;
 
 use super::immediates::{bimm::BImm, imm12::Imm12, jimm::JImm, uimm5::Uimm5};
-use crate::{bits::merge_bitfields, instructions::strongly_typed::registers::Register};
+use crate::{bits::merge_bitfields, strongly_typed::registers::Register};
 
 pub(crate) enum RegOrUimm5 {
     Register(Register),

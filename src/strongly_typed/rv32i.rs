@@ -41,7 +41,7 @@ pub const fn auipc(rd: Register, imm: i32) -> u32 {
 /// range. `jal` stores the address of the instruction that follows the `jal` (pc+4) into the
 /// register `rd`. The standard software calling convention uses [X1](super::registers::X1) as the
 /// return address register and [X5](super::registers::X5) as an alternate link register (more
-/// details in the [abi](crate::instructions::strongly_typed::abi) module).
+/// details in the [abi](crate::strongly_typed::abi) module).
 ///
 /// For an indirect jump, use [jalr].<br/>
 /// For just retrieving the value of `pc`, use [auipc].

@@ -31,7 +31,7 @@ impl BImm {
         Self(VALUE as i16 & !1)
     }
 
-    #[doc = include_str!("../../../../doc/nightly_warning.html")]
+    #[doc = include_str!("../../../doc/nightly_warning.html")]
     ///
     /// Creates an `BImm` from an [i16] constant, failing to compile if the constant does not fit 13-bit signed range
     #[cfg(feature = "nightly")]
@@ -43,7 +43,7 @@ impl BImm {
         Self(VALUE & !1)
     }
 
-    #[doc = include_str!("../../../../doc/nightly_warning.html")]
+    #[doc = include_str!("../../../doc/nightly_warning.html")]
     ///
     /// Creates an `BImm` from an [i32] constant, failing to compile if the constant does not fit 13-bit signed range
     #[cfg(feature = "nightly")]
@@ -55,7 +55,7 @@ impl BImm {
         Self(VALUE as i16 & !1)
     }
 
-    #[doc = include_str!("../../../../doc/nightly_warning.html")]
+    #[doc = include_str!("../../../doc/nightly_warning.html")]
     ///
     /// Creates an `BImm` from an [i64] constant, failing to compile if the constant does not fit 13-bit signed range
     #[cfg(feature = "nightly")]
@@ -67,7 +67,7 @@ impl BImm {
         Self(VALUE as i16 & !1)
     }
 
-    #[doc = include_str!("../../../../doc/nightly_warning.html")]
+    #[doc = include_str!("../../../doc/nightly_warning.html")]
     ///
     /// Creates an `BImm` from an [isize] constant, failing to compile if the constant does not fit 13-bit signed range
     #[cfg(feature = "nightly")]
@@ -79,7 +79,7 @@ impl BImm {
         Self(VALUE as i16 & !1)
     }
 
-    #[doc = include_str!("../../../../doc/nightly_warning.html")]
+    #[doc = include_str!("../../../doc/nightly_warning.html")]
     ///
     /// Creates an `BImm` from an [u16] constant, failing to compile if the constant does not fit 13-bit signed range
     #[cfg(feature = "nightly")]
@@ -91,7 +91,7 @@ impl BImm {
         Self(VALUE as i16 & !1)
     }
 
-    #[doc = include_str!("../../../../doc/nightly_warning.html")]
+    #[doc = include_str!("../../../doc/nightly_warning.html")]
     ///
     /// Creates an `BImm` from an [u32] constant, failing to compile if the constant does not fit 13-bit signed range
     #[cfg(feature = "nightly")]
@@ -103,7 +103,7 @@ impl BImm {
         Self(VALUE as i16 & !1)
     }
 
-    #[doc = include_str!("../../../../doc/nightly_warning.html")]
+    #[doc = include_str!("../../../doc/nightly_warning.html")]
     ///
     /// Creates an `BImm` from an [u64] constant, failing to compile if the constant does not fit 13-bit signed range
     #[cfg(feature = "nightly")]
@@ -115,7 +115,7 @@ impl BImm {
         Self(VALUE as i16 & !1)
     }
 
-    #[doc = include_str!("../../../../doc/nightly_warning.html")]
+    #[doc = include_str!("../../../doc/nightly_warning.html")]
     ///
     /// Creates an `BImm` from an [usize] constant, failing to compile if the constant does not fit 13-bit signed range
     #[cfg(feature = "nightly")]

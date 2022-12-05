@@ -33,7 +33,7 @@ impl Imm12 {
         Self(VALUE as i16)
     }
 
-    #[doc = include_str!("../../../../doc/nightly_warning.html")]
+    #[doc = include_str!("../../../doc/nightly_warning.html")]
     ///
     /// Creates an `Imm12` from an [i16] constant, failing to compile if the constant does not fit 12-bit signed range
     #[cfg(feature = "nightly")]
@@ -45,7 +45,7 @@ impl Imm12 {
         Self(VALUE)
     }
 
-    #[doc = include_str!("../../../../doc/nightly_warning.html")]
+    #[doc = include_str!("../../../doc/nightly_warning.html")]
     ///
     /// Creates an `Imm12` from an [i32] constant, failing to compile if the constant does not fit 12-bit signed range
     #[cfg(feature = "nightly")]
@@ -57,7 +57,7 @@ impl Imm12 {
         Self(VALUE as i16)
     }
 
-    #[doc = include_str!("../../../../doc/nightly_warning.html")]
+    #[doc = include_str!("../../../doc/nightly_warning.html")]
     ///
     /// Creates an `Imm12` from an [i64] constant, failing to compile if the constant does not fit 12-bit signed range
     #[cfg(feature = "nightly")]
@@ -69,7 +69,7 @@ impl Imm12 {
         Self(VALUE as i16)
     }
 
-    #[doc = include_str!("../../../../doc/nightly_warning.html")]
+    #[doc = include_str!("../../../doc/nightly_warning.html")]
     ///
     /// Creates an `Imm12` from an [isize] constant, failing to compile if the constant does not fit 12-bit signed range
     #[cfg(feature = "nightly")]
@@ -81,7 +81,7 @@ impl Imm12 {
         Self(VALUE as i16)
     }
 
-    #[doc = include_str!("../../../../doc/nightly_warning.html")]
+    #[doc = include_str!("../../../doc/nightly_warning.html")]
     ///
     /// Creates an `Imm12` from an [u16] constant, failing to compile if the constant does not fit 12-bit signed range
     #[cfg(feature = "nightly")]
@@ -93,7 +93,7 @@ impl Imm12 {
         Self(VALUE as i16)
     }
 
-    #[doc = include_str!("../../../../doc/nightly_warning.html")]
+    #[doc = include_str!("../../../doc/nightly_warning.html")]
     ///
     /// Creates an `Imm12` from an [u32] constant, failing to compile if the constant does not fit 12-bit signed range
     #[cfg(feature = "nightly")]
@@ -105,7 +105,7 @@ impl Imm12 {
         Self(VALUE as i16)
     }
 
-    #[doc = include_str!("../../../../doc/nightly_warning.html")]
+    #[doc = include_str!("../../../doc/nightly_warning.html")]
     ///
     /// Creates an `Imm12` from an [u64] constant, failing to compile if the constant does not fit 12-bit signed range
     #[cfg(feature = "nightly")]
@@ -117,7 +117,7 @@ impl Imm12 {
         Self(VALUE as i16)
     }
 
-    #[doc = include_str!("../../../../doc/nightly_warning.html")]
+    #[doc = include_str!("../../../doc/nightly_warning.html")]
     ///
     /// Creates an `Imm12` from an [usize] constant, failing to compile if the constant does not fit 12-bit signed range
     #[cfg(feature = "nightly")]

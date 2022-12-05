@@ -12,7 +12,7 @@ use crate::util::{
     usize_fits_n_bits,
 };
 
-/// 21-bit signed immediate value used in the [jal](crate::instructions::strongly_typed::rv32i::jal) instruction
+/// 21-bit signed immediate value used in the [jal](crate::strongly_typed::rv32i::jal) instruction
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct JImm(i32);
 
@@ -43,7 +43,7 @@ impl JImm {
         Self((VALUE as i32) & !1)
     }
 
-    #[doc = include_str!("../../../../doc/nightly_warning.html")]
+    #[doc = include_str!("../../../doc/nightly_warning.html")]
     ///
     /// Creates an `JImm` from an [i32] constant, failing to compile if the constant does not fit 21-bit signed range
     #[cfg(feature = "nightly")]
@@ -55,7 +55,7 @@ impl JImm {
         Self(VALUE & !1)
     }
 
-    #[doc = include_str!("../../../../doc/nightly_warning.html")]
+    #[doc = include_str!("../../../doc/nightly_warning.html")]
     ///
     /// Creates an `JImm` from an [i64] constant, failing to compile if the constant does not fit 21-bit signed range
     #[cfg(feature = "nightly")]
@@ -67,7 +67,7 @@ impl JImm {
         Self((VALUE as i32) & !1)
     }
 
-    #[doc = include_str!("../../../../doc/nightly_warning.html")]
+    #[doc = include_str!("../../../doc/nightly_warning.html")]
     ///
     /// Creates an `JImm` from an [isize] constant, failing to compile if the constant does not fit 21-bit signed range
     #[cfg(feature = "nightly")]
@@ -79,7 +79,7 @@ impl JImm {
         Self(VALUE as i32 & !1)
     }
 
-    #[doc = include_str!("../../../../doc/nightly_warning.html")]
+    #[doc = include_str!("../../../doc/nightly_warning.html")]
     ///
     /// Creates an `JImm` from an [u32] constant, failing to compile if the constant does not fit 21-bit signed range
     #[cfg(feature = "nightly")]
@@ -91,7 +91,7 @@ impl JImm {
         Self(VALUE as i32 & !1)
     }
 
-    #[doc = include_str!("../../../../doc/nightly_warning.html")]
+    #[doc = include_str!("../../../doc/nightly_warning.html")]
     ///
     /// Creates an `JImm` from an [u64] constant, failing to compile if the constant does not fit 21-bit signed range
     #[cfg(feature = "nightly")]
@@ -103,7 +103,7 @@ impl JImm {
         Self(VALUE as i32 & !1)
     }
 
-    #[doc = include_str!("../../../../doc/nightly_warning.html")]
+    #[doc = include_str!("../../../doc/nightly_warning.html")]
     ///
     /// Creates an `JImm` from an [usize] constant, failing to compile if the constant does not fit 21-bit signed range
     #[cfg(feature = "nightly")]

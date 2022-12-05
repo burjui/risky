@@ -91,7 +91,7 @@ pub struct Register(u8);
 impl Register {
     const NBITS: usize = 5;
 
-    #[doc = include_str!("../../../doc/nightly_warning.html")]
+    #[doc = include_str!("../../doc/nightly_warning.html")]
     ///
     /// Creates an `Register` from an [u8] constant, if `r` < [NUMBER_OF_REGISTERS], otherwise fails to compile
     #[cfg(feature = "nightly")]
@@ -103,7 +103,7 @@ impl Register {
         Self(VALUE)
     }
 
-    #[doc = include_str!("../../../doc/nightly_warning.html")]
+    #[doc = include_str!("../../doc/nightly_warning.html")]
     ///
     /// Creates an `Register` from an [u16] constant, if `r` < [NUMBER_OF_REGISTERS], otherwise fails to compile
     #[cfg(feature = "nightly")]
@@ -115,7 +115,7 @@ impl Register {
         Self(VALUE as u8)
     }
 
-    #[doc = include_str!("../../../doc/nightly_warning.html")]
+    #[doc = include_str!("../../doc/nightly_warning.html")]
     ///
     /// Creates an `Register` from an [u32] constant, if `r` < [NUMBER_OF_REGISTERS], otherwise fails to compile
     #[cfg(feature = "nightly")]
@@ -127,7 +127,7 @@ impl Register {
         Self(VALUE as u8)
     }
 
-    #[doc = include_str!("../../../doc/nightly_warning.html")]
+    #[doc = include_str!("../../doc/nightly_warning.html")]
     ///
     /// Creates an `Register` from an [u64] constant, if `r` < [NUMBER_OF_REGISTERS], otherwise fails to compile
     #[cfg(feature = "nightly")]
@@ -139,7 +139,7 @@ impl Register {
         Self(VALUE as u8)
     }
 
-    #[doc = include_str!("../../../doc/nightly_warning.html")]
+    #[doc = include_str!("../../doc/nightly_warning.html")]
     ///
     /// Creates an `Register` from an [usize] constant, if `r` < [NUMBER_OF_REGISTERS], otherwise fails to compile
     #[cfg(feature = "nightly")]
@@ -151,7 +151,7 @@ impl Register {
         Self(VALUE as u8)
     }
 
-    #[doc = include_str!("../../../doc/nightly_warning.html")]
+    #[doc = include_str!("../../doc/nightly_warning.html")]
     ///
     /// Creates an `Register` from an [i8] constant, if `r` < [NUMBER_OF_REGISTERS], otherwise fails to compile
     #[cfg(feature = "nightly")]
@@ -163,7 +163,7 @@ impl Register {
         Self(VALUE as u8)
     }
 
-    #[doc = include_str!("../../../doc/nightly_warning.html")]
+    #[doc = include_str!("../../doc/nightly_warning.html")]
     ///
     /// Creates an `Register` from an [i16] constant, if `r` < [NUMBER_OF_REGISTERS], otherwise fails to compile
     #[cfg(feature = "nightly")]
@@ -175,7 +175,7 @@ impl Register {
         Self(VALUE as u8)
     }
 
-    #[doc = include_str!("../../../doc/nightly_warning.html")]
+    #[doc = include_str!("../../doc/nightly_warning.html")]
     ///
     /// Creates an `Register` from an [i32] constant, if `r` < [NUMBER_OF_REGISTERS], otherwise fails to compile
     #[cfg(feature = "nightly")]
@@ -187,7 +187,7 @@ impl Register {
         Self(VALUE as u8)
     }
 
-    #[doc = include_str!("../../../doc/nightly_warning.html")]
+    #[doc = include_str!("../../doc/nightly_warning.html")]
     ///
     /// Creates an `Register` from an [i64] constant, if `r` < [NUMBER_OF_REGISTERS], otherwise fails to compile
     #[cfg(feature = "nightly")]
@@ -199,7 +199,7 @@ impl Register {
         Self(VALUE as u8)
     }
 
-    #[doc = include_str!("../../../doc/nightly_warning.html")]
+    #[doc = include_str!("../../doc/nightly_warning.html")]
     ///
     /// Creates an `Register` from an [isize] constant, if `r` < [NUMBER_OF_REGISTERS], otherwise fails to compile
     #[cfg(feature = "nightly")]
