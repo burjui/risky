@@ -1,3 +1,5 @@
+//! [`BImm`] implementation
+
 use core::fmt;
 use std::{
     error::Error,
@@ -16,9 +18,6 @@ pub struct BImm(i16);
 
 impl BImm {
     const NBITS: usize = 13;
-
-    /// Zero
-    pub const ZERO: Self = Self(0);
 
     /// Creates an `BImm` from an [i8] constant
     #[must_use]

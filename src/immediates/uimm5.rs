@@ -1,3 +1,5 @@
+//! [`Uimm5`] implementation
+
 use core::fmt;
 use std::{
     error::Error,

@@ -1,3 +1,5 @@
+//! [`Imm12`] implementation
+
 use core::fmt;
 use std::{error::Error, fmt::Display, ops::Neg};
 

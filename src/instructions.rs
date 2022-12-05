@@ -9,20 +9,7 @@ Document Version 20191214-draft"](https://github.com/riscv/riscv-isa-manual),
 Editors Andrew Waterman and Krste Asanović, RISC-V International, December 2019.
 */
 
-mod b_imm;
-mod imm12;
-mod j_imm;
+mod encoding;
 pub mod m_ext;
 pub mod rv32i;
-mod uimm5;
 pub mod zicsr_ext;
-
-pub use b_imm::*;
-pub use imm12::*;
-pub use j_imm::*;
-pub use m_ext::*;
-pub use rv32i::*;
-pub use uimm5::*;
-pub use zicsr_ext::*;
-
-mod formats;

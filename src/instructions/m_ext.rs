@@ -1,7 +1,7 @@
 //! M standard extension
 
-use super::formats::{funct3::Funct3, funct7::Funct7, opcode::Opcode, r_instruction, RegOrUimm5};
-pub use crate::registers::*;
+use super::encoding::{funct3::Funct3, funct7::Funct7, opcode::Opcode, r_instruction, RegOrUimm5};
+use crate::registers::Register;
 
 /// `mul` instruction performs an XLEN-bit×XLEN-bit multiplication of `rs1` by `rs2` and places the
 /// lower XLEN bits in the destination register. If both the high and low bits of the same product
@@ -16,7 +16,7 @@ pub use crate::registers::*;
 ///
 /// Other arithmetic instructions:
 /// - M extension: [mulh], [mulhsu], [mulhu], [div], [divu], [rem], [remu]
-/// - RV32I: [add](super::add), [addi](super::addi), [sub](super::sub)
+/// - RV32I: [add](super::rv32i::add), [addi](super::rv32i::addi), [sub](super::rv32i::sub)
 #[must_use]
 #[inline]
 pub const fn mul(rd: Register, rs1: Register, rs2: Register) -> u32 {
@@ -36,7 +36,7 @@ pub const fn mul(rd: Register, rs1: Register, rs2: Register) -> u32 {
 ///
 /// Other arithmetic instructions:
 /// - M extension: [mul], [mulhsu], [mulhu], [div], [divu], [rem], [remu]
-/// - RV32I: [add](super::add), [addi](super::addi), [sub](super::sub)
+/// - RV32I: [add](super::rv32i::add), [addi](super::rv32i::addi), [sub](super::rv32i::sub)
 #[must_use]
 #[inline]
 pub const fn mulh(rd: Register, rs1: Register, rs2: Register) -> u32 {
@@ -56,7 +56,7 @@ pub const fn mulh(rd: Register, rs1: Register, rs2: Register) -> u32 {
 ///
 /// Other arithmetic instructions:
 /// - M extension: [mul], [mulh], [mulhu], [div], [divu], [rem], [remu]
-/// - RV32I: [add](super::add), [addi](super::addi), [sub](super::sub)
+/// - RV32I: [add](super::rv32i::add), [addi](super::rv32i::addi), [sub](super::rv32i::sub)
 #[must_use]
 #[inline]
 pub const fn mulhsu(rd: Register, rs1: Register, rs2: Register) -> u32 {
@@ -76,7 +76,7 @@ pub const fn mulhsu(rd: Register, rs1: Register, rs2: Register) -> u32 {
 ///
 /// Other arithmetic instructions:
 /// - M extension: [mul], [mulh], [mulhsu], [div], [divu], [rem], [remu]
-/// - RV32I: [add](super::add), [addi](super::addi), [sub](super::sub)
+/// - RV32I: [add](super::rv32i::add), [addi](super::rv32i::addi), [sub](super::rv32i::sub)
 #[must_use]
 #[inline]
 pub const fn mulhu(rd: Register, rs1: Register, rs2: Register) -> u32 {
@@ -98,7 +98,7 @@ pub const fn mulhu(rd: Register, rs1: Register, rs2: Register) -> u32 {
 ///
 /// Other arithmetic instructions:
 /// - M extension: [divu], [rem], [remu], [mul], [mulh], [mulhsu], [mulhu]
-/// - RV32I: [add](super::add), [addi](super::addi), [sub](super::sub)
+/// - RV32I: [add](super::rv32i::add), [addi](super::rv32i::addi), [sub](super::rv32i::sub)
 #[must_use]
 #[inline]
 pub const fn div(rd: Register, rs1: Register, rs2: Register) -> u32 {
@@ -119,7 +119,7 @@ pub const fn div(rd: Register, rs1: Register, rs2: Register) -> u32 {
 ///
 /// Other arithmetic instructions:
 /// - M extension: [div], [rem], [remu], [mul], [mulh], [mulhsu], [mulhu]
-/// - RV32I: [add](super::add), [addi](super::addi), [sub](super::sub)
+/// - RV32I: [add](super::rv32i::add), [addi](super::rv32i::addi), [sub](super::rv32i::sub)
 #[must_use]
 #[inline]
 pub const fn divu(rd: Register, rs1: Register, rs2: Register) -> u32 {
@@ -140,7 +140,7 @@ pub const fn divu(rd: Register, rs1: Register, rs2: Register) -> u32 {
 ///
 /// Other arithmetic instructions:
 /// - M extension: [remu], [div], [divu], [mul], [mulh], [mulhsu], [mulhu]
-/// - RV32I: [add](super::add), [addi](super::addi), [sub](super::sub)
+/// - RV32I: [add](super::rv32i::add), [addi](super::rv32i::addi), [sub](super::rv32i::sub)
 #[must_use]
 #[inline]
 pub const fn rem(rd: Register, rs1: Register, rs2: Register) -> u32 {
@@ -161,7 +161,7 @@ pub const fn rem(rd: Register, rs1: Register, rs2: Register) -> u32 {
 ///
 /// Other arithmetic instructions:
 /// - M extension: [rem], [div], [divu], [mul], [mulh], [mulhsu], [mulhu]
-/// - RV32I: [add](super::add), [addi](super::addi), [sub](super::sub)
+/// - RV32I: [add](super::rv32i::add), [addi](super::rv32i::addi), [sub](super::rv32i::sub)
 #[must_use]
 #[inline]
 pub const fn remu(rd: Register, rs1: Register, rs2: Register) -> u32 {

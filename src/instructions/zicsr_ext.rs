@@ -1,8 +1,10 @@
 //! Zicsr standard extension
 
-use super::formats::{funct3::Funct3, i_instruction, opcode::Opcode, RegOrUimm5};
-pub use super::{imm12::*, uimm5::*};
-pub use crate::registers::*;
+use super::encoding::{funct3::Funct3, i_instruction, opcode::Opcode, RegOrUimm5};
+use crate::{
+    immediates::{imm12::Imm12, uimm5::Uimm5},
+    registers::{Register, X0},
+};
 
 /// "atomic CSR Read/Write" instruction atomically swaps values in the CSRs and general-purpose
 /// registers. `csrrw` reads the old value of the CSR register `csr`, zero-extends the value to XLEN

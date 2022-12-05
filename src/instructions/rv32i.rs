@@ -1,18 +1,21 @@
 //! RV32I base instruction set
 
-mod fence_mask;
+pub mod fence_mask;
 mod fence_mode;
 
-pub use fence_mask::*;
 use fence_mode::FenceMode;
 
-use super::formats::{
+use self::fence_mask::FenceMask;
+use super::encoding::{
     b_instruction, funct3::Funct3, funct7::Funct7, i_instruction, j_instruction, opcode::Opcode,
     r_instruction, s_instruction, u_instruction, RegOrUimm5,
 };
-pub use super::{b_imm::*, imm12::*, j_imm::*, uimm5::*};
-use crate::bits::merge_bitfields;
-pub use crate::registers::*;
+pub use crate::registers::{X1, X5};
+use crate::{
+    bits::merge_bitfields,
+    immediates::{bimm::BImm, imm12::Imm12, jimm::JImm, uimm5::Uimm5},
+    registers::{Register, X0},
+};
 
 /// "Load Upper Immediate" instruction is primarily used to build 32-bit constants. It places `imm`
 /// in the top 20 bits of the destination register `rd`, filling in the lowest 12 bits with zeros.
@@ -286,9 +289,9 @@ pub const fn sw(rs1: Register, imm: Imm12, rs2: Register) -> u32 {
 ///
 /// Other arithmetic instructions:
 /// - RV32I: [add], [sub]
-/// - M extension: [mul](super::mul), [mulh](super::mulh), [mulhsu](super::mulhsu),
-/// [mulhu](super::mulhu), [div](super::div), [divu](super::divu), [rem](super::rem),
-/// [remu](super::remu)
+/// - M extension: [mul](super::m_ext::mul), [mulh](super::m_ext::mulh),
+/// [mulhsu](super::m_ext::mulhsu), [mulhu](super::m_ext::mulhu), [div](super::m_ext::div),
+/// [divu](super::m_ext::divu), [rem](super::m_ext::rem), [remu](super::m_ext::remu)
 #[must_use]
 #[inline]
 pub const fn addi(rd: Register, rs1: Register, imm: Imm12) -> u32 {
@@ -495,9 +498,9 @@ pub const fn srai(rd: Register, rs1: Register, shamt: Uimm5) -> u32 {
 ///
 /// Other arithmetic instructions:
 /// - RV32I: [addi], [sub]
-/// - M extension: [mul](super::mul), [mulh](super::mulh), [mulhsu](super::mulhsu),
-/// [mulhu](super::mulhu), [div](super::div), [divu](super::divu), [rem](super::rem),
-/// [remu](super::remu)
+/// - M extension: [mul](super::m_ext::mul), [mulh](super::m_ext::mulh),
+/// [mulhsu](super::m_ext::mulhsu), [mulhu](super::m_ext::mulhu), [div](super::m_ext::div),
+/// [divu](super::m_ext::divu), [rem](super::m_ext::rem), [remu](super::m_ext::remu)
 #[must_use]
 #[inline]
 pub const fn add(rd: Register, rs1: Register, rs2: Register) -> u32 {
@@ -518,9 +521,9 @@ pub const fn add(rd: Register, rs1: Register, rs2: Register) -> u32 {
 ///
 /// Other arithmetic instructions:
 /// - RV32I: [addi], [add]
-/// - M extension: [mul](super::mul), [mulh](super::mulh), [mulhsu](super::mulhsu),
-/// [mulhu](super::mulhu), [div](super::div), [divu](super::divu), [rem](super::rem),
-/// [remu](super::remu)
+/// - M extension: [mul](super::m_ext::mul), [mulh](super::m_ext::mulh),
+/// [mulhsu](super::m_ext::mulhsu), [mulhu](super::m_ext::mulhu), [div](super::m_ext::div),
+/// [divu](super::m_ext::divu), [rem](super::m_ext::rem), [remu](super::m_ext::remu)
 #[must_use]
 #[inline]
 pub const fn sub(rd: Register, rs1: Register, rs2: Register) -> u32 {

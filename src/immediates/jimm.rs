@@ -1,3 +1,5 @@
+//! [`JImm`] implementation
+
 use core::fmt;
 use std::{
     error::Error,
@@ -10,7 +12,7 @@ use crate::util::{
     usize_fits_n_bits,
 };
 
-/// 21-bit signed immediate value used in the [jal](super::rv32i::jal) instruction
+/// 21-bit signed immediate value used in the [jal](crate::instructions::rv32i::jal) instruction
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct JImm(i32);
 

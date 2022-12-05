@@ -1,3 +1,5 @@
+//! [`FenceMask`] implementation
+
 use core::fmt;
 use std::{
     error::Error,
@@ -114,17 +116,12 @@ fn into_u32() {
 
 #[test]
 fn derived_impls() {
-    // Clone
+    // Clone, Copy
     #[allow(clippy::clone_on_copy)]
     let rw = FenceMask::RW.clone();
 
-    // PartialEq
-    assert_eq!(rw, FenceMask::RW);
-
-    // Eq
-    fn _dummy() -> impl Eq {
-        FenceMask::RW
-    }
+    fn _dummy(_: impl Eq) {}
+    _dummy(FenceMask::RW);
 
     // Hash
     use std::collections::hash_map::DefaultHasher;

@@ -6,8 +6,11 @@ use funct3::Funct3;
 use funct7::Funct7;
 use opcode::Opcode;
 
-use super::{BImm, Imm12, JImm, Uimm5};
-use crate::{bits::merge_bitfields, registers::Register};
+use crate::{
+    bits::merge_bitfields,
+    immediates::{bimm::BImm, imm12::Imm12, jimm::JImm, uimm5::Uimm5},
+    registers::Register,
+};
 
 pub(crate) enum RegOrUimm5 {
     Register(Register),
