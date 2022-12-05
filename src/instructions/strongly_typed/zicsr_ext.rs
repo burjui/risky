@@ -1,7 +1,7 @@
 //! Zicsr standard extension
 
-use super::encoding::{funct3::Funct3, i_instruction, opcode::Opcode, RegOrUimm5};
-use crate::{
+use super::{
+    encoding::{funct3::Funct3, i_instruction, opcode::Opcode, RegOrUimm5},
     immediates::{imm12::Imm12, uimm5::Uimm5},
     registers::{Register, X0},
 };

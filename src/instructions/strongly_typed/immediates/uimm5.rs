@@ -15,7 +15,7 @@ pub struct Uimm5(u8);
 impl Uimm5 {
     const NBITS: usize = 5;
 
-    #[doc = include_str!("../../doc/nightly_warning.html")]
+    #[doc = include_str!("../../../../doc/nightly_warning.html")]
     ///
     /// Creates an `Uimm5` from an [u8] constant
     #[cfg(feature = "nightly")]
@@ -27,7 +27,7 @@ impl Uimm5 {
         Self(VALUE)
     }
 
-    #[doc = include_str!("../../doc/nightly_warning.html")]
+    #[doc = include_str!("../../../../doc/nightly_warning.html")]
     ///
     /// Creates an `Uimm5` from an [u16] constant
     #[cfg(feature = "nightly")]
@@ -39,7 +39,7 @@ impl Uimm5 {
         Self(VALUE as u8)
     }
 
-    #[doc = include_str!("../../doc/nightly_warning.html")]
+    #[doc = include_str!("../../../../doc/nightly_warning.html")]
     ///
     /// Creates an `Uimm5` from an [u32] constant
     #[cfg(feature = "nightly")]
@@ -51,7 +51,7 @@ impl Uimm5 {
         Self(VALUE as u8)
     }
 
-    #[doc = include_str!("../../doc/nightly_warning.html")]
+    #[doc = include_str!("../../../../doc/nightly_warning.html")]
     ///
     /// Creates an `Uimm5` from an [u64] constant
     #[cfg(feature = "nightly")]

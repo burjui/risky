@@ -1,3 +1,4 @@
+pub(crate) mod fence_mode;
 pub(crate) mod funct3;
 pub(crate) mod funct7;
 pub(crate) mod opcode;
@@ -6,11 +7,8 @@ use funct3::Funct3;
 use funct7::Funct7;
 use opcode::Opcode;
 
-use crate::{
-    bits::merge_bitfields,
-    immediates::{bimm::BImm, imm12::Imm12, jimm::JImm, uimm5::Uimm5},
-    registers::Register,
-};
+use super::immediates::{bimm::BImm, imm12::Imm12, jimm::JImm, uimm5::Uimm5};
+use crate::{bits::merge_bitfields, instructions::strongly_typed::registers::Register};
 
 pub(crate) enum RegOrUimm5 {
     Register(Register),

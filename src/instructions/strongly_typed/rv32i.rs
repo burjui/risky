@@ -1,21 +1,14 @@
 //! RV32I base instruction set
 
-pub mod fence_mask;
-mod fence_mode;
-
-use fence_mode::FenceMode;
-
-use self::fence_mask::FenceMask;
-use super::encoding::{
-    b_instruction, funct3::Funct3, funct7::Funct7, i_instruction, j_instruction, opcode::Opcode,
-    r_instruction, s_instruction, u_instruction, RegOrUimm5,
-};
-pub use crate::registers::{X1, X5};
-use crate::{
-    bits::merge_bitfields,
-    immediates::{bimm::BImm, imm12::Imm12, jimm::JImm, uimm5::Uimm5},
+use super::{
+    encoding::{
+        b_instruction, fence_mode::FenceMode, funct3::Funct3, funct7::Funct7, i_instruction,
+        j_instruction, opcode::Opcode, r_instruction, s_instruction, u_instruction, RegOrUimm5,
+    },
+    immediates::{bimm::BImm, fence_mask::FenceMask, imm12::Imm12, jimm::JImm, uimm5::Uimm5},
     registers::{Register, X0},
 };
+use crate::bits::merge_bitfields;
 
 /// "Load Upper Immediate" instruction is primarily used to build 32-bit constants. It places `imm`
 /// in the top 20 bits of the destination register `rd`, filling in the lowest 12 bits with zeros.
