@@ -19,3 +19,8 @@ impl Opcode {
         self.0 as u32
     }
 }
+
+#[test]
+fn into_u32() {
+    assert_eq!(Opcode::SYSTEM.into_u32(), 0b111_0011);
+}

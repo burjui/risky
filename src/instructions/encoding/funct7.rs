@@ -18,3 +18,8 @@ impl Funct7 {
         self.0 as u32
     }
 }
+
+#[test]
+fn into_u32() {
+    assert_eq!(Funct7::ADD.into_u32(), 0b000_0000);
+}

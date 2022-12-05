@@ -62,3 +62,8 @@ impl Funct3 {
         self.0 as u32
     }
 }
+
+#[test]
+fn into_u32() {
+    assert_eq!(Funct3::EBREAK.into_u32(), 0b000);
+}
