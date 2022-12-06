@@ -9,6 +9,7 @@ use std::ops::Range;
 pub(crate) const fn merge_bitfields<const N: usize>(
     bitfields: &[(Range<u32>, u32, Range<u32>); N],
 ) -> u32 {
+    #[cfg(test)]
     let mut dst_bits_visited = [false; 32];
     let mut dst = 0;
     let mut i = 0;
@@ -24,14 +25,17 @@ pub(crate) const fn merge_bitfields<const N: usize>(
         );
 
         // Check for bit field overlap
-        let mut dst_bit_index = dst_range.start;
-        while dst_bit_index < dst_range.end {
-            let bit_index = dst_bit_index as usize;
-            let bit_was_visited = dst_bits_visited[bit_index];
-            assert!(!bit_was_visited, "some bit fields overlap");
+        #[cfg(test)]
+        {
+            let mut dst_bit_index = dst_range.start;
+            while dst_bit_index < dst_range.end {
+                let bit_index = dst_bit_index as usize;
+                let bit_was_visited = dst_bits_visited[bit_index];
+                assert!(!bit_was_visited, "some bit fields overlap");
 
-            dst_bits_visited[bit_index] = true;
-            dst_bit_index += 1;
+                dst_bits_visited[bit_index] = true;
+                dst_bit_index += 1;
+            }
         }
 
         let mask_left = shlz(0xFFFF_FFFF_u32, src_range.end);
