@@ -5,12 +5,11 @@ use std::ops::Range;
 /// - value
 /// - src range
 /// If any bit fields overlap, the behavior of `merge_bitfields` is unspecified.
-#[inline]
+#[inline(always)]
 pub(crate) const fn merge_bitfields<const N: usize>(
     bitfields: &[(Range<u32>, u32, Range<u32>); N],
 ) -> u32 {
-    #[cfg(test)]
-    let mut dst_bits_visited = [false; 32];
+    let mut dst_bits_visited = 0u32;
     let mut dst = 0;
     let mut i = 0;
     while i < bitfields.len() {
@@ -24,24 +23,20 @@ pub(crate) const fn merge_bitfields<const N: usize>(
             "bit range lengths do not match"
         );
 
+        // Copy the bitfield
+        let src_mask =
+            shlz(0xFFFF_FFFF_u32, src_range.end) ^ shlz(0xFFFF_FFFF_u32, src_range.start);
+        dst |= shlz(shrz(*src & src_mask, src_range.start), dst_range.start);
+
         // Check for bit field overlap
-        #[cfg(test)]
-        {
-            let mut dst_bit_index = dst_range.start;
-            while dst_bit_index < dst_range.end {
-                let bit_index = dst_bit_index as usize;
-                let bit_was_visited = dst_bits_visited[bit_index];
-                assert!(!bit_was_visited, "some bit fields overlap");
+        let dst_mask =
+            shlz(0xFFFF_FFFF_u32, dst_range.end) ^ shlz(0xFFFF_FFFF_u32, dst_range.start);
+        assert!(
+            dst_bits_visited & dst_mask == 0,
+            "bit field overlap detected"
+        );
+        dst_bits_visited |= dst_mask;
 
-                dst_bits_visited[bit_index] = true;
-                dst_bit_index += 1;
-            }
-        }
-
-        let mask_left = shlz(0xFFFF_FFFF_u32, src_range.end);
-        let mask_right = shrz(0xFFFF_FFFF_u32, 32 - src_range.start);
-        let mask = !(mask_left | mask_right);
-        dst |= shlz(shrz(*src & mask, src_range.start), dst_range.start);
         i += 1;
     }
     dst
