@@ -62,12 +62,14 @@ fn bit_range_crossing_32bit_boundary() {
     let _ = merge_bitfields(&[(0..33, 0, 0..0)]);
 }
 
+#[inline(always)]
 pub(crate) const fn shlz(value: u32, nbits: u32) -> u32 {
     #[allow(clippy::cast_sign_loss)]
     let mask = (-1 + (nbits >= 32) as i32) as u32;
     value.wrapping_shl(nbits) & mask
 }
 
+#[inline(always)]
 pub(crate) const fn shrz(value: u32, nbits: u32) -> u32 {
     #[allow(clippy::cast_sign_loss)]
     let mask = (-1 + (nbits >= 32) as i32) as u32;
