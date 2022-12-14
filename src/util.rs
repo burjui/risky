@@ -132,43 +132,116 @@ fn usize_fits_n_bits_preconditions() {
     );
 }
 
-// #[must_use]
-// pub const fn i8_fits_n_bits(value: i8, nbits: usize) -> bool {
-//     let (min, max) = if nbits < nbits_of(&value) - 1 {
-//         (-(1 << (nbits - 1)), (1 << (nbits - 1)) - 1)
-//     } else {
-//         (min_of_type(&value), max_of_type(&value))
-//     };
-//     value >= min && value <= max
-// }
+#[allow(unused)]
+mod unused_for_now {
+    #[cfg(test)]
+    use std::panic::catch_unwind;
+
+    use crate::util::{max_of_type, min_of_type, nbits_of};
+
+    #[must_use]
+    pub const fn i8_fits_n_bits(value: i8, nbits: usize) -> bool {
+        let max_nbits = nbits_of(&value);
+        assert!(nbits > 1 && nbits <= max_nbits);
+
+        let min_value = min_of_type(&value) >> (max_nbits - nbits);
+        let max_value = max_of_type(&value) >> (max_nbits - nbits);
+        value >= min_value && value <= max_value
+    }
+
+    #[test]
+    fn i8_fits_n_bits_algorithm() -> Result<(), std::num::TryFromIntError> {
+        assert!(i8_fits_n_bits(2, 3));
+        assert!(!i8_fits_n_bits(2, 2));
+
+        assert!(i8_fits_n_bits(i8::MAX, usize::try_from(i8::BITS)?));
+        assert!(!i8_fits_n_bits(i8::MAX, usize::try_from(i8::BITS - 1)?));
+
+        Ok(())
+    }
+
+    #[test]
+    fn i8_fits_n_bits_preconditions() {
+        assert!(catch_unwind(|| i8_fits_n_bits(0, 1)).is_err());
+        assert!(
+            catch_unwind(|| i8_fits_n_bits(1, usize::try_from(i8::BITS + 1).unwrap())).is_err()
+        );
+    }
+}
+
+#[must_use]
+pub const fn i8_fits_n_bits_unsigned(value: i8, nbits: usize) -> bool {
+    let max_nbits = nbits_of(&value) - 1;
+    assert!(nbits > 1 && nbits <= max_nbits);
+
+    let max_value = max_of_type(&value) >> (max_nbits - nbits);
+    value >= 0 && value <= max_value
+}
+
+#[test]
+fn i8_fits_n_bits_unsigned_algorithm() -> Result<(), std::num::TryFromIntError> {
+    assert!(i8_fits_n_bits_unsigned(4, 3));
+    assert!(!i8_fits_n_bits_unsigned(4, 2));
+
+    assert!(i8_fits_n_bits_unsigned(
+        i8::MAX,
+        usize::try_from(i8::BITS - 1)?
+    ));
+    assert!(!i8_fits_n_bits_unsigned(
+        i8::MAX,
+        usize::try_from(i8::BITS)? - 2
+    ));
+
+    Ok(())
+}
+
+#[test]
+fn i8_fits_n_bits_unsigned_preconditions() {
+    assert!(catch_unwind(|| i8_fits_n_bits_unsigned(0, 0)).is_err());
+    assert!(
+        catch_unwind(|| i8_fits_n_bits_unsigned(0, usize::try_from(i8::BITS).unwrap() + 1))
+            .is_err()
+    );
+}
 
 #[must_use]
 pub const fn i16_fits_n_bits(value: i16, nbits: usize) -> bool {
     let max_nbits = nbits_of(&value);
-    assert!(nbits > 0 && nbits <= max_nbits);
+    assert!(nbits > 1 && nbits <= max_nbits);
 
-    let shift_amount = max_nbits - nbits;
-    value >= min_of_type(&value) >> shift_amount && value <= max_of_type(&value) >> shift_amount
+    let min_value = min_of_type(&value) >> (max_nbits - nbits);
+    let max_value = max_of_type(&value) >> (max_nbits - nbits);
+    value >= min_value && value <= max_value
 }
 
 #[test]
 fn i16_fits_n_bits_algorithm() -> Result<(), std::num::TryFromIntError> {
     assert!(i16_fits_n_bits(i16::MAX, usize::try_from(i16::BITS)?));
-    assert!(!i16_fits_n_bits(i16::MAX, usize::try_from(i16::BITS)? - 1));
+    assert!(!i16_fits_n_bits(i16::MAX, usize::try_from(i16::BITS - 1)?));
 
     assert!(i16_fits_n_bits(i16::MIN, usize::try_from(i16::BITS)?));
-    assert!(!i16_fits_n_bits(i16::MIN, usize::try_from(i16::BITS)? - 1));
+    assert!(!i16_fits_n_bits(i16::MIN, usize::try_from(i16::BITS - 1)?));
 
     Ok(())
 }
 
 #[must_use]
+pub const fn i16_fits_n_bits_unsigned(value: i16, nbits: usize) -> bool {
+    let max_nbits = nbits_of(&value) - 1;
+    assert!(nbits > 1 && nbits <= max_nbits);
+
+    let max_value = max_of_type(&value) >> (max_nbits - nbits);
+    value >= 0 && value <= max_value
+}
+
+#[must_use]
 pub const fn i32_fits_n_bits(value: i32, nbits: usize) -> bool {
     let max_nbits = nbits_of(&value);
-    assert!(nbits > 0 && nbits <= max_nbits);
+    assert!(nbits > 1 && nbits <= max_nbits);
 
-    let shift_amount = max_nbits - nbits;
-    value >= min_of_type(&value) >> shift_amount && value <= max_of_type(&value) >> shift_amount
+    let min_value = min_of_type(&value) >> (max_nbits - nbits);
+    let max_value = max_of_type(&value) >> (max_nbits - nbits);
+    value >= min_value && value <= max_value
 }
 
 #[test]
@@ -183,12 +256,22 @@ fn i32_fits_n_bits_algorithm() -> Result<(), std::num::TryFromIntError> {
 }
 
 #[must_use]
+pub const fn i32_fits_n_bits_unsigned(value: i32, nbits: usize) -> bool {
+    let max_nbits = nbits_of(&value) - 1;
+    assert!(nbits > 1 && nbits <= max_nbits);
+
+    let max_value = max_of_type(&value) >> (max_nbits - nbits);
+    value >= 0 && value <= max_value
+}
+
+#[must_use]
 pub const fn i64_fits_n_bits(value: i64, nbits: usize) -> bool {
     let max_nbits = nbits_of(&value);
-    assert!(nbits > 0 && nbits <= max_nbits);
+    assert!(nbits > 1 && nbits <= max_nbits);
 
-    let shift_amount = max_nbits - nbits;
-    value >= min_of_type(&value) >> shift_amount && value <= max_of_type(&value) >> shift_amount
+    let min_value = min_of_type(&value) >> (max_nbits - nbits);
+    let max_value = max_of_type(&value) >> (max_nbits - nbits);
+    value >= min_value && value <= max_value
 }
 
 #[test]
@@ -203,12 +286,22 @@ fn i64_fits_n_bits_algorithm() -> Result<(), std::num::TryFromIntError> {
 }
 
 #[must_use]
+pub const fn i64_fits_n_bits_unsigned(value: i64, nbits: usize) -> bool {
+    let max_nbits = nbits_of(&value) - 1;
+    assert!(nbits > 1 && nbits <= max_nbits);
+
+    let max_value = max_of_type(&value) >> (max_nbits - nbits);
+    value >= 0 && value <= max_value
+}
+
+#[must_use]
 pub const fn isize_fits_n_bits(value: isize, nbits: usize) -> bool {
     let max_nbits = nbits_of(&value);
-    assert!(nbits > 0 && nbits <= max_nbits);
+    assert!(nbits > 1 && nbits <= max_nbits);
 
-    let shift_amount = max_nbits - nbits;
-    value >= min_of_type(&value) >> shift_amount && value <= max_of_type(&value) >> shift_amount
+    let min_value = min_of_type(&value) >> (max_nbits - nbits);
+    let max_value = max_of_type(&value) >> (max_nbits - nbits);
+    value >= min_value && value <= max_value
 }
 
 #[test]
@@ -226,6 +319,15 @@ fn isize_fits_n_bits_algorithm() -> Result<(), std::num::TryFromIntError> {
     ));
 
     Ok(())
+}
+
+#[must_use]
+pub const fn isize_fits_n_bits_unsigned(value: isize, nbits: usize) -> bool {
+    let max_nbits = nbits_of(&value) - 1;
+    assert!(nbits > 1 && nbits <= max_nbits);
+
+    let max_value = max_of_type(&value) >> (max_nbits - nbits);
+    value >= 0 && value <= max_value
 }
 
 const fn nbits_of<T: internal::Integer>(_: &T) -> usize {
