@@ -243,6 +243,7 @@ impl TryFrom<usize> for Uimm5 {
 impl TryFrom<i8> for Uimm5 {
     type Error = Uimm5ConvError;
 
+    #[allow(clippy::cast_sign_loss)]
     fn try_from(value: i8) -> Result<Self, Self::Error> {
         if i8_fits_n_bits_unsigned(value, Self::NBITS) {
             Ok(Self(value as u8))
@@ -255,7 +256,7 @@ impl TryFrom<i8> for Uimm5 {
 impl TryFrom<i16> for Uimm5 {
     type Error = Uimm5ConvError;
 
-    #[allow(clippy::cast_possible_truncation)]
+    #[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
     fn try_from(value: i16) -> Result<Self, Self::Error> {
         if i16_fits_n_bits_unsigned(value, Self::NBITS) {
             Ok(Self(value as u8))
@@ -268,7 +269,7 @@ impl TryFrom<i16> for Uimm5 {
 impl TryFrom<i32> for Uimm5 {
     type Error = Uimm5ConvError;
 
-    #[allow(clippy::cast_possible_truncation)]
+    #[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
     fn try_from(value: i32) -> Result<Self, Self::Error> {
         if i32_fits_n_bits_unsigned(value, Self::NBITS) {
             Ok(Self(value as u8))
@@ -281,7 +282,7 @@ impl TryFrom<i32> for Uimm5 {
 impl TryFrom<i64> for Uimm5 {
     type Error = Uimm5ConvError;
 
-    #[allow(clippy::cast_possible_truncation)]
+    #[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
     fn try_from(value: i64) -> Result<Self, Self::Error> {
         if i64_fits_n_bits_unsigned(value, Self::NBITS) {
             Ok(Self(value as u8))
@@ -294,7 +295,7 @@ impl TryFrom<i64> for Uimm5 {
 impl TryFrom<isize> for Uimm5 {
     type Error = Uimm5ConvError;
 
-    #[allow(clippy::cast_possible_truncation)]
+    #[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
     fn try_from(value: isize) -> Result<Self, Self::Error> {
         if isize_fits_n_bits_unsigned(value, Self::NBITS) {
             Ok(Self(value as u8))
