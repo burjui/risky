@@ -28,6 +28,11 @@ pub const fn decode(instruction: u32) -> Result<Instruction, DecodeError> {
             let b = B::decode(instruction, opcode);
             match b.funct3 {
                 Funct3::BEQ => Ok(Instruction::Beq(b)),
+                Funct3::BNE => Ok(Instruction::Bne(b)),
+                Funct3::BLT => Ok(Instruction::Blt(b)),
+                Funct3::BLTU => Ok(Instruction::Bltu(b)),
+                Funct3::BGE => Ok(Instruction::Bge(b)),
+                Funct3::BGEU => Ok(Instruction::Bgeu(b)),
                 _ => Err(DecodeError::InvalidFunct3(b.funct3.0)),
             }
         }
@@ -62,6 +67,16 @@ pub enum Instruction {
     Jalr(I),
     ///
     Beq(B),
+    ///
+    Bne(B),
+    ///
+    Blt(B),
+    ///
+    Bltu(B),
+    ///
+    Bge(B),
+    ///
+    Bgeu(B),
 }
 
 /// RISC-V U instruction format
