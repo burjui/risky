@@ -37,6 +37,28 @@ pub const fn decode(instruction: u32) -> Result<Instruction, DecodeError> {
             }
         }
 
+        Opcode::LOAD => {
+            let i = I::decode(instruction, opcode);
+            match i.funct3 {
+                Funct3::LB => Ok(Instruction::Lb(i)),
+                Funct3::LBU => Ok(Instruction::Lbu(i)),
+                Funct3::LH => Ok(Instruction::Lh(i)),
+                Funct3::LHU => Ok(Instruction::Lhu(i)),
+                Funct3::LW => Ok(Instruction::Lw(i)),
+                _ => Err(DecodeError::InvalidFunct3(i.funct3.0)),
+            }
+        }
+
+        Opcode::STORE => {
+            let s = S::decode(instruction, opcode);
+            match s.funct3 {
+                Funct3::SB => Ok(Instruction::Sb(s)),
+                Funct3::SH => Ok(Instruction::Sh(s)),
+                Funct3::SW => Ok(Instruction::Sw(s)),
+                _ => Err(DecodeError::InvalidFunct3(s.funct3.0)),
+            }
+        }
+
         _ => Err(DecodeError::InvalidOpcode(opcode.0)),
     }
 }
@@ -51,6 +73,14 @@ fn invalid_funct3() {
     assert_eq!(
         decode(Opcode::BRANCH.into_u32() | (0b010 << 12)),
         Err(DecodeError::InvalidFunct3(0b010))
+    );
+    assert_eq!(
+        decode(Opcode::LOAD.into_u32() | (0b111 << 12)),
+        Err(DecodeError::InvalidFunct3(0b111))
+    );
+    assert_eq!(
+        decode(Opcode::STORE.into_u32() | (0b111 << 12)),
+        Err(DecodeError::InvalidFunct3(0b111))
     );
 }
 
@@ -77,6 +107,22 @@ pub enum Instruction {
     Bge(B),
     ///
     Bgeu(B),
+    ///
+    Lb(I),
+    ///
+    Lbu(I),
+    ///
+    Lh(I),
+    ///
+    Lhu(I),
+    ///
+    Lw(I),
+    ///
+    Sb(S),
+    ///
+    Sh(S),
+    ///
+    Sw(S),
 }
 
 /// RISC-V U instruction format
@@ -142,6 +188,7 @@ pub struct I {
     /// Function
     pub funct3: Funct3,
 }
+
 impl I {
     #[allow(clippy::cast_possible_truncation, clippy::cast_possible_wrap)]
     const fn decode(instruction: u32, opcode: Opcode) -> Self {
@@ -154,6 +201,39 @@ impl I {
             rd,
             rs1,
             imm,
+            funct3,
+        }
+    }
+}
+
+/// RISC-V S instruction format
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub struct S {
+    /// Opcode
+    pub opcode: Opcode,
+    /// Source register
+    pub rs1: Register,
+    /// 12-bit signed immediate
+    pub imm: Imm12,
+    /// Destination register
+    pub rs2: Register,
+    /// Function
+    pub funct3: Funct3,
+}
+
+impl S {
+    #[allow(clippy::cast_possible_truncation, clippy::cast_possible_wrap)]
+    const fn decode(instruction: u32, opcode: Opcode) -> Self {
+        let funct3 = Funct3(bitfield::<12, 15>(instruction) as u8);
+        let rs1 = Register(bitfield::<15, 20>(instruction) as u8);
+        let rs2 = Register(bitfield::<20, 25>(instruction) as u8);
+        let imm = merge_bitfields(&[(0..5, instruction, 7..12), (5..12, instruction, 25..32)]);
+        let imm = Imm12(((imm << 20) as i32 >> 20) as i16);
+        Self {
+            opcode,
+            rs1,
+            imm,
+            rs2,
             funct3,
         }
     }

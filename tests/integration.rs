@@ -1,11 +1,15 @@
+mod util;
+
 use std::error::Error;
 
 use risky::{
-    common::{bimm::BImm, funct3::Funct3, imm12::Imm12, jimm::JImm, opcode::Opcode},
-    decode::{decode, DecodeError, Instruction, B, I, J, U},
-    instructions::rv32i::{auipc, beq, bge, bgeu, blt, bltu, bne, jal, jalr, lui},
-    registers::{Register, X1, X2, X31},
+    common::{funct3::Funct3, opcode::Opcode},
+    decode::{DecodeError, Instruction},
+    instructions::rv32i::{
+        auipc, beq, bge, bgeu, blt, bltu, bne, jal, jalr, lb, lbu, lh, lhu, lui, lw, sb, sh, sw,
+    },
 };
+use util::{test_b, test_i, test_j, test_s, test_u};
 
 #[test]
 fn _lui() -> Result<(), DecodeError> {
@@ -17,76 +21,14 @@ fn _auipc() -> Result<(), DecodeError> {
     test_u(auipc, Instruction::Auipc, Opcode::AUIPC)
 }
 
-fn test_u(
-    encode: impl Fn(Register, i32) -> u32,
-    variant: impl Fn(U) -> Instruction + Copy,
-    opcode: Opcode,
-) -> Result<(), DecodeError> {
-    test_u_case(encode(X31, i32::MIN), variant, opcode, X31, i32::MIN)?;
-    test_u_case(encode(X31, i32::MAX), variant, opcode, X31, i32::MAX)?;
-    Ok(())
-}
-
-fn test_u_case(
-    instruction: u32,
-    variant: impl Fn(U) -> Instruction,
-    opcode: Opcode,
-    rd: Register,
-    imm: i32,
-) -> Result<(), DecodeError> {
-    assert_eq!(
-        decode(instruction)?,
-        variant(U {
-            opcode,
-            rd,
-            imm: imm & !0xFFF
-        })
-    );
-    Ok(())
-}
-
 #[test]
 fn _jal() -> Result<(), Box<dyn Error>> {
-    with_imm(i32::MIN >> 11)?;
-    with_imm(i32::MAX >> 11)?;
-
-    fn with_imm(imm: i32) -> Result<(), Box<dyn Error>> {
-        let imm = JImm::try_from(imm)?;
-        assert_eq!(
-            decode(jal(X1, imm))?,
-            Instruction::Jal(J {
-                opcode: Opcode::JAL,
-                rd: X1,
-                imm
-            })
-        );
-        Ok(())
-    }
-
-    Ok(())
+    test_j(jal, Instruction::Jal)
 }
 
 #[test]
 fn _jalr() -> Result<(), Box<dyn Error>> {
-    with_imm(i16::MIN >> 4)?;
-    with_imm(i16::MAX >> 4)?;
-
-    fn with_imm(imm: i16) -> Result<(), Box<dyn Error>> {
-        let imm = Imm12::try_from(imm)?;
-        assert_eq!(
-            decode(jalr(X1, X2, imm))?,
-            Instruction::Jalr(I {
-                opcode: Opcode::JALR,
-                rd: X1,
-                rs1: X2,
-                imm,
-                funct3: Funct3::JALR
-            })
-        );
-        Ok(())
-    }
-
-    Ok(())
+    test_i(jalr, Instruction::Jalr, Opcode::JALR, Funct3::JALR)
 }
 
 #[test]
@@ -119,35 +61,42 @@ fn _bgeu() -> Result<(), Box<dyn Error>> {
     test_b(bgeu, Instruction::Bgeu, Funct3::BGEU)
 }
 
-fn test_b(
-    encode: impl Fn(BImm, Register, Register) -> u32,
-    variant: impl Fn(B) -> Instruction + Copy,
-    funct3: Funct3,
-) -> Result<(), Box<dyn Error>> {
-    let imm = (i16::MIN >> 3).try_into()?;
-    test_b_case(encode(imm, X1, X2), variant, funct3, imm)?;
-
-    let imm = (i16::MAX >> 3).try_into()?;
-    test_b_case(encode(imm, X1, X2), variant, funct3, imm)?;
-
-    Ok(())
+#[test]
+fn _lb() -> Result<(), Box<dyn Error>> {
+    test_i(lb, Instruction::Lb, Opcode::LOAD, Funct3::LB)
 }
 
-fn test_b_case(
-    instruction: u32,
-    variant: impl Fn(B) -> Instruction,
-    funct3: Funct3,
-    imm: BImm,
-) -> Result<(), Box<dyn Error>> {
-    assert_eq!(
-        decode(instruction)?,
-        variant(B {
-            opcode: Opcode::BRANCH,
-            rs1: X1,
-            rs2: X2,
-            imm,
-            funct3
-        })
-    );
-    Ok(())
+#[test]
+fn _lu() -> Result<(), Box<dyn Error>> {
+    test_i(lbu, Instruction::Lbu, Opcode::LOAD, Funct3::LBU)
+}
+
+#[test]
+fn _lh() -> Result<(), Box<dyn Error>> {
+    test_i(lh, Instruction::Lh, Opcode::LOAD, Funct3::LH)
+}
+
+#[test]
+fn _lhu() -> Result<(), Box<dyn Error>> {
+    test_i(lhu, Instruction::Lhu, Opcode::LOAD, Funct3::LHU)
+}
+
+#[test]
+fn _lw() -> Result<(), Box<dyn Error>> {
+    test_i(lw, Instruction::Lw, Opcode::LOAD, Funct3::LW)
+}
+
+#[test]
+fn _sb() -> Result<(), Box<dyn Error>> {
+    test_s(sb, Instruction::Sb, Opcode::STORE, Funct3::SB)
+}
+
+#[test]
+fn _sh() -> Result<(), Box<dyn Error>> {
+    test_s(sh, Instruction::Sh, Opcode::STORE, Funct3::SH)
+}
+
+#[test]
+fn _sw() -> Result<(), Box<dyn Error>> {
+    test_s(sw, Instruction::Sw, Opcode::STORE, Funct3::SW)
 }
