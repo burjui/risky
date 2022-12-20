@@ -73,7 +73,7 @@ pub const fn decode(instruction: u32) -> Result<Instruction, DecodeError> {
                 Funct3::ANDI => Ok(Instruction::Andi(I::decode(instruction, opcode))),
                 Funct3::SLLI => Ok(Instruction::Slli(R::decode(instruction, opcode))),
 
-                Funct3::SRLI_SRAI => {
+                Funct3::SRL_SRA => {
                     let funct7 = funct7(instruction);
                     match funct7 {
                         Funct7::SLL_SRL => Ok(Instruction::Srli(R::decode(instruction, opcode))),
@@ -82,13 +82,37 @@ pub const fn decode(instruction: u32) -> Result<Instruction, DecodeError> {
                     }
                 }
 
-                _ => Err(DecodeError::InvalidFunct3(funct3.0)),
+                _ => unreachable!(),
             }
         }
 
-        // Funct3::SLLI => Ok(Instruction::Slli(i)),
-        // Funct3::SRLI => Ok(Instruction::Srli(i)),
-        // Funct3::SRAI => Ok(Instruction::Srai(i)),
+        Opcode::OP => {
+            let r = R::decode(instruction, opcode);
+            match r.funct3 {
+                Funct3::ADD_SUB => match r.funct7 {
+                    Funct7::ADD => Ok(Instruction::Add(r)),
+                    Funct7::SUB => Ok(Instruction::Sub(r)),
+                    _ => Err(DecodeError::InvalidFunct7(r.funct7.0)),
+                },
+
+                Funct3::SLL => Ok(Instruction::Sll(r)),
+
+                Funct3::SRL_SRA => match r.funct7 {
+                    Funct7::SLL_SRL => Ok(Instruction::Srl(r)),
+                    Funct7::SRA => Ok(Instruction::Sra(r)),
+                    _ => Err(DecodeError::InvalidFunct7(r.funct7.0)),
+                },
+
+                Funct3::SLT => Ok(Instruction::Slt(r)),
+                Funct3::SLTU => Ok(Instruction::Sltu(r)),
+                Funct3::XOR => Ok(Instruction::Xor(r)),
+                Funct3::OR => Ok(Instruction::Or(r)),
+                Funct3::AND => Ok(Instruction::And(r)),
+
+                _ => unreachable!(),
+            }
+        }
+
         _ => Err(DecodeError::InvalidOpcode(opcode.0)),
     }
 }
@@ -113,9 +137,7 @@ fn invalid_funct3() {
         Err(DecodeError::InvalidFunct3(0b111))
     );
     assert_eq!(
-        decode(
-            Opcode::OP_IMM.into_u32() | (Funct3::SRLI_SRAI.into_u32() << 12) | (0b111_1111 << 25)
-        ),
+        decode(Opcode::OP_IMM.into_u32() | (Funct3::SRL_SRA.into_u32() << 12) | (0b111_1111 << 25)),
         Err(DecodeError::InvalidFunct7(0b111_1111))
     );
 }
@@ -177,6 +199,26 @@ pub enum Instruction {
     Srli(R),
     ///
     Srai(R),
+    ///
+    Add(R),
+    ///
+    Sub(R),
+    ///
+    Sll(R),
+    ///
+    Srl(R),
+    ///
+    Sra(R),
+    ///
+    Slt(R),
+    ///
+    Sltu(R),
+    ///
+    Xor(R),
+    ///
+    Or(R),
+    ///
+    And(R),
 }
 
 /// RISC-V U instruction format
@@ -319,8 +361,8 @@ impl R {
         let funct7 = Funct7(bitfield::<25, 32>(instruction) as u8);
 
         let rs2 = bitfield::<20, 25>(instruction) as u8;
-        let rs2 = match funct7 {
-            Funct7::SLL_SRL | Funct7::SRA => RegOrUimm5::Uimm5(Uimm5(rs2)),
+        let rs2 = match (opcode, funct3) {
+            (Opcode::OP_IMM, Funct3::SLLI | Funct3::SRL_SRA) => RegOrUimm5::Uimm5(Uimm5(rs2)),
             _ => RegOrUimm5::Register(Register(rs2)),
         };
 
@@ -430,6 +472,10 @@ fn decode_error_display() {
     assert_eq!(
         DecodeError::InvalidFunct3(0b1111_1111).to_string(),
         "invalid funct3: 0b11111111"
+    );
+    assert_eq!(
+        DecodeError::InvalidFunct7(0b1111_1111).to_string(),
+        "invalid funct7: 0b11111111"
     );
 }
 

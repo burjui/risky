@@ -464,7 +464,7 @@ pub const fn srli(rd: Register, rs1: Register, shamt: Uimm5) -> u32 {
     r_instruction(
         Opcode::OP_IMM,
         rd,
-        Funct3::SRLI_SRAI,
+        Funct3::SRL_SRA,
         rs1,
         RegOrUimm5::Uimm5(shamt),
         Funct7::SLL_SRL,
@@ -481,7 +481,7 @@ pub const fn srai(rd: Register, rs1: Register, shamt: Uimm5) -> u32 {
     r_instruction(
         Opcode::OP_IMM,
         rd,
-        Funct3::SRLI_SRAI,
+        Funct3::SRL_SRA,
         rs1,
         RegOrUimm5::Uimm5(shamt),
         Funct7::SRA,
@@ -503,7 +503,7 @@ pub const fn add(rd: Register, rs1: Register, rs2: Register) -> u32 {
     r_instruction(
         Opcode::OP,
         rd,
-        Funct3::ADD,
+        Funct3::ADD_SUB,
         rs1,
         RegOrUimm5::Register(rs2),
         Funct7::ADD,
@@ -526,7 +526,7 @@ pub const fn sub(rd: Register, rs1: Register, rs2: Register) -> u32 {
     r_instruction(
         Opcode::OP,
         rd,
-        Funct3::SUB,
+        Funct3::ADD_SUB,
         rs1,
         RegOrUimm5::Register(rs2),
         Funct7::SUB,
@@ -562,7 +562,7 @@ pub const fn srl(rd: Register, rs1: Register, rs2: Register) -> u32 {
     r_instruction(
         Opcode::OP,
         rd,
-        Funct3::SRL,
+        Funct3::SRL_SRA,
         rs1,
         RegOrUimm5::Register(rs2),
         Funct7::SLL_SRL,
@@ -580,7 +580,7 @@ pub const fn sra(rd: Register, rs1: Register, rs2: Register) -> u32 {
     r_instruction(
         Opcode::OP,
         rd,
-        Funct3::SRA,
+        Funct3::SRL_SRA,
         rs1,
         RegOrUimm5::Register(rs2),
         Funct7::SRA,

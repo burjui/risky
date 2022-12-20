@@ -3,18 +3,18 @@ mod util;
 use std::error::Error;
 
 use risky::{
-    common::{
-        funct3::Funct3, funct7::Funct7, imm12::Imm12, opcode::Opcode, reg_or_uimm5::RegOrUimm5,
-        uimm5::Uimm5,
-    },
+    common::{funct3::Funct3, funct7::Funct7, imm12::Imm12, opcode::Opcode},
     decode::{DecodeError, Instruction},
     instructions::rv32i::{
-        addi, andi, auipc, beq, bge, bgeu, blt, bltu, bne, jal, jalr, lb, lbu, lh, lhu, lui, lw,
-        mv, nop, not, ori, sb, sh, slli, slti, sltiu, srai, srli, sw, xori,
+        add, addi, and, andi, auipc, beq, bge, bgeu, blt, bltu, bne, jal, jalr, lb, lbu, lh, lhu,
+        lui, lw, mv, nop, not, or, ori, sb, sh, sll, slli, slt, slti, sltiu, sltu, snez, sra, srai,
+        srl, srli, sub, sw, xor, xori,
     },
     registers::{X0, X30, X31},
 };
-use util::{test_b, test_i, test_i_case, test_j, test_r, test_s, test_u};
+use util::{
+    test_b, test_i, test_i_case, test_j, test_r_imm, test_r_reg, test_r_reg_spec, test_s, test_u,
+};
 
 #[test]
 fn _lui() -> Result<(), DecodeError> {
@@ -178,39 +178,133 @@ fn _andi() -> Result<(), Box<dyn Error>> {
 
 #[test]
 fn _slli() -> Result<(), Box<dyn Error>> {
-    let imm = Uimm5::try_from(0b11111)?;
-    test_r(
-        |rd, rs1, _| slli(rd, rs1, imm),
+    test_r_imm(
+        slli,
         Instruction::Slli,
         Opcode::OP_IMM,
         Funct3::SLLI,
         Funct7::SLL_SRL,
-        RegOrUimm5::Uimm5(imm),
     )
 }
 
 #[test]
 fn _srli() -> Result<(), Box<dyn Error>> {
-    let imm = Uimm5::try_from(0b11111)?;
-    test_r(
-        |rd, rs1, _| srli(rd, rs1, imm),
+    test_r_imm(
+        srli,
         Instruction::Srli,
         Opcode::OP_IMM,
-        Funct3::SRLI_SRAI,
+        Funct3::SRL_SRA,
         Funct7::SLL_SRL,
-        RegOrUimm5::Uimm5(imm),
     )
 }
 
 #[test]
 fn _srai() -> Result<(), Box<dyn Error>> {
-    let imm = Uimm5::try_from(0b11111)?;
-    test_r(
-        |rd, rs1, _| srai(rd, rs1, imm),
+    test_r_imm(
+        srai,
         Instruction::Srai,
         Opcode::OP_IMM,
-        Funct3::SRLI_SRAI,
+        Funct3::SRL_SRA,
         Funct7::SRA,
-        RegOrUimm5::Uimm5(imm),
     )
+}
+
+#[test]
+fn _add() -> Result<(), Box<dyn Error>> {
+    test_r_reg(
+        add,
+        Instruction::Add,
+        Opcode::OP,
+        Funct3::ADD_SUB,
+        Funct7::ADD,
+    )
+}
+
+#[test]
+fn _sub() -> Result<(), Box<dyn Error>> {
+    test_r_reg(
+        sub,
+        Instruction::Sub,
+        Opcode::OP,
+        Funct3::ADD_SUB,
+        Funct7::SUB,
+    )
+}
+
+#[test]
+fn _sll() -> Result<(), Box<dyn Error>> {
+    test_r_reg(
+        sll,
+        Instruction::Sll,
+        Opcode::OP,
+        Funct3::SLL,
+        Funct7::SLL_SRL,
+    )
+}
+
+#[test]
+fn _srl() -> Result<(), Box<dyn Error>> {
+    test_r_reg(
+        srl,
+        Instruction::Srl,
+        Opcode::OP,
+        Funct3::SRL_SRA,
+        Funct7::SLL_SRL,
+    )
+}
+
+#[test]
+fn _sra() -> Result<(), Box<dyn Error>> {
+    test_r_reg(
+        sra,
+        Instruction::Sra,
+        Opcode::OP,
+        Funct3::SRL_SRA,
+        Funct7::SRA,
+    )
+}
+
+#[test]
+fn _slt() -> Result<(), Box<dyn Error>> {
+    test_r_reg(slt, Instruction::Slt, Opcode::OP, Funct3::SLT, Funct7::SLT)
+}
+
+#[test]
+fn _sltu() -> Result<(), Box<dyn Error>> {
+    test_r_reg(
+        sltu,
+        Instruction::Sltu,
+        Opcode::OP,
+        Funct3::SLTU,
+        Funct7::SLTU,
+    )
+}
+
+#[test]
+fn _snez() -> Result<(), Box<dyn Error>> {
+    test_r_reg_spec(
+        |rd, _, rs2| snez(rd, rs2),
+        Instruction::Sltu,
+        Opcode::OP,
+        Funct3::SLTU,
+        Funct7::SLTU,
+        X30,
+        X0,
+        X31,
+    )
+}
+
+#[test]
+fn _xor() -> Result<(), Box<dyn Error>> {
+    test_r_reg(xor, Instruction::Xor, Opcode::OP, Funct3::XOR, Funct7::XOR)
+}
+
+#[test]
+fn _or() -> Result<(), Box<dyn Error>> {
+    test_r_reg(or, Instruction::Or, Opcode::OP, Funct3::OR, Funct7::OR)
+}
+
+#[test]
+fn _and() -> Result<(), Box<dyn Error>> {
+    test_r_reg(and, Instruction::And, Opcode::OP, Funct3::AND, Funct7::AND)
 }

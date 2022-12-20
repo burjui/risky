@@ -3,7 +3,7 @@ use std::error::Error;
 use risky::{
     common::{
         bimm::BImm, funct3::Funct3, funct7::Funct7, imm12::Imm12, jimm::JImm, opcode::Opcode,
-        reg_or_uimm5::RegOrUimm5,
+        reg_or_uimm5::RegOrUimm5, uimm5::Uimm5,
     },
     decode::{decode, DecodeError, Instruction, B, I, J, R, S, U},
     registers::{Register, X1, X2, X29, X30, X31},
@@ -200,21 +200,77 @@ fn test_s_case(
     Ok(())
 }
 
-pub fn test_r(
-    encode: impl Fn(Register, Register, RegOrUimm5) -> u32,
-    variant: impl Fn(R) -> Instruction + Copy,
+pub fn test_r_reg(
+    encode: impl Fn(Register, Register, Register) -> u32,
+    variant: impl Fn(R) -> Instruction,
     opcode: Opcode,
     funct3: Funct3,
     funct7: Funct7,
-    arg: RegOrUimm5,
+) -> Result<(), Box<dyn Error>> {
+    test_r_reg_spec(encode, variant, opcode, funct3, funct7, X29, X30, X31)
+}
+
+#[allow(clippy::too_many_arguments)]
+pub fn test_r_reg_spec(
+    encode: impl Fn(Register, Register, Register) -> u32,
+    variant: impl Fn(R) -> Instruction,
+    opcode: Opcode,
+    funct3: Funct3,
+    funct7: Funct7,
+    rd: Register,
+    rs1: Register,
+    rs2: Register,
+) -> Result<(), Box<dyn Error>> {
+    test_r(
+        encode(rd, rs1, rs2),
+        variant,
+        opcode,
+        funct3,
+        funct7,
+        rd,
+        rs1,
+        RegOrUimm5::Register(rs2),
+    )
+}
+
+pub fn test_r_imm(
+    encode: impl Fn(Register, Register, Uimm5) -> u32,
+    variant: impl Fn(R) -> Instruction,
+    opcode: Opcode,
+    funct3: Funct3,
+    funct7: Funct7,
+) -> Result<(), Box<dyn Error>> {
+    let imm = Uimm5::try_from(0b11111)?;
+    test_r(
+        encode(X29, X30, imm),
+        variant,
+        opcode,
+        funct3,
+        funct7,
+        X29,
+        X30,
+        RegOrUimm5::Uimm5(imm),
+    )
+}
+
+#[allow(clippy::too_many_arguments)]
+fn test_r(
+    instruction: u32,
+    variant: impl Fn(R) -> Instruction,
+    opcode: Opcode,
+    funct3: Funct3,
+    funct7: Funct7,
+    rd: Register,
+    rs1: Register,
+    rs2: RegOrUimm5,
 ) -> Result<(), Box<dyn Error>> {
     assert_eq!(
-        decode(encode(X29, X30, arg))?,
+        decode(instruction)?,
         variant(R {
             opcode,
-            rd: X29,
-            rs1: X30,
-            rs2: arg,
+            rd,
+            rs1,
+            rs2,
             funct3,
             funct7
         })
