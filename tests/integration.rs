@@ -3,12 +3,12 @@ mod util;
 use std::error::Error;
 
 use risky::{
-    common::{funct3::Funct3, funct7::Funct7, imm12::Imm12, opcode::Opcode},
-    decode::{DecodeError, Instruction},
+    common::{fence_mask::FenceMask, funct3::Funct3, funct7::Funct7, imm12::Imm12, opcode::Opcode},
+    decode::{decode, DecodeError, Instruction},
     instructions::rv32i::{
-        add, addi, and, andi, auipc, beq, bge, bgeu, blt, bltu, bne, jal, jalr, lb, lbu, lh, lhu,
-        lui, lw, mv, nop, not, or, ori, sb, seqz, sh, sll, slli, slt, slti, sltiu, sltu, snez, sra,
-        srai, srl, srli, sub, sw, xor, xori,
+        add, addi, and, andi, auipc, beq, bge, bgeu, blt, bltu, bne, ebreak, ecall, fence,
+        fence_tso, jal, jalr, lb, lbu, lh, lhu, lui, lw, mv, nop, not, or, ori, sb, seqz, sh, sll,
+        slli, slt, slti, sltiu, sltu, snez, sra, srai, srl, srli, sub, sw, xor, xori,
     },
     registers::{X0, X30, X31},
 };
@@ -321,4 +321,35 @@ fn _or() -> Result<(), Box<dyn Error>> {
 #[test]
 fn _and() -> Result<(), Box<dyn Error>> {
     test_r_reg(and, Instruction::And, Opcode::OP, Funct3::AND, Funct7::AND)
+}
+
+#[test]
+fn _fence() -> Result<(), Box<dyn Error>> {
+    let fence_mask = FenceMask::try_from(0b1111_u8)?;
+    assert_eq!(
+        decode(fence(fence_mask, fence_mask))?,
+        Instruction::Fence {
+            pred: fence_mask,
+            succ: fence_mask
+        }
+    );
+    Ok(())
+}
+
+#[test]
+fn _fence_tso() -> Result<(), DecodeError> {
+    assert_eq!(decode(fence_tso())?, Instruction::FenceTso);
+    Ok(())
+}
+
+#[test]
+fn _ecall() -> Result<(), DecodeError> {
+    assert_eq!(decode(ecall())?, Instruction::Ecall);
+    Ok(())
+}
+
+#[test]
+fn _ebreak() -> Result<(), DecodeError> {
+    assert_eq!(decode(ebreak())?, Instruction::Ebreak);
+    Ok(())
 }

@@ -9,8 +9,8 @@ use std::{
 use crate::{
     bits::{bitfield, merge_bitfields},
     common::{
-        bimm::BImm, funct3::Funct3, funct7::Funct7, imm12::Imm12, jimm::JImm, opcode::Opcode,
-        reg_or_uimm5::RegOrUimm5, uimm5::Uimm5,
+        bimm::BImm, fence_mask::FenceMask, fence_mode::FenceMode, funct3::Funct3, funct7::Funct7,
+        imm12::Imm12, jimm::JImm, opcode::Opcode, reg_or_uimm5::RegOrUimm5, uimm5::Uimm5,
     },
     registers::Register,
 };
@@ -26,94 +26,127 @@ pub const fn decode(instruction: u32) -> Result<Instruction, DecodeError> {
         Opcode::AUIPC => Ok(Instruction::Auipc(U::decode(instruction, opcode))),
         Opcode::JAL => Ok(Instruction::Jal(J::decode(instruction, opcode))),
         Opcode::JALR => Ok(Instruction::Jalr(I::decode(instruction, opcode))),
-
-        Opcode::BRANCH => {
-            let b = B::decode(instruction, opcode);
-            match b.funct3 {
-                Funct3::BEQ => Ok(Instruction::Beq(b)),
-                Funct3::BNE => Ok(Instruction::Bne(b)),
-                Funct3::BLT => Ok(Instruction::Blt(b)),
-                Funct3::BLTU => Ok(Instruction::Bltu(b)),
-                Funct3::BGE => Ok(Instruction::Bge(b)),
-                Funct3::BGEU => Ok(Instruction::Bgeu(b)),
-                _ => Err(DecodeError::InvalidFunct3(b.funct3.0)),
-            }
-        }
-
-        Opcode::LOAD => {
-            let i = I::decode(instruction, opcode);
-            match i.funct3 {
-                Funct3::LB => Ok(Instruction::Lb(i)),
-                Funct3::LBU => Ok(Instruction::Lbu(i)),
-                Funct3::LH => Ok(Instruction::Lh(i)),
-                Funct3::LHU => Ok(Instruction::Lhu(i)),
-                Funct3::LW => Ok(Instruction::Lw(i)),
-                _ => Err(DecodeError::InvalidFunct3(i.funct3.0)),
-            }
-        }
-
-        Opcode::STORE => {
-            let s = S::decode(instruction, opcode);
-            match s.funct3 {
-                Funct3::SB => Ok(Instruction::Sb(s)),
-                Funct3::SH => Ok(Instruction::Sh(s)),
-                Funct3::SW => Ok(Instruction::Sw(s)),
-                _ => Err(DecodeError::InvalidFunct3(s.funct3.0)),
-            }
-        }
-
-        Opcode::OP_IMM => {
-            let funct3 = funct3(instruction);
-            match funct3 {
-                Funct3::ADDI => Ok(Instruction::Addi(I::decode(instruction, opcode))),
-                Funct3::SLTI => Ok(Instruction::Slti(I::decode(instruction, opcode))),
-                Funct3::SLTIU => Ok(Instruction::Sltiu(I::decode(instruction, opcode))),
-                Funct3::XORI => Ok(Instruction::Xori(I::decode(instruction, opcode))),
-                Funct3::ORI => Ok(Instruction::Ori(I::decode(instruction, opcode))),
-                Funct3::ANDI => Ok(Instruction::Andi(I::decode(instruction, opcode))),
-                Funct3::SLLI => Ok(Instruction::Slli(R::decode(instruction, opcode))),
-
-                Funct3::SRL_SRA => {
-                    let funct7 = funct7(instruction);
-                    match funct7 {
-                        Funct7::SLL_SRL => Ok(Instruction::Srli(R::decode(instruction, opcode))),
-                        Funct7::SRA => Ok(Instruction::Srai(R::decode(instruction, opcode))),
-                        _ => Err(DecodeError::InvalidFunct7(funct7.0)),
-                    }
-                }
-
-                _ => unreachable!(),
-            }
-        }
-
-        Opcode::OP => {
-            let r = R::decode(instruction, opcode);
-            match r.funct3 {
-                Funct3::ADD_SUB => match r.funct7 {
-                    Funct7::ADD => Ok(Instruction::Add(r)),
-                    Funct7::SUB => Ok(Instruction::Sub(r)),
-                    _ => Err(DecodeError::InvalidFunct7(r.funct7.0)),
-                },
-
-                Funct3::SLL => Ok(Instruction::Sll(r)),
-
-                Funct3::SRL_SRA => match r.funct7 {
-                    Funct7::SLL_SRL => Ok(Instruction::Srl(r)),
-                    Funct7::SRA => Ok(Instruction::Sra(r)),
-                    _ => Err(DecodeError::InvalidFunct7(r.funct7.0)),
-                },
-
-                Funct3::SLT => Ok(Instruction::Slt(r)),
-                Funct3::SLTU => Ok(Instruction::Sltu(r)),
-                Funct3::XOR => Ok(Instruction::Xor(r)),
-                Funct3::OR => Ok(Instruction::Or(r)),
-                Funct3::AND => Ok(Instruction::And(r)),
-
-                _ => unreachable!(),
-            }
-        }
-
+        Opcode::BRANCH => decode_branch(instruction, opcode),
+        Opcode::LOAD => decode_load(instruction, opcode),
+        Opcode::STORE => decode_store(instruction, opcode),
+        Opcode::OP_IMM => decode_op_imm(instruction, opcode),
+        Opcode::OP => decode_op(instruction, opcode),
+        Opcode::MISC_MEM => decode_fence(instruction),
+        Opcode::SYSTEM => decode_system_call(instruction, opcode),
         _ => Err(DecodeError::InvalidOpcode(opcode.0)),
+    }
+}
+
+const fn decode_branch(instruction: u32, opcode: Opcode) -> Result<Instruction, DecodeError> {
+    let b = B::decode(instruction, opcode);
+    match b.funct3 {
+        Funct3::BEQ => Ok(Instruction::Beq(b)),
+        Funct3::BNE => Ok(Instruction::Bne(b)),
+        Funct3::BLT => Ok(Instruction::Blt(b)),
+        Funct3::BLTU => Ok(Instruction::Bltu(b)),
+        Funct3::BGE => Ok(Instruction::Bge(b)),
+        Funct3::BGEU => Ok(Instruction::Bgeu(b)),
+        _ => Err(DecodeError::InvalidFunct3(b.funct3.0)),
+    }
+}
+
+const fn decode_load(instruction: u32, opcode: Opcode) -> Result<Instruction, DecodeError> {
+    let i = I::decode(instruction, opcode);
+    match i.funct3 {
+        Funct3::LB => Ok(Instruction::Lb(i)),
+        Funct3::LBU => Ok(Instruction::Lbu(i)),
+        Funct3::LH => Ok(Instruction::Lh(i)),
+        Funct3::LHU => Ok(Instruction::Lhu(i)),
+        Funct3::LW => Ok(Instruction::Lw(i)),
+        _ => Err(DecodeError::InvalidFunct3(i.funct3.0)),
+    }
+}
+
+const fn decode_store(instruction: u32, opcode: Opcode) -> Result<Instruction, DecodeError> {
+    let s = S::decode(instruction, opcode);
+    match s.funct3 {
+        Funct3::SB => Ok(Instruction::Sb(s)),
+        Funct3::SH => Ok(Instruction::Sh(s)),
+        Funct3::SW => Ok(Instruction::Sw(s)),
+        _ => Err(DecodeError::InvalidFunct3(s.funct3.0)),
+    }
+}
+
+const fn decode_op_imm(instruction: u32, opcode: Opcode) -> Result<Instruction, DecodeError> {
+    let funct3 = funct3(instruction);
+    match funct3 {
+        Funct3::ADDI => Ok(Instruction::Addi(I::decode(instruction, opcode))),
+        Funct3::SLTI => Ok(Instruction::Slti(I::decode(instruction, opcode))),
+        Funct3::SLTIU => Ok(Instruction::Sltiu(I::decode(instruction, opcode))),
+        Funct3::XORI => Ok(Instruction::Xori(I::decode(instruction, opcode))),
+        Funct3::ORI => Ok(Instruction::Ori(I::decode(instruction, opcode))),
+        Funct3::ANDI => Ok(Instruction::Andi(I::decode(instruction, opcode))),
+        Funct3::SLLI => Ok(Instruction::Slli(R::decode(instruction, opcode))),
+
+        Funct3::SRL_SRA => {
+            let funct7 = funct7(instruction);
+            match funct7 {
+                Funct7::SLL_SRL => Ok(Instruction::Srli(R::decode(instruction, opcode))),
+                Funct7::SRA => Ok(Instruction::Srai(R::decode(instruction, opcode))),
+                _ => Err(DecodeError::InvalidFunct7(funct7.0)),
+            }
+        }
+
+        _ => unreachable!(),
+    }
+}
+
+const fn decode_op(instruction: u32, opcode: Opcode) -> Result<Instruction, DecodeError> {
+    let r = R::decode(instruction, opcode);
+    match r.funct3 {
+        Funct3::ADD_SUB => match r.funct7 {
+            Funct7::ADD => Ok(Instruction::Add(r)),
+            Funct7::SUB => Ok(Instruction::Sub(r)),
+            _ => Err(DecodeError::InvalidFunct7(r.funct7.0)),
+        },
+
+        Funct3::SLL => Ok(Instruction::Sll(r)),
+
+        Funct3::SRL_SRA => match r.funct7 {
+            Funct7::SLL_SRL => Ok(Instruction::Srl(r)),
+            Funct7::SRA => Ok(Instruction::Sra(r)),
+            _ => Err(DecodeError::InvalidFunct7(r.funct7.0)),
+        },
+
+        Funct3::SLT => Ok(Instruction::Slt(r)),
+        Funct3::SLTU => Ok(Instruction::Sltu(r)),
+        Funct3::XOR => Ok(Instruction::Xor(r)),
+        Funct3::OR => Ok(Instruction::Or(r)),
+        Funct3::AND => Ok(Instruction::And(r)),
+
+        _ => unreachable!(),
+    }
+}
+
+const fn decode_fence(instruction: u32) -> Result<Instruction, DecodeError> {
+    let fence_mode = fence_mode(instruction);
+    match fence_mode {
+        FenceMode::FENCE => Ok(Instruction::Fence {
+            pred: fence_pred(instruction),
+            succ: fence_succ(instruction),
+        }),
+
+        FenceMode::FENCE_TSO => Ok(Instruction::FenceTso),
+
+        _ => Err(DecodeError::InvalidFenceMode(fence_mode.0)),
+    }
+}
+
+const fn decode_system_call(instruction: u32, opcode: Opcode) -> Result<Instruction, DecodeError> {
+    let i = I::decode(instruction, opcode);
+    if i.funct3.0 == Funct3::PRIV.0 {
+        match i.imm {
+            Imm12::ZERO => Ok(Instruction::Ecall),
+            Imm12::ONE => Ok(Instruction::Ebreak),
+            _ => Err(DecodeError::InvalidSystemCall(i.imm.0)),
+        }
+    } else {
+        Err(DecodeError::InvalidFunct3(i.funct3.0))
     }
 }
 
@@ -219,6 +252,23 @@ pub enum Instruction {
     Or(R),
     ///
     And(R),
+    ///
+    Fence {
+        /// Predecessor set
+        ///
+        /// Refer to [`fence`](crate::instructions::rv32i::fence) instruction documentation for details
+        pred: FenceMask,
+        /// Successor set
+        ///
+        /// Refer to [`fence`](crate::instructions::rv32i::fence) instruction documentation for details
+        succ: FenceMask,
+    },
+    ///
+    FenceTso,
+    ///
+    Ecall,
+    ///
+    Ebreak,
 }
 
 /// RISC-V U instruction format
@@ -425,6 +475,10 @@ pub enum DecodeError {
     InvalidFunct3(u8),
     ///
     InvalidFunct7(u8),
+    ///
+    InvalidFenceMode(u8),
+    ///
+    InvalidSystemCall(i16),
 }
 
 impl Debug for DecodeError {
@@ -433,6 +487,10 @@ impl Debug for DecodeError {
             DecodeError::InvalidOpcode(opcode) => write!(f, "InvalidOpcode(0b{opcode:08b})"),
             DecodeError::InvalidFunct3(funct3) => write!(f, "InvalidFunct3(0b{funct3:08b})"),
             DecodeError::InvalidFunct7(funct7) => write!(f, "InvalidFunct7(0b{funct7:08b})"),
+            DecodeError::InvalidFenceMode(fence_mode) => {
+                write!(f, "InvalidFenceMode(0b{fence_mode:08b})")
+            }
+            DecodeError::InvalidSystemCall(call) => write!(f, "InvalidSystemCall(0b{call:012b})"),
         }
     }
 }
@@ -451,6 +509,14 @@ fn decode_error_debug() {
         format!("{:?}", DecodeError::InvalidFunct7(0b1111_1111)),
         "InvalidFunct7(0b11111111)"
     );
+    assert_eq!(
+        format!("{:?}", DecodeError::InvalidFenceMode(0b1111_1111)),
+        "InvalidFenceMode(0b11111111)"
+    );
+    assert_eq!(
+        format!("{:?}", DecodeError::InvalidSystemCall(0b1111_1111_1111)),
+        "InvalidSystemCall(0b111111111111)"
+    );
 }
 
 impl Display for DecodeError {
@@ -459,6 +525,10 @@ impl Display for DecodeError {
             DecodeError::InvalidOpcode(opcode) => write!(f, "invalid opcode: 0b{opcode:08b}"),
             DecodeError::InvalidFunct3(funct3) => write!(f, "invalid funct3: 0b{funct3:08b}"),
             DecodeError::InvalidFunct7(funct7) => write!(f, "invalid funct7: 0b{funct7:08b}"),
+            DecodeError::InvalidFenceMode(fence_mode) => {
+                write!(f, "invalid fence mode: 0b{fence_mode:08b}")
+            }
+            DecodeError::InvalidSystemCall(call) => write!(f, "invalid system call: 0b{call:012b}"),
         }
     }
 }
@@ -470,12 +540,20 @@ fn decode_error_display() {
         "invalid opcode: 0b11111111"
     );
     assert_eq!(
-        DecodeError::InvalidFunct3(0b1111_1111).to_string(),
-        "invalid funct3: 0b11111111"
+        DecodeError::InvalidFenceMode(0b1111_1111).to_string(),
+        "invalid fence mode: 0b11111111"
     );
     assert_eq!(
         DecodeError::InvalidFunct7(0b1111_1111).to_string(),
         "invalid funct7: 0b11111111"
+    );
+    assert_eq!(
+        DecodeError::InvalidFunct7(0b1111_1111).to_string(),
+        "invalid funct7: 0b11111111"
+    );
+    assert_eq!(
+        DecodeError::InvalidSystemCall(0b1111_1111_1111).to_string(),
+        "invalid system call: 0b111111111111"
     );
 }
 
@@ -489,4 +567,19 @@ const fn funct3(instruction: u32) -> Funct3 {
 #[allow(clippy::cast_possible_truncation)]
 const fn funct7(instruction: u32) -> Funct7 {
     Funct7(bitfield::<25, 32>(instruction) as u8)
+}
+
+#[allow(clippy::cast_possible_truncation)]
+const fn fence_pred(instruction: u32) -> FenceMask {
+    FenceMask(bitfield::<20, 24>(instruction) as u8)
+}
+
+#[allow(clippy::cast_possible_truncation)]
+const fn fence_succ(instruction: u32) -> FenceMask {
+    FenceMask(bitfield::<24, 28>(instruction) as u8)
+}
+
+#[allow(clippy::cast_possible_truncation)]
+const fn fence_mode(instruction: u32) -> FenceMode {
+    FenceMode(bitfield::<28, 32>(instruction) as u8)
 }

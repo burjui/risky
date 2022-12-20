@@ -743,7 +743,7 @@ pub const fn ecall() -> u32 {
     i_instruction(
         Opcode::SYSTEM,
         X0,
-        Funct3::ECALL,
+        Funct3::PRIV,
         RegOrUimm5::Register(X0),
         Imm12::ZERO,
     )
@@ -771,7 +771,7 @@ pub const fn ebreak() -> u32 {
     i_instruction(
         Opcode::SYSTEM,
         X0,
-        Funct3::EBREAK,
+        Funct3::PRIV,
         RegOrUimm5::Register(X0),
         Imm12::ONE,
     )

@@ -11,7 +11,7 @@ use crate::util::{u16_fits_n_bits, u32_fits_n_bits, u64_fits_n_bits, u8_fits_n_b
 
 /// 4-bit mask for the [`fence`](crate::instructions::rv32i::fence) instruction
 #[derive(Clone, Copy, PartialEq, Eq, Hash)]
-pub struct FenceMask(u8);
+pub struct FenceMask(pub(crate) u8);
 
 impl FenceMask {
     const NBITS: usize = 4;

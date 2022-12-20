@@ -69,9 +69,7 @@ impl Funct3 {
     ///
     pub const FENCE: Self = Self(0b000);
     ///
-    pub const ECALL: Self = Self(0b000);
-    ///
-    pub const EBREAK: Self = Self(0b000);
+    pub const PRIV: Self = Self(0b000);
 
     // Zicsr standard extension
     ///
@@ -112,5 +110,5 @@ impl Funct3 {
 
 #[test]
 fn into_u32() {
-    assert_eq!(Funct3::EBREAK.into_u32(), 0b000);
+    assert_eq!(Funct3::PRIV.into_u32(), 0b000);
 }
