@@ -51,9 +51,7 @@ impl Funct3 {
     ///
     pub const SLLI: Self = Self(0b001);
     ///
-    pub const SRLI: Self = Self(0b101);
-    ///
-    pub const SRAI: Self = Self(0b101);
+    pub const SRLI_SRAI: Self = Self(0b101);
     ///
     pub const ADD: Self = Self(0b000);
     ///

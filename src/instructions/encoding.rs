@@ -2,30 +2,10 @@ use crate::{
     bits::merge_bitfields,
     common::{
         bimm::BImm, funct3::Funct3, funct7::Funct7, imm12::Imm12, jimm::JImm, opcode::Opcode,
-        uimm5::Uimm5,
+        reg_or_uimm5::RegOrUimm5,
     },
     registers::Register,
 };
-
-pub(crate) enum RegOrUimm5 {
-    Register(Register),
-    Uimm5(Uimm5),
-}
-
-impl RegOrUimm5 {
-    const fn into_u32(self) -> u32 {
-        match self {
-            RegOrUimm5::Register(reg) => reg.into_u32(),
-            RegOrUimm5::Uimm5(imm) => imm.into_u32(),
-        }
-    }
-}
-
-#[test]
-fn into_u32() {
-    assert_eq!(RegOrUimm5::Register(crate::registers::X31).into_u32(), 31);
-    assert_eq!(RegOrUimm5::Uimm5(31.try_into().unwrap()).into_u32(), 31);
-}
 
 pub(crate) const fn r_instruction(
     opcode: Opcode,

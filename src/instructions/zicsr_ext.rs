@@ -1,8 +1,10 @@
 //! Zicsr standard extension
 
-use super::encoding::{i_instruction, RegOrUimm5};
+use super::encoding::i_instruction;
 use crate::{
-    common::{funct3::Funct3, imm12::Imm12, opcode::Opcode, uimm5::Uimm5},
+    common::{
+        funct3::Funct3, imm12::Imm12, opcode::Opcode, reg_or_uimm5::RegOrUimm5, uimm5::Uimm5,
+    },
     registers::{Register, X0},
 };
 

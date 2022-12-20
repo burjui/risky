@@ -1,7 +1,8 @@
 //! Defines Funct7
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 /// 7-bit function field
-pub struct Funct7(u8);
+pub struct Funct7(pub(crate) u8);
 
 impl Funct7 {
     // RV32I
@@ -22,9 +23,7 @@ impl Funct7 {
     ///
     pub const SRA: Self = Self(0b010_0000);
     ///
-    pub const SLL: Self = Self(0b000_0000);
-    ///
-    pub const SRL: Self = Self(0b000_0000);
+    pub const SLL_SRL: Self = Self(0b000_0000);
     ///
     pub const MULDIV: Self = Self(0b000_0001);
 

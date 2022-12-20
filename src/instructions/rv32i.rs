@@ -2,14 +2,13 @@
 
 use super::encoding::{
     b_instruction, i_instruction, j_instruction, r_instruction, s_instruction, u_instruction,
-    RegOrUimm5,
 };
 pub use crate::registers::{X1, X5};
 use crate::{
     bits::merge_bitfields,
     common::{
         bimm::BImm, fence_mask::FenceMask, fence_mode::FenceMode, funct3::Funct3, funct7::Funct7,
-        imm12::Imm12, jimm::JImm, opcode::Opcode, uimm5::Uimm5,
+        imm12::Imm12, jimm::JImm, opcode::Opcode, reg_or_uimm5::RegOrUimm5, uimm5::Uimm5,
     },
     registers::{Register, X0},
 };
@@ -450,7 +449,7 @@ pub const fn slli(rd: Register, rs1: Register, shamt: Uimm5) -> u32 {
         Funct3::SLLI,
         rs1,
         RegOrUimm5::Uimm5(shamt),
-        Funct7::SLL,
+        Funct7::SLL_SRL,
     )
 }
 
@@ -465,10 +464,10 @@ pub const fn srli(rd: Register, rs1: Register, shamt: Uimm5) -> u32 {
     r_instruction(
         Opcode::OP_IMM,
         rd,
-        Funct3::SRLI,
+        Funct3::SRLI_SRAI,
         rs1,
         RegOrUimm5::Uimm5(shamt),
-        Funct7::SRL,
+        Funct7::SLL_SRL,
     )
 }
 
@@ -482,7 +481,7 @@ pub const fn srai(rd: Register, rs1: Register, shamt: Uimm5) -> u32 {
     r_instruction(
         Opcode::OP_IMM,
         rd,
-        Funct3::SRAI,
+        Funct3::SRLI_SRAI,
         rs1,
         RegOrUimm5::Uimm5(shamt),
         Funct7::SRA,
@@ -548,7 +547,7 @@ pub const fn sll(rd: Register, rs1: Register, rs2: Register) -> u32 {
         Funct3::SLL,
         rs1,
         RegOrUimm5::Register(rs2),
-        Funct7::SLL,
+        Funct7::SLL_SRL,
     )
 }
 
@@ -566,7 +565,7 @@ pub const fn srl(rd: Register, rs1: Register, rs2: Register) -> u32 {
         Funct3::SRL,
         rs1,
         RegOrUimm5::Register(rs2),
-        Funct7::SRL,
+        Funct7::SLL_SRL,
     )
 }
 

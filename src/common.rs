@@ -8,4 +8,5 @@ pub mod funct7;
 pub mod imm12;
 pub mod jimm;
 pub mod opcode;
+pub mod reg_or_uimm5;
 pub mod uimm5;

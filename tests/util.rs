@@ -1,9 +1,12 @@
 use std::error::Error;
 
 use risky::{
-    common::{bimm::BImm, funct3::Funct3, imm12::Imm12, jimm::JImm, opcode::Opcode},
-    decode::{decode, DecodeError, Instruction, B, I, J, S, U},
-    registers::{Register, X1, X2, X30, X31},
+    common::{
+        bimm::BImm, funct3::Funct3, funct7::Funct7, imm12::Imm12, jimm::JImm, opcode::Opcode,
+        reg_or_uimm5::RegOrUimm5,
+    },
+    decode::{decode, DecodeError, Instruction, B, I, J, R, S, U},
+    registers::{Register, X1, X2, X29, X30, X31},
 };
 
 pub fn test_j(
@@ -121,7 +124,7 @@ pub fn test_i(
     Ok(())
 }
 
-fn test_i_case(
+pub fn test_i_case(
     instruction: u32,
     variant: impl Fn(I) -> Instruction,
     opcode: Opcode,
@@ -192,6 +195,28 @@ fn test_s_case(
             imm,
             rs2,
             funct3
+        })
+    );
+    Ok(())
+}
+
+pub fn test_r(
+    encode: impl Fn(Register, Register, RegOrUimm5) -> u32,
+    variant: impl Fn(R) -> Instruction + Copy,
+    opcode: Opcode,
+    funct3: Funct3,
+    funct7: Funct7,
+    arg: RegOrUimm5,
+) -> Result<(), Box<dyn Error>> {
+    assert_eq!(
+        decode(encode(X29, X30, arg))?,
+        variant(R {
+            opcode,
+            rd: X29,
+            rs1: X30,
+            rs2: arg,
+            funct3,
+            funct7
         })
     );
     Ok(())

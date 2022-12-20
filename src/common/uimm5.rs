@@ -14,7 +14,7 @@ use crate::util::{
 
 /// 5-bit unsigned immediate value
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub struct Uimm5(u8);
+pub struct Uimm5(pub(crate) u8);
 
 impl Uimm5 {
     const NBITS: usize = 5;

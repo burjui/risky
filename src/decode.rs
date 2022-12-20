@@ -8,7 +8,10 @@ use std::{
 
 use crate::{
     bits::{bitfield, merge_bitfields},
-    common::{bimm::BImm, funct3::Funct3, imm12::Imm12, jimm::JImm, opcode::Opcode},
+    common::{
+        bimm::BImm, funct3::Funct3, funct7::Funct7, imm12::Imm12, jimm::JImm, opcode::Opcode,
+        reg_or_uimm5::RegOrUimm5, uimm5::Uimm5,
+    },
     registers::Register,
 };
 
@@ -59,6 +62,33 @@ pub const fn decode(instruction: u32) -> Result<Instruction, DecodeError> {
             }
         }
 
+        Opcode::OP_IMM => {
+            let funct3 = funct3(instruction);
+            match funct3 {
+                Funct3::ADDI => Ok(Instruction::Addi(I::decode(instruction, opcode))),
+                Funct3::SLTI => Ok(Instruction::Slti(I::decode(instruction, opcode))),
+                Funct3::SLTIU => Ok(Instruction::Sltiu(I::decode(instruction, opcode))),
+                Funct3::XORI => Ok(Instruction::Xori(I::decode(instruction, opcode))),
+                Funct3::ORI => Ok(Instruction::Ori(I::decode(instruction, opcode))),
+                Funct3::ANDI => Ok(Instruction::Andi(I::decode(instruction, opcode))),
+                Funct3::SLLI => Ok(Instruction::Slli(R::decode(instruction, opcode))),
+
+                Funct3::SRLI_SRAI => {
+                    let funct7 = funct7(instruction);
+                    match funct7 {
+                        Funct7::SLL_SRL => Ok(Instruction::Srli(R::decode(instruction, opcode))),
+                        Funct7::SRA => Ok(Instruction::Srai(R::decode(instruction, opcode))),
+                        _ => Err(DecodeError::InvalidFunct7(funct7.0)),
+                    }
+                }
+
+                _ => Err(DecodeError::InvalidFunct3(funct3.0)),
+            }
+        }
+
+        // Funct3::SLLI => Ok(Instruction::Slli(i)),
+        // Funct3::SRLI => Ok(Instruction::Srli(i)),
+        // Funct3::SRAI => Ok(Instruction::Srai(i)),
         _ => Err(DecodeError::InvalidOpcode(opcode.0)),
     }
 }
@@ -81,6 +111,12 @@ fn invalid_funct3() {
     assert_eq!(
         decode(Opcode::STORE.into_u32() | (0b111 << 12)),
         Err(DecodeError::InvalidFunct3(0b111))
+    );
+    assert_eq!(
+        decode(
+            Opcode::OP_IMM.into_u32() | (Funct3::SRLI_SRAI.into_u32() << 12) | (0b111_1111 << 25)
+        ),
+        Err(DecodeError::InvalidFunct7(0b111_1111))
     );
 }
 
@@ -123,6 +159,24 @@ pub enum Instruction {
     Sh(S),
     ///
     Sw(S),
+    ///
+    Addi(I),
+    ///
+    Slti(I),
+    ///
+    Sltiu(I),
+    ///
+    Xori(I),
+    ///
+    Ori(I),
+    ///
+    Andi(I),
+    ///
+    Slli(R),
+    ///
+    Srli(R),
+    ///
+    Srai(R),
 }
 
 /// RISC-V U instruction format
@@ -239,6 +293,48 @@ impl S {
     }
 }
 
+/// RISC-V R instruction format
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub struct R {
+    /// Opcode
+    pub opcode: Opcode,
+    /// Destination register
+    pub rd: Register,
+    /// Source register 1
+    pub rs1: Register,
+    /// Source register 2 or 5-bit unsigned immediate
+    pub rs2: RegOrUimm5,
+    /// Function
+    pub funct3: Funct3,
+    /// Subfunction
+    pub funct7: Funct7,
+}
+
+impl R {
+    #[allow(clippy::cast_possible_truncation, clippy::cast_possible_wrap)]
+    const fn decode(instruction: u32, opcode: Opcode) -> Self {
+        let rd = Register(bitfield::<7, 12>(instruction) as u8);
+        let funct3 = Funct3(bitfield::<12, 15>(instruction) as u8);
+        let rs1 = Register(bitfield::<15, 20>(instruction) as u8);
+        let funct7 = Funct7(bitfield::<25, 32>(instruction) as u8);
+
+        let rs2 = bitfield::<20, 25>(instruction) as u8;
+        let rs2 = match funct7 {
+            Funct7::SLL_SRL | Funct7::SRA => RegOrUimm5::Uimm5(Uimm5(rs2)),
+            _ => RegOrUimm5::Register(Register(rs2)),
+        };
+
+        Self {
+            opcode,
+            rd,
+            rs1,
+            rs2,
+            funct3,
+            funct7,
+        }
+    }
+}
+
 /// RISC-V I instruction format
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct B {
@@ -285,6 +381,8 @@ pub enum DecodeError {
     InvalidOpcode(u8),
     ///
     InvalidFunct3(u8),
+    ///
+    InvalidFunct7(u8),
 }
 
 impl Debug for DecodeError {
@@ -292,6 +390,7 @@ impl Debug for DecodeError {
         match self {
             DecodeError::InvalidOpcode(opcode) => write!(f, "InvalidOpcode(0b{opcode:08b})"),
             DecodeError::InvalidFunct3(funct3) => write!(f, "InvalidFunct3(0b{funct3:08b})"),
+            DecodeError::InvalidFunct7(funct7) => write!(f, "InvalidFunct7(0b{funct7:08b})"),
         }
     }
 }
@@ -306,6 +405,10 @@ fn decode_error_debug() {
         format!("{:?}", DecodeError::InvalidFunct3(0b1111_1111)),
         "InvalidFunct3(0b11111111)"
     );
+    assert_eq!(
+        format!("{:?}", DecodeError::InvalidFunct7(0b1111_1111)),
+        "InvalidFunct7(0b11111111)"
+    );
 }
 
 impl Display for DecodeError {
@@ -313,6 +416,7 @@ impl Display for DecodeError {
         match self {
             DecodeError::InvalidOpcode(opcode) => write!(f, "invalid opcode: 0b{opcode:08b}"),
             DecodeError::InvalidFunct3(funct3) => write!(f, "invalid funct3: 0b{funct3:08b}"),
+            DecodeError::InvalidFunct7(funct7) => write!(f, "invalid funct7: 0b{funct7:08b}"),
         }
     }
 }
@@ -330,3 +434,13 @@ fn decode_error_display() {
 }
 
 impl Error for DecodeError {}
+
+#[allow(clippy::cast_possible_truncation)]
+const fn funct3(instruction: u32) -> Funct3 {
+    Funct3(bitfield::<12, 15>(instruction) as u8)
+}
+
+#[allow(clippy::cast_possible_truncation)]
+const fn funct7(instruction: u32) -> Funct7 {
+    Funct7(bitfield::<25, 32>(instruction) as u8)
+}

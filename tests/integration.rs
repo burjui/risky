@@ -3,13 +3,18 @@ mod util;
 use std::error::Error;
 
 use risky::{
-    common::{funct3::Funct3, opcode::Opcode},
+    common::{
+        funct3::Funct3, funct7::Funct7, imm12::Imm12, opcode::Opcode, reg_or_uimm5::RegOrUimm5,
+        uimm5::Uimm5,
+    },
     decode::{DecodeError, Instruction},
     instructions::rv32i::{
-        auipc, beq, bge, bgeu, blt, bltu, bne, jal, jalr, lb, lbu, lh, lhu, lui, lw, sb, sh, sw,
+        addi, andi, auipc, beq, bge, bgeu, blt, bltu, bne, jal, jalr, lb, lbu, lh, lhu, lui, lw,
+        mv, nop, not, ori, sb, sh, slli, slti, sltiu, srai, srli, sw, xori,
     },
+    registers::{X0, X30, X31},
 };
-use util::{test_b, test_i, test_j, test_s, test_u};
+use util::{test_b, test_i, test_i_case, test_j, test_r, test_s, test_u};
 
 #[test]
 fn _lui() -> Result<(), DecodeError> {
@@ -99,4 +104,113 @@ fn _sh() -> Result<(), Box<dyn Error>> {
 #[test]
 fn _sw() -> Result<(), Box<dyn Error>> {
     test_s(sw, Instruction::Sw, Opcode::STORE, Funct3::SW)
+}
+
+#[test]
+fn _addi() -> Result<(), Box<dyn Error>> {
+    test_i(addi, Instruction::Addi, Opcode::OP_IMM, Funct3::ADDI)
+}
+
+#[test]
+fn _mv() -> Result<(), DecodeError> {
+    test_i_case(
+        mv(X30, X31),
+        Instruction::Addi,
+        Opcode::OP_IMM,
+        Funct3::ADDI,
+        X30,
+        X31,
+        Imm12::ZERO,
+    )
+}
+
+#[test]
+fn _nop() -> Result<(), DecodeError> {
+    test_i_case(
+        nop(),
+        Instruction::Addi,
+        Opcode::OP_IMM,
+        Funct3::ADDI,
+        X0,
+        X0,
+        Imm12::ZERO,
+    )
+}
+
+#[test]
+fn _slti() -> Result<(), Box<dyn Error>> {
+    test_i(slti, Instruction::Slti, Opcode::OP_IMM, Funct3::SLTI)
+}
+
+#[test]
+fn _sltiu() -> Result<(), Box<dyn Error>> {
+    test_i(sltiu, Instruction::Sltiu, Opcode::OP_IMM, Funct3::SLTIU)
+}
+
+#[test]
+fn _xori() -> Result<(), Box<dyn Error>> {
+    test_i(xori, Instruction::Xori, Opcode::OP_IMM, Funct3::XORI)
+}
+
+#[test]
+fn _not() -> Result<(), Box<dyn Error>> {
+    test_i_case(
+        not(X30, X31),
+        Instruction::Xori,
+        Opcode::OP_IMM,
+        Funct3::XORI,
+        X30,
+        X31,
+        Imm12::try_from(-1)?,
+    )?;
+    Ok(())
+}
+
+#[test]
+fn _ori() -> Result<(), Box<dyn Error>> {
+    test_i(ori, Instruction::Ori, Opcode::OP_IMM, Funct3::ORI)
+}
+
+#[test]
+fn _andi() -> Result<(), Box<dyn Error>> {
+    test_i(andi, Instruction::Andi, Opcode::OP_IMM, Funct3::ANDI)
+}
+
+#[test]
+fn _slli() -> Result<(), Box<dyn Error>> {
+    let imm = Uimm5::try_from(0b11111)?;
+    test_r(
+        |rd, rs1, _| slli(rd, rs1, imm),
+        Instruction::Slli,
+        Opcode::OP_IMM,
+        Funct3::SLLI,
+        Funct7::SLL_SRL,
+        RegOrUimm5::Uimm5(imm),
+    )
+}
+
+#[test]
+fn _srli() -> Result<(), Box<dyn Error>> {
+    let imm = Uimm5::try_from(0b11111)?;
+    test_r(
+        |rd, rs1, _| srli(rd, rs1, imm),
+        Instruction::Srli,
+        Opcode::OP_IMM,
+        Funct3::SRLI_SRAI,
+        Funct7::SLL_SRL,
+        RegOrUimm5::Uimm5(imm),
+    )
+}
+
+#[test]
+fn _srai() -> Result<(), Box<dyn Error>> {
+    let imm = Uimm5::try_from(0b11111)?;
+    test_r(
+        |rd, rs1, _| srai(rd, rs1, imm),
+        Instruction::Srai,
+        Opcode::OP_IMM,
+        Funct3::SRLI_SRAI,
+        Funct7::SRA,
+        RegOrUimm5::Uimm5(imm),
+    )
 }
