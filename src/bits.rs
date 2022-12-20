@@ -25,13 +25,11 @@ pub(crate) const fn merge_bitfields<const N: usize>(
         );
 
         // Copy the bitfield
-        let src_mask =
-            shlz(0xFFFF_FFFF_u32, src_range.end) ^ shlz(0xFFFF_FFFF_u32, src_range.start);
+        let src_mask = shlz(0xFFFF_FFFF, src_range.end) ^ shlz(0xFFFF_FFFF, src_range.start);
         dst |= shlz(shrz(*src & src_mask, src_range.start), dst_range.start);
 
         // Check for bit field overlap
-        let dst_mask =
-            shlz(0xFFFF_FFFF_u32, dst_range.end) ^ shlz(0xFFFF_FFFF_u32, dst_range.start);
+        let dst_mask = shlz(0xFFFF_FFFF, dst_range.end) ^ shlz(0xFFFF_FFFF, dst_range.start);
         assert!(
             dst_bits_visited & dst_mask == 0,
             "bit field overlap detected"
@@ -53,14 +51,25 @@ fn merge_bitfields_algorithm() {
 
 #[test]
 #[should_panic]
-fn mismatched_bit_ranges() {
+fn merge_bitfields_mismatched_ranges() {
     let _ = merge_bitfields(&[(3..5, 0, 0..3)]);
 }
 
 #[test]
 #[should_panic]
-fn bit_range_crossing_32bit_boundary() {
-    let _ = merge_bitfields(&[(0..33, 0, 0..0)]);
+fn merge_bitfields_crossing_32bit_boundary() {
+    let _ = merge_bitfields(&[(0..33, 0, 0..33)]);
+}
+
+#[test]
+#[should_panic]
+fn merge_bitfields_overlap() {
+    let _ = merge_bitfields(&[(0..5, 0, 0..5), (2..3, 0, 2..3)]);
+}
+
+pub(crate) const fn bitfield<const START: u32, const END: u32>(src: u32) -> u32 {
+    assert!(END > START && END <= 32);
+    shrz(src, START) & shrz(0xFFFF_FFFF, 32 - (END - START))
 }
 
 #[inline(always)]

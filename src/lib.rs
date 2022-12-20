@@ -11,4 +11,5 @@ pub mod registers;
 pub(crate) mod bits;
 pub(crate) mod util;
 
-pub mod immediates;
+pub mod common;
+pub mod decode;

@@ -1,19 +1,16 @@
 //! RV32I base instruction set
 
-pub mod fence_mask;
-mod fence_mode;
-
-use fence_mode::FenceMode;
-
-use self::fence_mask::FenceMask;
 use super::encoding::{
-    b_instruction, funct3::Funct3, funct7::Funct7, i_instruction, j_instruction, opcode::Opcode,
-    r_instruction, s_instruction, u_instruction, RegOrUimm5,
+    b_instruction, i_instruction, j_instruction, r_instruction, s_instruction, u_instruction,
+    RegOrUimm5,
 };
 pub use crate::registers::{X1, X5};
 use crate::{
     bits::merge_bitfields,
-    immediates::{bimm::BImm, imm12::Imm12, jimm::JImm, uimm5::Uimm5},
+    common::{
+        bimm::BImm, fence_mask::FenceMask, fence_mode::FenceMode, funct3::Funct3, funct7::Funct7,
+        imm12::Imm12, jimm::JImm, opcode::Opcode, uimm5::Uimm5,
+    },
     registers::{Register, X0},
 };
 

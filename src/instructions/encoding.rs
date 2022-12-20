@@ -1,14 +1,9 @@
-pub(crate) mod funct3;
-pub(crate) mod funct7;
-pub(crate) mod opcode;
-
-use funct3::Funct3;
-use funct7::Funct7;
-use opcode::Opcode;
-
 use crate::{
     bits::merge_bitfields,
-    immediates::{bimm::BImm, imm12::Imm12, jimm::JImm, uimm5::Uimm5},
+    common::{
+        bimm::BImm, funct3::Funct3, funct7::Funct7, imm12::Imm12, jimm::JImm, opcode::Opcode,
+        uimm5::Uimm5,
+    },
     registers::Register,
 };
 
@@ -24,6 +19,12 @@ impl RegOrUimm5 {
             RegOrUimm5::Uimm5(imm) => imm.into_u32(),
         }
     }
+}
+
+#[test]
+fn into_u32() {
+    assert_eq!(RegOrUimm5::Register(crate::registers::X31).into_u32(), 31);
+    assert_eq!(RegOrUimm5::Uimm5(31.try_into().unwrap()).into_u32(), 31);
 }
 
 pub(crate) const fn r_instruction(

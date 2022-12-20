@@ -86,7 +86,7 @@ pub const X31: Register = Register(31);
 
 /// Represents a `RISC-V` register
 #[derive(Debug, PartialEq, Eq, Hash, Clone, Copy)]
-pub struct Register(u8);
+pub struct Register(pub(crate) u8);
 
 impl Register {
     const NBITS: usize = 5;

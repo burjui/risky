@@ -1,7 +1,10 @@
 //! M standard extension
 
-use super::encoding::{funct3::Funct3, funct7::Funct7, opcode::Opcode, r_instruction, RegOrUimm5};
-use crate::registers::Register;
+use super::encoding::{r_instruction, RegOrUimm5};
+use crate::{
+    common::{funct3::Funct3, funct7::Funct7, opcode::Opcode},
+    registers::Register,
+};
 
 /// `mul` instruction performs an XLEN-bit×XLEN-bit multiplication of `rs1` by `rs2` and places the
 /// lower XLEN bits in the destination register. If both the high and low bits of the same product

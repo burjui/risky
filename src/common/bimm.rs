@@ -14,7 +14,7 @@ use crate::util::{
 
 /// 13-bit signed immediate value used in branch instructions
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub struct BImm(i16);
+pub struct BImm(pub(crate) i16);
 
 impl BImm {
     const NBITS: usize = 13;

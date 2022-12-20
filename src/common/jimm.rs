@@ -14,7 +14,7 @@ use crate::util::{
 
 /// 21-bit signed immediate value used in the [jal](crate::instructions::rv32i::jal) instruction
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub struct JImm(i32);
+pub struct JImm(pub(crate) i32);
 
 impl JImm {
     const NBITS: usize = 21;
