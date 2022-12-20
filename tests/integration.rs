@@ -7,8 +7,8 @@ use risky::{
     decode::{DecodeError, Instruction},
     instructions::rv32i::{
         add, addi, and, andi, auipc, beq, bge, bgeu, blt, bltu, bne, jal, jalr, lb, lbu, lh, lhu,
-        lui, lw, mv, nop, not, or, ori, sb, sh, sll, slli, slt, slti, sltiu, sltu, snez, sra, srai,
-        srl, srli, sub, sw, xor, xori,
+        lui, lw, mv, nop, not, or, ori, sb, seqz, sh, sll, slli, slt, slti, sltiu, sltu, snez, sra,
+        srai, srl, srli, sub, sw, xor, xori,
     },
     registers::{X0, X30, X31},
 };
@@ -145,6 +145,20 @@ fn _slti() -> Result<(), Box<dyn Error>> {
 #[test]
 fn _sltiu() -> Result<(), Box<dyn Error>> {
     test_i(sltiu, Instruction::Sltiu, Opcode::OP_IMM, Funct3::SLTIU)
+}
+
+#[test]
+fn _seqz() -> Result<(), Box<dyn Error>> {
+    test_i_case(
+        seqz(X30, X31),
+        Instruction::Sltiu,
+        Opcode::OP_IMM,
+        Funct3::SLTIU,
+        X30,
+        X31,
+        Imm12::try_from(1)?,
+    )?;
+    Ok(())
 }
 
 #[test]
