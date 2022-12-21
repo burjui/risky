@@ -83,10 +83,10 @@ const fn decode_op_imm(instruction: u32, opcode: Opcode) -> Result<Instruction, 
         Funct3::ANDI => Ok(Instruction::Andi(I::decode(instruction, opcode))),
         Funct3::SLLI => Ok(Instruction::Slli(R::decode(instruction, opcode))),
 
-        Funct3::SRL_SRA => {
+        Funct3::SRL => {
             let funct7 = funct7(instruction);
             match funct7 {
-                Funct7::SLL_SRL => Ok(Instruction::Srli(R::decode(instruction, opcode))),
+                Funct7::SRL => Ok(Instruction::Srli(R::decode(instruction, opcode))),
                 Funct7::SRA => Ok(Instruction::Srai(R::decode(instruction, opcode))),
                 _ => Err(DecodeError::InvalidFunct7(funct7.0)),
             }
@@ -98,28 +98,27 @@ const fn decode_op_imm(instruction: u32, opcode: Opcode) -> Result<Instruction, 
 
 const fn decode_op(instruction: u32, opcode: Opcode) -> Result<Instruction, DecodeError> {
     let r = R::decode(instruction, opcode);
-    match r.funct3 {
-        Funct3::ADD_SUB => match r.funct7 {
-            Funct7::ADD => Ok(Instruction::Add(r)),
-            Funct7::SUB => Ok(Instruction::Sub(r)),
-            _ => Err(DecodeError::InvalidFunct7(r.funct7.0)),
-        },
+    match (r.funct3, r.funct7) {
+        (Funct3::ADD, Funct7::ADD) => Ok(Instruction::Add(r)),
+        (Funct3::SUB, Funct7::SUB) => Ok(Instruction::Sub(r)),
+        (Funct3::SLL, Funct7::SLL) => Ok(Instruction::Sll(r)),
+        (Funct3::SRL, Funct7::SRL) => Ok(Instruction::Srl(r)),
+        (Funct3::SRA, Funct7::SRA) => Ok(Instruction::Sra(r)),
+        (Funct3::SLT, Funct7::SLT) => Ok(Instruction::Slt(r)),
+        (Funct3::SLTU, Funct7::SLTU) => Ok(Instruction::Sltu(r)),
+        (Funct3::XOR, Funct7::XOR) => Ok(Instruction::Xor(r)),
+        (Funct3::OR, Funct7::OR) => Ok(Instruction::Or(r)),
+        (Funct3::AND, Funct7::AND) => Ok(Instruction::And(r)),
+        (Funct3::MUL, Funct7::MULDIV) => Ok(Instruction::Mul(r)),
+        (Funct3::MULH, Funct7::MULDIV) => Ok(Instruction::Mulh(r)),
+        (Funct3::MULHSU, Funct7::MULDIV) => Ok(Instruction::Mulhsu(r)),
+        (Funct3::MULHU, Funct7::MULDIV) => Ok(Instruction::Mulhu(r)),
+        (Funct3::DIV, Funct7::MULDIV) => Ok(Instruction::Div(r)),
+        (Funct3::DIVU, Funct7::MULDIV) => Ok(Instruction::Divu(r)),
+        (Funct3::REM, Funct7::MULDIV) => Ok(Instruction::Rem(r)),
+        (Funct3::REMU, Funct7::MULDIV) => Ok(Instruction::Remu(r)),
 
-        Funct3::SLL => Ok(Instruction::Sll(r)),
-
-        Funct3::SRL_SRA => match r.funct7 {
-            Funct7::SLL_SRL => Ok(Instruction::Srl(r)),
-            Funct7::SRA => Ok(Instruction::Sra(r)),
-            _ => Err(DecodeError::InvalidFunct7(r.funct7.0)),
-        },
-
-        Funct3::SLT => Ok(Instruction::Slt(r)),
-        Funct3::SLTU => Ok(Instruction::Sltu(r)),
-        Funct3::XOR => Ok(Instruction::Xor(r)),
-        Funct3::OR => Ok(Instruction::Or(r)),
-        Funct3::AND => Ok(Instruction::And(r)),
-
-        _ => unreachable!(),
+        _ => Err(DecodeError::InvalidFunct3Funct7(r.funct3, r.funct7)),
     }
 }
 
@@ -170,7 +169,7 @@ fn invalid_funct3() {
         Err(DecodeError::InvalidFunct3(0b111))
     );
     assert_eq!(
-        decode(Opcode::OP_IMM.into_u32() | (Funct3::SRL_SRA.into_u32() << 12) | (0b111_1111 << 25)),
+        decode(Opcode::OP_IMM.into_u32() | (Funct3::SRL.into_u32() << 12) | (0b111_1111 << 25)),
         Err(DecodeError::InvalidFunct7(0b111_1111))
     );
 }
@@ -269,6 +268,22 @@ pub enum Instruction {
     Ecall,
     ///
     Ebreak,
+    ///
+    Mul(R),
+    ///
+    Mulh(R),
+    ///
+    Mulhsu(R),
+    ///
+    Mulhu(R),
+    ///
+    Div(R),
+    ///
+    Divu(R),
+    ///
+    Rem(R),
+    ///
+    Remu(R),
 }
 
 /// RISC-V U instruction format
@@ -412,7 +427,9 @@ impl R {
 
         let rs2 = bitfield::<20, 25>(instruction) as u8;
         let rs2 = match (opcode, funct3) {
-            (Opcode::OP_IMM, Funct3::SLLI | Funct3::SRL_SRA) => RegOrUimm5::Uimm5(Uimm5(rs2)),
+            (Opcode::OP_IMM, Funct3::SLLI | Funct3::SRL /* SRA = SRL */) => {
+                RegOrUimm5::Uimm5(Uimm5(rs2))
+            }
             _ => RegOrUimm5::Register(Register(rs2)),
         };
 
@@ -479,18 +496,27 @@ pub enum DecodeError {
     InvalidFenceMode(u8),
     ///
     InvalidSystemCall(i16),
+    ///
+    InvalidFunct3Funct7(Funct3, Funct7),
 }
 
 impl Debug for DecodeError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            DecodeError::InvalidOpcode(opcode) => write!(f, "InvalidOpcode(0b{opcode:08b})"),
-            DecodeError::InvalidFunct3(funct3) => write!(f, "InvalidFunct3(0b{funct3:08b})"),
-            DecodeError::InvalidFunct7(funct7) => write!(f, "InvalidFunct7(0b{funct7:08b})"),
+            DecodeError::InvalidOpcode(opcode) => write!(f, "InvalidOpcode(0b{opcode:07b})"),
+            DecodeError::InvalidFunct3(funct3) => write!(f, "InvalidFunct3(0b{funct3:03b})"),
+            DecodeError::InvalidFunct7(funct7) => write!(f, "InvalidFunct7(0b{funct7:07b})"),
             DecodeError::InvalidFenceMode(fence_mode) => {
-                write!(f, "InvalidFenceMode(0b{fence_mode:08b})")
+                write!(f, "InvalidFenceMode(0b{fence_mode:04b})")
             }
             DecodeError::InvalidSystemCall(call) => write!(f, "InvalidSystemCall(0b{call:012b})"),
+            DecodeError::InvalidFunct3Funct7(funct3, funct7) => {
+                write!(
+                    f,
+                    "InvalidFunct3Funct7(0b{:03b}, 0b{:07b})",
+                    funct3.0, funct7.0
+                )
+            }
         }
     }
 }
@@ -498,24 +524,31 @@ impl Debug for DecodeError {
 #[test]
 fn decode_error_debug() {
     assert_eq!(
-        format!("{:?}", DecodeError::InvalidOpcode(0b1111_1111)),
-        "InvalidOpcode(0b11111111)"
+        format!("{:?}", DecodeError::InvalidOpcode(0b111_1111)),
+        "InvalidOpcode(0b1111111)"
     );
     assert_eq!(
-        format!("{:?}", DecodeError::InvalidFunct3(0b1111_1111)),
-        "InvalidFunct3(0b11111111)"
+        format!("{:?}", DecodeError::InvalidFunct3(0b111)),
+        "InvalidFunct3(0b111)"
     );
     assert_eq!(
-        format!("{:?}", DecodeError::InvalidFunct7(0b1111_1111)),
-        "InvalidFunct7(0b11111111)"
+        format!("{:?}", DecodeError::InvalidFunct7(0b111_1111)),
+        "InvalidFunct7(0b1111111)"
     );
     assert_eq!(
-        format!("{:?}", DecodeError::InvalidFenceMode(0b1111_1111)),
-        "InvalidFenceMode(0b11111111)"
+        format!("{:?}", DecodeError::InvalidFenceMode(0b1111)),
+        "InvalidFenceMode(0b1111)"
     );
     assert_eq!(
         format!("{:?}", DecodeError::InvalidSystemCall(0b1111_1111_1111)),
         "InvalidSystemCall(0b111111111111)"
+    );
+    assert_eq!(
+        format!(
+            "{:?}",
+            DecodeError::InvalidFunct3Funct7(Funct3(0b111), Funct7(0b111_1111))
+        ),
+        "InvalidFunct3Funct7(0b111, 0b1111111)"
     );
 }
 
@@ -529,6 +562,11 @@ impl Display for DecodeError {
                 write!(f, "invalid fence mode: 0b{fence_mode:08b}")
             }
             DecodeError::InvalidSystemCall(call) => write!(f, "invalid system call: 0b{call:012b}"),
+            DecodeError::InvalidFunct3Funct7(funct3, funct7) => write!(
+                f,
+                "invalid funct3 and funct7 combination: 0b{:08b}, 0b{:08b}",
+                funct3.0, funct7.0
+            ),
         }
     }
 }
@@ -554,6 +592,10 @@ fn decode_error_display() {
     assert_eq!(
         DecodeError::InvalidSystemCall(0b1111_1111_1111).to_string(),
         "invalid system call: 0b111111111111"
+    );
+    assert_eq!(
+        DecodeError::InvalidFunct3Funct7(Funct3(0b1111_1111), Funct7(0b1111_1111)).to_string(),
+        "invalid funct3 and funct7 combination: 0b11111111, 0b11111111"
     );
 }
 

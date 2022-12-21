@@ -51,7 +51,9 @@ impl Funct3 {
     ///
     pub const SLLI: Self = Self(0b001);
     ///
-    pub const ADD_SUB: Self = Self(0b000);
+    pub const ADD: Self = Self(0b000);
+    ///
+    pub const SUB: Self = Self(0b000);
     ///
     pub const SLL: Self = Self(0b001);
     ///
@@ -61,7 +63,9 @@ impl Funct3 {
     ///
     pub const XOR: Self = Self(0b100);
     ///
-    pub const SRL_SRA: Self = Self(0b101);
+    pub const SRL: Self = Self(0b101);
+    ///
+    pub const SRA: Self = Self(0b101);
     ///
     pub const OR: Self = Self(0b110);
     ///

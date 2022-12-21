@@ -23,7 +23,9 @@ impl Funct7 {
     ///
     pub const SRA: Self = Self(0b010_0000);
     ///
-    pub const SLL_SRL: Self = Self(0b000_0000);
+    pub const SLL: Self = Self(0b000_0000);
+    ///
+    pub const SRL: Self = Self(0b000_0000);
     ///
     pub const MULDIV: Self = Self(0b000_0001);
 
