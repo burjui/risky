@@ -9,8 +9,9 @@ use std::{
 use crate::{
     bits::{bitfield, merge_bitfields},
     common::{
-        bimm::BImm, fence_mask::FenceMask, fence_mode::FenceMode, funct3::Funct3, funct7::Funct7,
-        imm12::Imm12, jimm::JImm, opcode::Opcode, reg_or_uimm5::RegOrUimm5, uimm5::Uimm5,
+        bimm::BImm, csr::Csr, fence_mask::FenceMask, fence_mode::FenceMode, funct3::Funct3,
+        funct7::Funct7, imm12::Imm12, jimm::JImm, opcode::Opcode, reg_or_uimm5::RegOrUimm5,
+        uimm5::Uimm5,
     },
     registers::Register,
 };
@@ -32,7 +33,7 @@ pub const fn decode(instruction: u32) -> Result<Instruction, DecodeError> {
         Opcode::OP_IMM => decode_op_imm(instruction, opcode),
         Opcode::OP => decode_op(instruction, opcode),
         Opcode::MISC_MEM => decode_fence(instruction),
-        Opcode::SYSTEM => decode_system_call(instruction, opcode),
+        Opcode::SYSTEM => decode_system_call(instruction),
         _ => Err(DecodeError::InvalidOpcode(opcode.0)),
     }
 }
@@ -136,23 +137,26 @@ const fn decode_fence(instruction: u32) -> Result<Instruction, DecodeError> {
     }
 }
 
-const fn decode_system_call(instruction: u32, opcode: Opcode) -> Result<Instruction, DecodeError> {
-    let i = I::decode(instruction, opcode);
-    match i.funct3 {
-        Funct3::PRIV => match i.imm {
-            Imm12::ZERO => Ok(Instruction::Ecall),
-            Imm12::ONE => Ok(Instruction::Ebreak),
-            _ => Err(DecodeError::InvalidSystemCall(i.imm.0)),
-        },
+const fn decode_system_call(instruction: u32) -> Result<Instruction, DecodeError> {
+    let funct3 = funct3(instruction);
+    match funct3 {
+        Funct3::PRIV => {
+            let imm = i_imm12(instruction);
+            match imm {
+                Imm12::ZERO => Ok(Instruction::Ecall),
+                Imm12::ONE => Ok(Instruction::Ebreak),
+                _ => Err(DecodeError::InvalidSystemCall(imm.0)),
+            }
+        }
 
-        Funct3::CSRRW => Ok(Instruction::Csrrw(i)),
-        Funct3::CSRRS => Ok(Instruction::Csrrs(i)),
-        Funct3::CSRRC => Ok(Instruction::Csrrc(i)),
-        Funct3::CSRRWI => Ok(Instruction::Csrrwi(i)),
-        Funct3::CSRRSI => Ok(Instruction::Csrrsi(i)),
-        Funct3::CSRRCI => Ok(Instruction::Csrrci(i)),
+        Funct3::CSRRW => Ok(Instruction::Csrrw(CsrReg::decode(instruction))),
+        Funct3::CSRRS => Ok(Instruction::Csrrs(CsrReg::decode(instruction))),
+        Funct3::CSRRC => Ok(Instruction::Csrrc(CsrReg::decode(instruction))),
+        Funct3::CSRRWI => Ok(Instruction::Csrrwi(CsrImm::decode(instruction))),
+        Funct3::CSRRSI => Ok(Instruction::Csrrsi(CsrImm::decode(instruction))),
+        Funct3::CSRRCI => Ok(Instruction::Csrrci(CsrImm::decode(instruction))),
 
-        _ => Err(DecodeError::InvalidFunct3(i.funct3.0)),
+        _ => Err(DecodeError::InvalidFunct3(funct3.0)),
     }
 }
 
@@ -204,7 +208,7 @@ fn decode_edge_cases() -> Result<(), Box<dyn Error>> {
 /// RISC-V instruction
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum Instruction {
-    /// TODO: links to functions
+    ///
     Lui(U),
     ///
     Auipc(U),
@@ -312,17 +316,59 @@ pub enum Instruction {
     ///
     Remu(R),
     ///
-    Csrrw(I),
+    Csrrw(CsrReg),
     ///
-    Csrrs(I),
+    Csrrs(CsrReg),
     ///
-    Csrrc(I),
+    Csrrc(CsrReg),
     ///
-    Csrrwi(I),
+    Csrrwi(CsrImm),
     ///
-    Csrrsi(I),
+    Csrrsi(CsrImm),
     ///
-    Csrrci(I),
+    Csrrci(CsrImm),
+}
+
+/// CSR instruction where the value argument is a register
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub struct CsrReg {
+    /// Destination register
+    pub rd: Register,
+    /// Source register containing the CSR address
+    pub rs1: Register,
+    /// CSR address
+    pub csr: Csr,
+}
+
+impl CsrReg {
+    const fn decode(instruction: u32) -> Self {
+        Self {
+            rd: rd(instruction),
+            rs1: rs1_reg(instruction),
+            csr: csr(instruction),
+        }
+    }
+}
+
+/// CSR instruction where the value argument is a 5-bit unsigned immediate
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub struct CsrImm {
+    /// Destination register
+    pub rd: Register,
+    /// 5-bit unsigned immediate representing the CSR address
+    pub rs1: Uimm5,
+    /// CSR address
+    pub csr: Csr,
+}
+
+impl CsrImm {
+    const fn decode(instruction: u32) -> Self {
+        Self {
+            rd: rd(instruction),
+            rs1: rs1_uimm5(instruction),
+            csr: csr(instruction),
+        }
+    }
 }
 
 /// RISC-V U instruction format
@@ -338,12 +384,17 @@ pub struct U {
 
 impl U {
     const fn decode(instruction: u32, opcode: Opcode) -> Self {
-        #[allow(clippy::cast_possible_truncation)]
-        let rd = Register(bitfield::<7, 12>(instruction) as u8);
-        #[allow(clippy::cast_possible_wrap)]
-        let imm = (instruction & 0xFFFF_F000) as i32;
-        Self { opcode, rd, imm }
+        Self {
+            opcode,
+            rd: rd(instruction),
+            imm: u_imm(instruction),
+        }
     }
+}
+
+#[allow(clippy::cast_possible_wrap)]
+const fn u_imm(instruction: u32) -> i32 {
+    (instruction & 0xFFFF_F000) as i32
 }
 
 /// RISC-V J instruction format
@@ -359,18 +410,11 @@ pub struct J {
 
 impl J {
     const fn decode(instruction: u32, opcode: Opcode) -> Self {
-        #[allow(clippy::cast_possible_truncation)]
-        let rd = Register(bitfield::<7, 12>(instruction) as u8);
-        let imm = merge_bitfields(&[
-            (12..20, instruction, 12..20),
-            (11..12, instruction, 20..21),
-            (1..11, instruction, 21..31),
-            (20..21, instruction, 31..32),
-        ]);
-        // Sign-extend
-        #[allow(clippy::cast_possible_wrap)]
-        let imm = JImm((imm << 11) as i32 >> 11);
-        Self { opcode, rd, imm }
+        Self {
+            opcode,
+            rd: rd(instruction),
+            imm: jimm(instruction),
+        }
     }
 }
 
@@ -392,23 +436,19 @@ pub struct I {
 impl I {
     #[allow(clippy::cast_possible_truncation, clippy::cast_possible_wrap)]
     const fn decode(instruction: u32, opcode: Opcode) -> Self {
-        let rd = Register(bitfield::<7, 12>(instruction) as u8);
-        let funct3 = Funct3(bitfield::<12, 15>(instruction) as u8);
-        let imm = Imm12(((bitfield::<20, 32>(instruction) << 20) as i32 >> 20) as i16);
-
-        let rs1 = bitfield::<15, 20>(instruction) as u8;
+        let funct3 = funct3(instruction);
         let rs1 = match (opcode, funct3) {
             (Opcode::SYSTEM, Funct3::CSRRWI | Funct3::CSRRSI | Funct3::CSRRCI) => {
-                RegOrUimm5::Uimm5(Uimm5(rs1))
+                RegOrUimm5::Uimm5(rs1_uimm5(instruction))
             }
-            _ => RegOrUimm5::Register(Register(rs1)),
+            _ => RegOrUimm5::Register(rs1_reg(instruction)),
         };
 
         Self {
             opcode,
-            rd,
+            rd: rd(instruction),
             rs1,
-            imm,
+            imm: i_imm12(instruction),
             funct3,
         }
     }
@@ -432,17 +472,12 @@ pub struct S {
 impl S {
     #[allow(clippy::cast_possible_truncation, clippy::cast_possible_wrap)]
     const fn decode(instruction: u32, opcode: Opcode) -> Self {
-        let funct3 = Funct3(bitfield::<12, 15>(instruction) as u8);
-        let rs1 = Register(bitfield::<15, 20>(instruction) as u8);
-        let rs2 = Register(bitfield::<20, 25>(instruction) as u8);
-        let imm = merge_bitfields(&[(0..5, instruction, 7..12), (5..12, instruction, 25..32)]);
-        let imm = Imm12(((imm << 20) as i32 >> 20) as i16);
         Self {
             opcode,
-            rs1,
-            imm,
-            rs2,
-            funct3,
+            rs1: rs1_reg(instruction),
+            imm: s_imm12(instruction),
+            rs2: rs2_reg(instruction),
+            funct3: funct3(instruction),
         }
     }
 }
@@ -467,26 +502,21 @@ pub struct R {
 impl R {
     #[allow(clippy::cast_possible_truncation, clippy::cast_possible_wrap)]
     const fn decode(instruction: u32, opcode: Opcode) -> Self {
-        let rd = Register(bitfield::<7, 12>(instruction) as u8);
-        let funct3 = Funct3(bitfield::<12, 15>(instruction) as u8);
-        let rs1 = Register(bitfield::<15, 20>(instruction) as u8);
-        let funct7 = Funct7(bitfield::<25, 32>(instruction) as u8);
-
-        let rs2 = bitfield::<20, 25>(instruction) as u8;
+        let funct3 = funct3(instruction);
         let rs2 = match (opcode, funct3) {
             (Opcode::OP_IMM, Funct3::SLLI | Funct3::SRL /* SRA = SRL */) => {
-                RegOrUimm5::Uimm5(Uimm5(rs2))
+                RegOrUimm5::Uimm5(rs2_imm(instruction))
             }
-            _ => RegOrUimm5::Register(Register(rs2)),
+            _ => RegOrUimm5::Register(rs2_reg(instruction)),
         };
 
         Self {
             opcode,
-            rd,
-            rs1,
+            rd: rd(instruction),
+            rs1: rs1_reg(instruction),
             rs2,
             funct3,
-            funct7,
+            funct7: funct7(instruction),
         }
     }
 }
@@ -509,23 +539,12 @@ pub struct B {
 impl B {
     #[allow(clippy::cast_possible_truncation, clippy::cast_possible_wrap)]
     const fn decode(instruction: u32, opcode: Opcode) -> Self {
-        let imm = merge_bitfields(&[
-            (11..12, instruction, 7..8),
-            (1..5, instruction, 8..12),
-            (5..11, instruction, 25..31),
-            (12..13, instruction, 31..32),
-        ]);
-        let funct3 = Funct3(bitfield::<12, 15>(instruction) as u8);
-        let rs1 = Register(bitfield::<15, 20>(instruction) as u8);
-        let rs2 = Register(bitfield::<20, 25>(instruction) as u8);
-
-        let imm = BImm(((imm << 19) as i32 >> 19) as i16);
         Self {
             opcode,
-            imm,
-            rs1,
-            rs2,
-            funct3,
+            imm: bimm(instruction),
+            rs1: rs1_reg(instruction),
+            rs2: rs2_reg(instruction),
+            funct3: funct3(instruction),
         }
     }
 }
@@ -649,8 +668,43 @@ fn decode_error_display() {
 impl Error for DecodeError {}
 
 #[allow(clippy::cast_possible_truncation)]
+const fn rd(instruction: u32) -> Register {
+    Register(bitfield::<7, 12>(instruction) as u8)
+}
+
+#[allow(clippy::cast_possible_truncation)]
 const fn funct3(instruction: u32) -> Funct3 {
     Funct3(bitfield::<12, 15>(instruction) as u8)
+}
+
+#[allow(clippy::cast_possible_truncation)]
+const fn rs1_reg(instruction: u32) -> Register {
+    Register(bitfield::<15, 20>(instruction) as u8)
+}
+
+#[allow(clippy::cast_possible_truncation)]
+const fn rs1_uimm5(instruction: u32) -> Uimm5 {
+    Uimm5(bitfield::<15, 20>(instruction) as u8)
+}
+
+#[allow(clippy::cast_possible_truncation)]
+const fn rs2_reg(instruction: u32) -> Register {
+    Register(bitfield::<20, 25>(instruction) as u8)
+}
+
+#[allow(clippy::cast_possible_truncation)]
+const fn rs2_imm(instruction: u32) -> Uimm5 {
+    Uimm5(bitfield::<20, 25>(instruction) as u8)
+}
+
+#[allow(clippy::cast_possible_truncation, clippy::cast_possible_wrap)]
+const fn i_imm12(instruction: u32) -> Imm12 {
+    Imm12((((bitfield::<20, 32>(instruction) as u16) << 4) as i16) >> 4) // sign-extend
+}
+
+#[allow(clippy::cast_possible_truncation)]
+const fn csr(instruction: u32) -> Csr {
+    Csr(bitfield::<20, 32>(instruction) as u16)
 }
 
 #[allow(clippy::cast_possible_truncation)]
@@ -671,4 +725,33 @@ const fn fence_succ(instruction: u32) -> FenceMask {
 #[allow(clippy::cast_possible_truncation)]
 const fn fence_mode(instruction: u32) -> FenceMode {
     FenceMode(bitfield::<28, 32>(instruction) as u8)
+}
+
+#[allow(clippy::cast_possible_wrap)]
+const fn bimm(instruction: u32) -> BImm {
+    let imm = merge_bitfields(&[
+        (11..12, instruction, 7..8),
+        (1..5, instruction, 8..12),
+        (5..11, instruction, 25..31),
+        (12..13, instruction, 31..32),
+    ]);
+    BImm(((imm << 19) as i32 >> 19) as i16)
+}
+
+#[allow(clippy::cast_possible_wrap)]
+const fn jimm(instruction: u32) -> JImm {
+    #[allow(clippy::cast_possible_truncation)]
+    let imm = merge_bitfields(&[
+        (12..20, instruction, 12..20),
+        (11..12, instruction, 20..21),
+        (1..11, instruction, 21..31),
+        (20..21, instruction, 31..32),
+    ]);
+    JImm((imm << 11) as i32 >> 11) // sign-extend
+}
+
+#[allow(clippy::cast_possible_wrap)]
+const fn s_imm12(instruction: u32) -> Imm12 {
+    let imm = merge_bitfields(&[(0..5, instruction, 7..12), (5..12, instruction, 25..32)]);
+    Imm12(((imm << 20) as i32 >> 20) as i16)
 }

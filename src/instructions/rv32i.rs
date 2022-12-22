@@ -2,6 +2,7 @@
 
 use super::encoding::{
     b_instruction, i_instruction, j_instruction, r_instruction, s_instruction, u_instruction,
+    Imm12OrCsr,
 };
 pub use crate::registers::{X1, X5};
 use crate::{
@@ -71,7 +72,7 @@ pub const fn jalr(rd: Register, rs1: Register, imm: Imm12) -> u32 {
         rd,
         Funct3::JALR,
         RegOrUimm5::Register(rs1),
-        imm,
+        Imm12OrCsr::Imm12(imm),
     )
 }
 
@@ -161,7 +162,13 @@ pub const fn bgeu(imm: BImm, rs1: Register, rs2: Register) -> u32 {
 #[must_use]
 #[inline]
 pub const fn lb(rd: Register, rs1: Register, imm: Imm12) -> u32 {
-    i_instruction(Opcode::LOAD, rd, Funct3::LB, RegOrUimm5::Register(rs1), imm)
+    i_instruction(
+        Opcode::LOAD,
+        rd,
+        Funct3::LB,
+        RegOrUimm5::Register(rs1),
+        Imm12OrCsr::Imm12(imm),
+    )
 }
 
 /// "Load Byte Unsigned" instruction copies a 8-bit from memory to the register `rd`, zero-extending
@@ -181,7 +188,7 @@ pub const fn lbu(rd: Register, rs1: Register, imm: Imm12) -> u32 {
         rd,
         Funct3::LBU,
         RegOrUimm5::Register(rs1),
-        imm,
+        Imm12OrCsr::Imm12(imm),
     )
 }
 
@@ -197,7 +204,13 @@ pub const fn lbu(rd: Register, rs1: Register, imm: Imm12) -> u32 {
 #[must_use]
 #[inline]
 pub const fn lh(rd: Register, rs1: Register, imm: Imm12) -> u32 {
-    i_instruction(Opcode::LOAD, rd, Funct3::LH, RegOrUimm5::Register(rs1), imm)
+    i_instruction(
+        Opcode::LOAD,
+        rd,
+        Funct3::LH,
+        RegOrUimm5::Register(rs1),
+        Imm12OrCsr::Imm12(imm),
+    )
 }
 
 /// "Load Half-word Unsigned" instruction copies a 16-bit value from memory to the register `rd`,
@@ -217,7 +230,7 @@ pub const fn lhu(rd: Register, rs1: Register, imm: Imm12) -> u32 {
         rd,
         Funct3::LHU,
         RegOrUimm5::Register(rs1),
-        imm,
+        Imm12OrCsr::Imm12(imm),
     )
 }
 
@@ -232,7 +245,13 @@ pub const fn lhu(rd: Register, rs1: Register, imm: Imm12) -> u32 {
 #[must_use]
 #[inline]
 pub const fn lw(rd: Register, rs1: Register, imm: Imm12) -> u32 {
-    i_instruction(Opcode::LOAD, rd, Funct3::LW, RegOrUimm5::Register(rs1), imm)
+    i_instruction(
+        Opcode::LOAD,
+        rd,
+        Funct3::LW,
+        RegOrUimm5::Register(rs1),
+        Imm12OrCsr::Imm12(imm),
+    )
 }
 
 /// "Store Byte" instruction copies a 8-bit value from the low bits of register `rs2` to memory. The
@@ -296,7 +315,7 @@ pub const fn addi(rd: Register, rs1: Register, imm: Imm12) -> u32 {
         rd,
         Funct3::ADDI,
         RegOrUimm5::Register(rs1),
-        imm,
+        Imm12OrCsr::Imm12(imm),
     )
 }
 
@@ -338,7 +357,7 @@ pub const fn slti(rd: Register, rs1: Register, imm: Imm12) -> u32 {
         rd,
         Funct3::SLTI,
         RegOrUimm5::Register(rs1),
-        imm,
+        Imm12OrCsr::Imm12(imm),
     )
 }
 
@@ -357,7 +376,7 @@ pub const fn sltiu(rd: Register, rs1: Register, imm: Imm12) -> u32 {
         rd,
         Funct3::SLTIU,
         RegOrUimm5::Register(rs1),
-        imm,
+        Imm12OrCsr::Imm12(imm),
     )
 }
 
@@ -387,7 +406,7 @@ pub const fn xori(rd: Register, rs1: Register, imm: Imm12) -> u32 {
         rd,
         Funct3::XORI,
         RegOrUimm5::Register(rs1),
-        imm,
+        Imm12OrCsr::Imm12(imm),
     )
 }
 
@@ -415,7 +434,7 @@ pub const fn ori(rd: Register, rs1: Register, imm: Imm12) -> u32 {
         rd,
         Funct3::ORI,
         RegOrUimm5::Register(rs1),
-        imm,
+        Imm12OrCsr::Imm12(imm),
     )
 }
 
@@ -431,7 +450,7 @@ pub const fn andi(rd: Register, rs1: Register, imm: Imm12) -> u32 {
         rd,
         Funct3::ANDI,
         RegOrUimm5::Register(rs1),
-        imm,
+        Imm12OrCsr::Imm12(imm),
     )
 }
 
@@ -728,7 +747,7 @@ const fn fence_instruction(fm: FenceMode, predecessor: FenceMask, successor: Fen
         X0,
         Funct3::FENCE,
         RegOrUimm5::Register(X0),
-        Imm12(imm as i16),
+        Imm12OrCsr::Imm12(Imm12(imm as i16)),
     )
 }
 
@@ -745,7 +764,7 @@ pub const fn ecall() -> u32 {
         X0,
         Funct3::PRIV,
         RegOrUimm5::Register(X0),
-        Imm12::ZERO,
+        Imm12OrCsr::Imm12(Imm12::ZERO),
     )
 }
 
@@ -773,6 +792,6 @@ pub const fn ebreak() -> u32 {
         X0,
         Funct3::PRIV,
         RegOrUimm5::Register(X0),
-        Imm12::ONE,
+        Imm12OrCsr::Imm12(Imm12::ONE),
     )
 }

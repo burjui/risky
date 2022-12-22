@@ -1,6 +1,7 @@
 //! Immediates used in various instructions
 
 pub mod bimm;
+pub mod csr;
 pub mod fence_mask;
 pub mod fence_mode;
 pub mod funct3;

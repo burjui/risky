@@ -1,8 +1,8 @@
 use crate::{
     bits::merge_bitfields,
     common::{
-        bimm::BImm, funct3::Funct3, funct7::Funct7, imm12::Imm12, jimm::JImm, opcode::Opcode,
-        reg_or_uimm5::RegOrUimm5,
+        bimm::BImm, csr::Csr, funct3::Funct3, funct7::Funct7, imm12::Imm12, jimm::JImm,
+        opcode::Opcode, reg_or_uimm5::RegOrUimm5,
     },
     registers::Register,
 };
@@ -25,12 +25,26 @@ pub(crate) const fn r_instruction(
     ])
 }
 
+pub(crate) enum Imm12OrCsr {
+    Imm12(Imm12),
+    Csr(Csr),
+}
+
+impl Imm12OrCsr {
+    const fn into_u32(self) -> u32 {
+        match self {
+            Imm12OrCsr::Imm12(imm) => imm.into_u32(),
+            Imm12OrCsr::Csr(csr) => csr.into_u32(),
+        }
+    }
+}
+
 pub(crate) const fn i_instruction(
     opcode: Opcode,
     rd: Register,
     funct3: Funct3,
     rs1: RegOrUimm5,
-    imm: Imm12,
+    imm: Imm12OrCsr,
 ) -> u32 {
     merge_bitfields(&[
         (0..7, opcode.into_u32(), 0..7),

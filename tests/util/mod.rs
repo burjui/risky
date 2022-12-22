@@ -2,14 +2,14 @@ use std::error::Error;
 
 use risky::{
     common::{
-        bimm::BImm, funct3::Funct3, funct7::Funct7, imm12::Imm12, jimm::JImm, opcode::Opcode,
-        reg_or_uimm5::RegOrUimm5, uimm5::Uimm5,
+        bimm::BImm, csr::Csr, funct3::Funct3, funct7::Funct7, imm12::Imm12, jimm::JImm,
+        opcode::Opcode, reg_or_uimm5::RegOrUimm5, uimm5::Uimm5,
     },
-    decode::{decode, DecodeError, Instruction, B, I, J, R, S, U},
+    decode::{decode, CsrImm, CsrReg, DecodeError, Instruction, B, I, J, R, S, U},
     registers::{Register, X1, X2, X29, X30, X31},
 };
 
-pub fn test_j(
+pub(crate) fn test_j(
     encode: impl Fn(Register, JImm) -> u32,
     variant: impl Fn(J) -> Instruction + Copy,
 ) -> Result<(), Box<dyn Error>> {
@@ -33,7 +33,7 @@ fn test_j_case(
     Ok(())
 }
 
-pub fn test_b(
+pub(crate) fn test_b(
     encode: impl Fn(BImm, Register, Register) -> u32,
     variant: impl Fn(B) -> Instruction + Copy,
     funct3: Funct3,
@@ -66,7 +66,7 @@ fn test_b_case(
     Ok(())
 }
 
-pub fn test_u(
+pub(crate) fn test_u(
     encode: impl Fn(Register, i32) -> u32,
     variant: impl Fn(U) -> Instruction + Copy,
     opcode: Opcode,
@@ -94,7 +94,7 @@ fn test_u_case(
     Ok(())
 }
 
-pub fn test_i(
+pub(crate) fn test_i(
     encode: impl Fn(Register, Register, Imm12) -> u32,
     variant: impl Fn(I) -> Instruction + Copy,
     opcode: Opcode,
@@ -124,7 +124,7 @@ pub fn test_i(
     Ok(())
 }
 
-pub fn test_i_reg(
+pub(crate) fn test_i_reg(
     instruction: u32,
     variant: impl Fn(I) -> Instruction,
     opcode: Opcode,
@@ -146,29 +146,7 @@ pub fn test_i_reg(
     Ok(())
 }
 
-pub fn test_i_imm(
-    instruction: u32,
-    variant: impl Fn(I) -> Instruction,
-    opcode: Opcode,
-    funct3: Funct3,
-    rd: Register,
-    rs1: Uimm5,
-    imm: Imm12,
-) -> Result<(), DecodeError> {
-    assert_eq!(
-        decode(instruction)?,
-        variant(I {
-            opcode,
-            rd,
-            rs1: RegOrUimm5::Uimm5(rs1),
-            imm,
-            funct3
-        })
-    );
-    Ok(())
-}
-
-pub fn test_s(
+pub(crate) fn test_s(
     encode: impl Fn(Register, Imm12, Register) -> u32,
     variant: impl Fn(S) -> Instruction + Copy,
     opcode: Opcode,
@@ -222,7 +200,7 @@ fn test_s_case(
     Ok(())
 }
 
-pub fn test_r_reg(
+pub(crate) fn test_r_reg(
     encode: impl Fn(Register, Register, Register) -> u32,
     variant: impl Fn(R) -> Instruction,
     opcode: Opcode,
@@ -233,7 +211,7 @@ pub fn test_r_reg(
 }
 
 #[allow(clippy::too_many_arguments)]
-pub fn test_r_reg_spec(
+pub(crate) fn test_r_reg_spec(
     encode: impl Fn(Register, Register, Register) -> u32,
     variant: impl Fn(R) -> Instruction,
     opcode: Opcode,
@@ -255,7 +233,7 @@ pub fn test_r_reg_spec(
     )
 }
 
-pub fn test_r_imm(
+pub(crate) fn test_r_imm(
     encode: impl Fn(Register, Register, Uimm5) -> u32,
     variant: impl Fn(R) -> Instruction,
     opcode: Opcode,
@@ -296,6 +274,31 @@ fn test_r(
             funct3,
             funct7
         })
+    );
+    Ok(())
+}
+
+pub(crate) fn test_csr_reg(
+    encode: impl FnOnce(Csr) -> u32,
+    variant: impl Fn(CsrReg) -> Instruction,
+    rd: Register,
+    rs1: Register,
+) -> Result<(), Box<dyn Error>> {
+    let csr = Csr::try_from(0xFFF)?;
+    assert_eq!(decode(encode(csr))?, variant(CsrReg { rd, rs1, csr }));
+    Ok(())
+}
+
+pub(crate) fn test_csr_imm(
+    encode: impl FnOnce(Uimm5, Csr) -> u32,
+    variant: impl Fn(CsrImm) -> Instruction,
+    rd: Register,
+) -> Result<(), Box<dyn Error>> {
+    let imm = Uimm5::try_from(0b11111)?;
+    let csr = Csr::try_from(0xFFF)?;
+    assert_eq!(
+        decode(encode(imm, csr))?,
+        variant(CsrImm { rd, rs1: imm, csr })
     );
     Ok(())
 }
