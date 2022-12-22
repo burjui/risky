@@ -157,12 +157,8 @@ const fn decode_system_call(instruction: u32, opcode: Opcode) -> Result<Instruct
 }
 
 #[test]
-fn invalid_opcode() {
+fn decode_edge_cases() -> Result<(), Box<dyn Error>> {
     assert_eq!(decode(0), Err(DecodeError::InvalidOpcode(0)));
-}
-
-#[test]
-fn invalid_funct3() {
     assert_eq!(
         decode(Opcode::BRANCH.into_u32() | (0b010 << 12)),
         Err(DecodeError::InvalidFunct3(0b010))
@@ -179,6 +175,30 @@ fn invalid_funct3() {
         decode(Opcode::OP_IMM.into_u32() | (Funct3::SRL.into_u32() << 12) | (0b111_1111 << 25)),
         Err(DecodeError::InvalidFunct7(0b111_1111))
     );
+    assert_eq!(
+        decode(Opcode::OP.into_u32() | (0b111 << 12) | (0b111_1111 << 25)),
+        Err(DecodeError::InvalidFunct3Funct7(
+            Funct3(0b111),
+            Funct7(0b111_1111)
+        ))
+    );
+    assert_eq!(
+        decode(Opcode::MISC_MEM.into_u32() | (0b1111 << 28)),
+        Err(DecodeError::InvalidFenceMode(0b1111))
+    );
+    assert_eq!(
+        decode(
+            Opcode::SYSTEM.into_u32()
+                | (Funct3::PRIV.into_u32() << 12)
+                | Imm12::try_from(0b111_1111_1111)?.into_u32() << 20
+        ),
+        Err(DecodeError::InvalidSystemCall(0b111_1111_1111))
+    );
+    assert_eq!(
+        decode(Opcode::SYSTEM.into_u32() | (0b100 << 12)),
+        Err(DecodeError::InvalidFunct3(0b100))
+    );
+    Ok(())
 }
 
 /// RISC-V instruction
@@ -567,8 +587,8 @@ fn decode_error_debug() {
         "InvalidFenceMode(0b1111)"
     );
     assert_eq!(
-        format!("{:?}", DecodeError::InvalidSystemCall(0b1111_1111_1111)),
-        "InvalidSystemCall(0b111111111111)"
+        format!("{:?}", DecodeError::InvalidSystemCall(0b111_1111_1111)),
+        "InvalidSystemCall(0b011111111111)"
     );
     assert_eq!(
         format!(
@@ -582,16 +602,16 @@ fn decode_error_debug() {
 impl Display for DecodeError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            DecodeError::InvalidOpcode(opcode) => write!(f, "invalid opcode: 0b{opcode:08b}"),
-            DecodeError::InvalidFunct3(funct3) => write!(f, "invalid funct3: 0b{funct3:08b}"),
-            DecodeError::InvalidFunct7(funct7) => write!(f, "invalid funct7: 0b{funct7:08b}"),
+            DecodeError::InvalidOpcode(opcode) => write!(f, "invalid opcode: 0b{opcode:07b}"),
+            DecodeError::InvalidFunct3(funct3) => write!(f, "invalid funct3: 0b{funct3:03b}"),
+            DecodeError::InvalidFunct7(funct7) => write!(f, "invalid funct7: 0b{funct7:07b}"),
             DecodeError::InvalidFenceMode(fence_mode) => {
-                write!(f, "invalid fence mode: 0b{fence_mode:08b}")
+                write!(f, "invalid fence mode: 0b{fence_mode:04b}")
             }
             DecodeError::InvalidSystemCall(call) => write!(f, "invalid system call: 0b{call:012b}"),
             DecodeError::InvalidFunct3Funct7(funct3, funct7) => write!(
                 f,
-                "invalid funct3 and funct7 combination: 0b{:08b}, 0b{:08b}",
+                "invalid funct3 and funct7 combination: 0b{:03b}, 0b{:07b}",
                 funct3.0, funct7.0
             ),
         }
@@ -601,28 +621,28 @@ impl Display for DecodeError {
 #[test]
 fn decode_error_display() {
     assert_eq!(
-        DecodeError::InvalidOpcode(0b1111_1111).to_string(),
-        "invalid opcode: 0b11111111"
+        DecodeError::InvalidOpcode(0b111_1111).to_string(),
+        "invalid opcode: 0b1111111"
     );
     assert_eq!(
-        DecodeError::InvalidFenceMode(0b1111_1111).to_string(),
-        "invalid fence mode: 0b11111111"
+        DecodeError::InvalidFenceMode(0b1111).to_string(),
+        "invalid fence mode: 0b1111"
     );
     assert_eq!(
-        DecodeError::InvalidFunct7(0b1111_1111).to_string(),
-        "invalid funct7: 0b11111111"
+        DecodeError::InvalidFunct3(0b111).to_string(),
+        "invalid funct3: 0b111"
     );
     assert_eq!(
-        DecodeError::InvalidFunct7(0b1111_1111).to_string(),
-        "invalid funct7: 0b11111111"
+        DecodeError::InvalidFunct7(0b111_1111).to_string(),
+        "invalid funct7: 0b1111111"
     );
     assert_eq!(
-        DecodeError::InvalidSystemCall(0b1111_1111_1111).to_string(),
-        "invalid system call: 0b111111111111"
+        DecodeError::InvalidSystemCall(0b111_1111_1111).to_string(),
+        "invalid system call: 0b011111111111"
     );
     assert_eq!(
-        DecodeError::InvalidFunct3Funct7(Funct3(0b1111_1111), Funct7(0b1111_1111)).to_string(),
-        "invalid funct3 and funct7 combination: 0b11111111, 0b11111111"
+        DecodeError::InvalidFunct3Funct7(Funct3(0b111), Funct7(0b111_1111)).to_string(),
+        "invalid funct3 and funct7 combination: 0b111, 0b1111111"
     );
 }
 
