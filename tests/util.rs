@@ -101,7 +101,7 @@ pub fn test_i(
     funct3: Funct3,
 ) -> Result<(), Box<dyn Error>> {
     let imm: Imm12 = (i16::MIN >> 4).try_into()?;
-    test_i_case(
+    test_i_reg(
         encode(X30, X31, imm),
         variant,
         opcode,
@@ -112,7 +112,7 @@ pub fn test_i(
     )?;
 
     let imm = (i16::MAX >> 4).try_into()?;
-    test_i_case(
+    test_i_reg(
         encode(X30, X31, imm),
         variant,
         opcode,
@@ -124,7 +124,7 @@ pub fn test_i(
     Ok(())
 }
 
-pub fn test_i_case(
+pub fn test_i_reg(
     instruction: u32,
     variant: impl Fn(I) -> Instruction,
     opcode: Opcode,
@@ -138,7 +138,29 @@ pub fn test_i_case(
         variant(I {
             opcode,
             rd,
-            rs1,
+            rs1: RegOrUimm5::Register(rs1),
+            imm,
+            funct3
+        })
+    );
+    Ok(())
+}
+
+pub fn test_i_imm(
+    instruction: u32,
+    variant: impl Fn(I) -> Instruction,
+    opcode: Opcode,
+    funct3: Funct3,
+    rd: Register,
+    rs1: Uimm5,
+    imm: Imm12,
+) -> Result<(), DecodeError> {
+    assert_eq!(
+        decode(instruction)?,
+        variant(I {
+            opcode,
+            rd,
+            rs1: RegOrUimm5::Uimm5(rs1),
             imm,
             funct3
         })

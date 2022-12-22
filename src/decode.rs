@@ -138,14 +138,21 @@ const fn decode_fence(instruction: u32) -> Result<Instruction, DecodeError> {
 
 const fn decode_system_call(instruction: u32, opcode: Opcode) -> Result<Instruction, DecodeError> {
     let i = I::decode(instruction, opcode);
-    if i.funct3.0 == Funct3::PRIV.0 {
-        match i.imm {
+    match i.funct3 {
+        Funct3::PRIV => match i.imm {
             Imm12::ZERO => Ok(Instruction::Ecall),
             Imm12::ONE => Ok(Instruction::Ebreak),
             _ => Err(DecodeError::InvalidSystemCall(i.imm.0)),
-        }
-    } else {
-        Err(DecodeError::InvalidFunct3(i.funct3.0))
+        },
+
+        Funct3::CSRRW => Ok(Instruction::Csrrw(i)),
+        Funct3::CSRRS => Ok(Instruction::Csrrs(i)),
+        Funct3::CSRRC => Ok(Instruction::Csrrc(i)),
+        Funct3::CSRRWI => Ok(Instruction::Csrrwi(i)),
+        Funct3::CSRRSI => Ok(Instruction::Csrrsi(i)),
+        Funct3::CSRRCI => Ok(Instruction::Csrrci(i)),
+
+        _ => Err(DecodeError::InvalidFunct3(i.funct3.0)),
     }
 }
 
@@ -177,7 +184,7 @@ fn invalid_funct3() {
 /// RISC-V instruction
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum Instruction {
-    ///
+    /// TODO: links to functions
     Lui(U),
     ///
     Auipc(U),
@@ -284,6 +291,18 @@ pub enum Instruction {
     Rem(R),
     ///
     Remu(R),
+    ///
+    Csrrw(I),
+    ///
+    Csrrs(I),
+    ///
+    Csrrc(I),
+    ///
+    Csrrwi(I),
+    ///
+    Csrrsi(I),
+    ///
+    Csrrci(I),
 }
 
 /// RISC-V U instruction format
@@ -343,7 +362,7 @@ pub struct I {
     /// Destination register
     pub rd: Register,
     /// Source register
-    pub rs1: Register,
+    pub rs1: RegOrUimm5,
     /// 12-bit signed immediate
     pub imm: Imm12,
     /// Function
@@ -355,8 +374,16 @@ impl I {
     const fn decode(instruction: u32, opcode: Opcode) -> Self {
         let rd = Register(bitfield::<7, 12>(instruction) as u8);
         let funct3 = Funct3(bitfield::<12, 15>(instruction) as u8);
-        let rs1 = Register(bitfield::<15, 20>(instruction) as u8);
         let imm = Imm12(((bitfield::<20, 32>(instruction) << 20) as i32 >> 20) as i16);
+
+        let rs1 = bitfield::<15, 20>(instruction) as u8;
+        let rs1 = match (opcode, funct3) {
+            (Opcode::SYSTEM, Funct3::CSRRWI | Funct3::CSRRSI | Funct3::CSRRCI) => {
+                RegOrUimm5::Uimm5(Uimm5(rs1))
+            }
+            _ => RegOrUimm5::Register(Register(rs1)),
+        };
+
         Self {
             opcode,
             rd,

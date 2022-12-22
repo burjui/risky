@@ -3,7 +3,10 @@ mod util;
 use std::error::Error;
 
 use risky::{
-    common::{fence_mask::FenceMask, funct3::Funct3, funct7::Funct7, imm12::Imm12, opcode::Opcode},
+    common::{
+        fence_mask::FenceMask, funct3::Funct3, funct7::Funct7, imm12::Imm12, opcode::Opcode,
+        uimm5::Uimm5,
+    },
     decode::{decode, DecodeError, Instruction},
     instructions::{
         m_ext::{div, divu, mul, mulh, mulhsu, mulhu, rem, remu},
@@ -12,11 +15,13 @@ use risky::{
             fence_tso, jal, jalr, lb, lbu, lh, lhu, lui, lw, mv, nop, not, or, ori, sb, seqz, sh,
             sll, slli, slt, slti, sltiu, sltu, snez, sra, srai, srl, srli, sub, sw, xor, xori,
         },
+        zicsr_ext::{csrc, csrci, csrr, csrrc, csrrci, csrrs, csrrsi, csrrw, csrrwi, csrs, csrsi},
     },
     registers::{X0, X30, X31},
 };
 use util::{
-    test_b, test_i, test_i_case, test_j, test_r_imm, test_r_reg, test_r_reg_spec, test_s, test_u,
+    test_b, test_i, test_i_imm, test_i_reg, test_j, test_r_imm, test_r_reg, test_r_reg_spec,
+    test_s, test_u,
 };
 
 #[test]
@@ -116,7 +121,7 @@ fn _addi() -> Result<(), Box<dyn Error>> {
 
 #[test]
 fn _mv() -> Result<(), DecodeError> {
-    test_i_case(
+    test_i_reg(
         mv(X30, X31),
         Instruction::Addi,
         Opcode::OP_IMM,
@@ -129,7 +134,7 @@ fn _mv() -> Result<(), DecodeError> {
 
 #[test]
 fn _nop() -> Result<(), DecodeError> {
-    test_i_case(
+    test_i_reg(
         nop(),
         Instruction::Addi,
         Opcode::OP_IMM,
@@ -152,7 +157,7 @@ fn _sltiu() -> Result<(), Box<dyn Error>> {
 
 #[test]
 fn _seqz() -> Result<(), Box<dyn Error>> {
-    test_i_case(
+    test_i_reg(
         seqz(X30, X31),
         Instruction::Sltiu,
         Opcode::OP_IMM,
@@ -171,7 +176,7 @@ fn _xori() -> Result<(), Box<dyn Error>> {
 
 #[test]
 fn _not() -> Result<(), Box<dyn Error>> {
-    test_i_case(
+    test_i_reg(
         not(X30, X31),
         Instruction::Xori,
         Opcode::OP_IMM,
@@ -413,4 +418,144 @@ fn _remu() -> Result<(), Box<dyn Error>> {
         Funct3::REMU,
         Funct7::MULDIV,
     )
+}
+
+#[test]
+fn _csrrw() -> Result<(), Box<dyn Error>> {
+    test_i(csrrw, Instruction::Csrrw, Opcode::SYSTEM, Funct3::CSRRW)
+}
+
+#[test]
+fn _csrrs() -> Result<(), Box<dyn Error>> {
+    test_i(csrrs, Instruction::Csrrs, Opcode::SYSTEM, Funct3::CSRRS)
+}
+
+#[test]
+fn _csrr() -> Result<(), Box<dyn Error>> {
+    let csr = Imm12::try_from(0xFFF >> 1)?;
+    test_i_reg(
+        csrr(X31, csr),
+        Instruction::Csrrs,
+        Opcode::SYSTEM,
+        Funct3::CSRRS,
+        X31,
+        X0,
+        csr,
+    )?;
+    Ok(())
+}
+
+#[test]
+fn _csrs() -> Result<(), Box<dyn Error>> {
+    let csr = Imm12::try_from(0xFFF >> 1)?;
+    test_i_reg(
+        csrs(X31, csr),
+        Instruction::Csrrs,
+        Opcode::SYSTEM,
+        Funct3::CSRRS,
+        X0,
+        X31,
+        csr,
+    )?;
+    Ok(())
+}
+
+#[test]
+fn _csrrc() -> Result<(), Box<dyn Error>> {
+    test_i(csrrc, Instruction::Csrrc, Opcode::SYSTEM, Funct3::CSRRC)
+}
+
+#[test]
+fn _csrc() -> Result<(), Box<dyn Error>> {
+    let csr = Imm12::try_from(0xFFF >> 1)?;
+    test_i_reg(
+        csrc(X31, csr),
+        Instruction::Csrrc,
+        Opcode::SYSTEM,
+        Funct3::CSRRC,
+        X0,
+        X31,
+        csr,
+    )?;
+    Ok(())
+}
+
+#[test]
+fn _csrrwi() -> Result<(), Box<dyn Error>> {
+    let uimm = Uimm5::try_from(0b11111)?;
+    let csr = Imm12::try_from(0xFFF >> 1)?;
+    test_i_imm(
+        csrrwi(X31, uimm, csr),
+        Instruction::Csrrwi,
+        Opcode::SYSTEM,
+        Funct3::CSRRWI,
+        X31,
+        uimm,
+        csr,
+    )?;
+    Ok(())
+}
+
+#[test]
+fn _csrrsi() -> Result<(), Box<dyn Error>> {
+    let uimm = Uimm5::try_from(0b11111)?;
+    let csr = Imm12::try_from(0xFFF >> 1)?;
+    test_i_imm(
+        csrrsi(X31, uimm, csr),
+        Instruction::Csrrsi,
+        Opcode::SYSTEM,
+        Funct3::CSRRSI,
+        X31,
+        uimm,
+        csr,
+    )?;
+    Ok(())
+}
+
+#[test]
+fn _csrsi() -> Result<(), Box<dyn Error>> {
+    let uimm = Uimm5::try_from(0b11111)?;
+    let csr = Imm12::try_from(0xFFF >> 1)?;
+    test_i_imm(
+        csrsi(uimm, csr),
+        Instruction::Csrrsi,
+        Opcode::SYSTEM,
+        Funct3::CSRRSI,
+        X0,
+        uimm,
+        csr,
+    )?;
+    Ok(())
+}
+
+#[test]
+fn _csrrci() -> Result<(), Box<dyn Error>> {
+    let uimm = Uimm5::try_from(0b11111)?;
+    let csr = Imm12::try_from(0xFFF >> 1)?;
+    test_i_imm(
+        csrrci(X31, uimm, csr),
+        Instruction::Csrrci,
+        Opcode::SYSTEM,
+        Funct3::CSRRCI,
+        X31,
+        uimm,
+        csr,
+    )?;
+    Ok(())
+}
+
+#[test]
+fn _csrci() -> Result<(), Box<dyn Error>> {
+    let uimm = Uimm5::try_from(0b11111)?;
+    let csr = Imm12::try_from(0xFFF >> 1)?;
+    test_i_imm(
+        csrci(uimm, csr),
+        Instruction::Csrrci,
+        Opcode::SYSTEM,
+        Funct3::CSRRCI,
+        X0,
+        uimm,
+        csr,
+    )?;
+    Ok(())
 }
