@@ -161,7 +161,7 @@ fn const_constructors() {
 
 #[test]
 fn into_u32() {
-    assert_eq!(Imm12(-2048).into_u32(), 0xFFFFF800);
+    assert_eq!(Imm12(-2048).into_u32(), 0xFFFF_F800);
 }
 
 impl Display for Imm12 {

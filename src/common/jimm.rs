@@ -147,7 +147,7 @@ fn const_constructors() {
 
 #[test]
 fn into_u32() {
-    assert_eq!(JImm(-1048576).into_u32(), 0xFFF00000);
+    assert_eq!(JImm(-1_048_576).into_u32(), 0xFFF0_0000);
 }
 
 impl Display for JImm {

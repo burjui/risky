@@ -44,7 +44,7 @@ pub(crate) const fn merge_bitfields<const N: usize>(
 #[test]
 fn merge_bitfields_algorithm() {
     assert_eq!(
-        merge_bitfields(&[(3..5, 0b11, 0..2), (7..10, 0b0100000, 4..7)]),
+        merge_bitfields(&[(3..5, 0b11, 0..2), (7..10, 0b010_0000, 4..7)]),
         0b01_0001_1000
     );
 }

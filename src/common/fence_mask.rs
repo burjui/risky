@@ -114,21 +114,6 @@ fn into_u32() {
     assert_eq!(FenceMask::RW.into_u32(), 0b0011);
 }
 
-#[test]
-fn derived_impls() {
-    // Clone, Copy
-    #[allow(clippy::clone_on_copy)]
-    let rw = FenceMask::RW.clone();
-
-    fn _dummy(_: impl Eq) {}
-    _dummy(FenceMask::RW);
-
-    // Hash
-    use std::collections::hash_map::DefaultHasher;
-    let mut hasher = DefaultHasher::new();
-    rw.hash(&mut hasher);
-}
-
 impl Debug for FenceMask {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "FenceMask(0b{:08b})", self.0)
@@ -147,10 +132,9 @@ impl Display for FenceMask {
 }
 
 #[test]
-fn display() -> Result<(), FenceMaskConvError> {
+fn display() {
     assert_eq!(FenceMask(0).to_string(), "");
     assert_eq!(FenceMask(0b1111).to_string(), FenceMask::BIT_CHARS);
-    Ok(())
 }
 
 impl TryFrom<u8> for FenceMask {

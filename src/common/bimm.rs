@@ -159,7 +159,7 @@ fn const_constructors() {
 
 #[test]
 fn into_u32() {
-    assert_eq!(BImm(-4096).into_u32(), 0xFFFFF000);
+    assert_eq!(BImm(-4096).into_u32(), 0xFFFF_F000);
 }
 
 impl Display for BImm {
