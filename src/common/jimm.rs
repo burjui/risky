@@ -352,12 +352,6 @@ impl Display for JImmConvError {
     }
 }
 
-// Satisfy grcov
-#[test]
-fn conv_error_debug() {
-    format!("{:?}", JImmConvError::I32(0));
-}
-
 #[test]
 fn conv_error_impl_display() {
     assert_eq!(

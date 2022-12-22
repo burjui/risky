@@ -135,12 +135,6 @@ impl Debug for FenceMask {
     }
 }
 
-// Satisfy grcov
-#[test]
-fn debug() {
-    format!("{:?}", FenceMask::RW);
-}
-
 impl Display for FenceMask {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         for (i, c) in Self::BIT_CHARS.char_indices() {
@@ -335,12 +329,6 @@ pub enum FenceMaskConvError {
     U64(u64),
 }
 
-// Satisfy grcov
-#[test]
-fn conv_error_impl_debug() {
-    format!("{:?}", FenceMaskConvError::U8(0));
-}
-
 impl Display for FenceMaskConvError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "invalid {}-bit unsigned immediate: ", FenceMask::NBITS)?;
@@ -419,12 +407,6 @@ impl<'a> FenceMaskParseError<'a> {
     }
 }
 
-// Satisfy grcov
-#[test]
-fn parse_error_impl_debug() {
-    format!("{:?}", FenceMaskParseError::duplicate("x", 'x'));
-}
-
 impl Display for FenceMaskParseError<'_> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(
@@ -459,12 +441,6 @@ fn parse_error_impl_error() -> Result<(), Box<dyn Error>> {
 enum FenceMaskFlagErrorKind {
     Invalid,
     Duplicate,
-}
-
-// Satisfy grcov
-#[test]
-fn error_kind_debug() {
-    format!("{:?}", FenceMaskFlagErrorKind::Invalid);
 }
 
 impl Display for FenceMaskFlagErrorKind {

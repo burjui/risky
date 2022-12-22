@@ -385,12 +385,6 @@ pub enum Uimm5ConvError {
     Isize(isize),
 }
 
-// Satisfy grcov
-#[test]
-fn conv_error_impl_debug() {
-    format!("{:?}", Uimm5ConvError::U8(32));
-}
-
 impl Display for Uimm5ConvError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "invalid {}-bit unsigned immediate: ", Uimm5::NBITS)?;

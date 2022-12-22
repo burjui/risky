@@ -426,7 +426,7 @@ pub struct I {
     /// Destination register
     pub rd: Register,
     /// Source register
-    pub rs1: RegOrUimm5,
+    pub rs1: Register,
     /// 12-bit signed immediate
     pub imm: Imm12,
     /// Function
@@ -436,20 +436,12 @@ pub struct I {
 impl I {
     #[allow(clippy::cast_possible_truncation, clippy::cast_possible_wrap)]
     const fn decode(instruction: u32, opcode: Opcode) -> Self {
-        let funct3 = funct3(instruction);
-        let rs1 = match (opcode, funct3) {
-            (Opcode::SYSTEM, Funct3::CSRRWI | Funct3::CSRRSI | Funct3::CSRRCI) => {
-                RegOrUimm5::Uimm5(rs1_uimm5(instruction))
-            }
-            _ => RegOrUimm5::Register(rs1_reg(instruction)),
-        };
-
         Self {
             opcode,
             rd: rd(instruction),
-            rs1,
+            rs1: rs1_reg(instruction),
             imm: i_imm12(instruction),
-            funct3,
+            funct3: funct3(instruction),
         }
     }
 }

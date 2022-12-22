@@ -19,7 +19,7 @@ pub struct Csr(pub(crate) u16);
 impl Csr {
     const NBITS: usize = 12;
 
-    /// Creates an `Csr` from an [u8] constant
+    /// Creates a `Csr` from an [u8] constant
     #[must_use]
     pub const fn from_u8<const VALUE: u8>() -> Self {
         Self(VALUE as u16)
@@ -27,7 +27,7 @@ impl Csr {
 
     #[doc = include_str!("../../doc/nightly_warning.html")]
     ///
-    /// Creates an `Csr` from an [u16] constant
+    /// Creates a `Csr` from an [u16] constant
     #[cfg(feature = "nightly")]
     #[must_use]
     pub const fn from_u16<const VALUE: u16>() -> Self
@@ -39,7 +39,7 @@ impl Csr {
 
     #[doc = include_str!("../../doc/nightly_warning.html")]
     ///
-    /// Creates an `Csr` from an [u32] constant
+    /// Creates a `Csr` from an [u32] constant
     #[cfg(feature = "nightly")]
     #[must_use]
     pub const fn from_u32<const VALUE: u32>() -> Self
@@ -51,7 +51,7 @@ impl Csr {
 
     #[doc = include_str!("../../doc/nightly_warning.html")]
     ///
-    /// Creates an `Csr` from an [u64] constant
+    /// Creates a `Csr` from an [u64] constant
     #[cfg(feature = "nightly")]
     #[must_use]
     pub const fn from_u64<const VALUE: u64>() -> Self
@@ -63,7 +63,7 @@ impl Csr {
 
     #[doc = include_str!("../../doc/nightly_warning.html")]
     ///
-    /// Creates an `Csr` from an [usize] constant
+    /// Creates a `Csr` from an [usize] constant
     #[cfg(feature = "nightly")]
     #[must_use]
     pub const fn from_usize<const VALUE: usize>() -> Self
@@ -75,7 +75,7 @@ impl Csr {
 
     #[doc = include_str!("../../doc/nightly_warning.html")]
     ///
-    /// Creates an `Csr` from an [i8] constant
+    /// Creates a `Csr` from an [i8] constant
     #[cfg(feature = "nightly")]
     #[must_use]
     pub const fn from_i8<const VALUE: i8>() -> Self
@@ -87,7 +87,7 @@ impl Csr {
 
     #[doc = include_str!("../../doc/nightly_warning.html")]
     ///
-    /// Creates an `Csr` from an [i16] constant
+    /// Creates a `Csr` from an [i16] constant
     #[cfg(feature = "nightly")]
     #[must_use]
     pub const fn from_i16<const VALUE: i16>() -> Self
@@ -99,7 +99,7 @@ impl Csr {
 
     #[doc = include_str!("../../doc/nightly_warning.html")]
     ///
-    /// Creates an `Csr` from an [i32] constant
+    /// Creates a `Csr` from an [i32] constant
     #[cfg(feature = "nightly")]
     #[must_use]
     pub const fn from_i32<const VALUE: i32>() -> Self
@@ -111,7 +111,7 @@ impl Csr {
 
     #[doc = include_str!("../../doc/nightly_warning.html")]
     ///
-    /// Creates an `Csr` from an [i64] constant
+    /// Creates a `Csr` from an [i64] constant
     #[cfg(feature = "nightly")]
     #[must_use]
     pub const fn from_i64<const VALUE: i64>() -> Self
@@ -123,7 +123,7 @@ impl Csr {
 
     #[doc = include_str!("../../doc/nightly_warning.html")]
     ///
-    /// Creates an `Csr` from an [isize] constant
+    /// Creates a `Csr` from an [isize] constant
     #[cfg(feature = "nightly")]
     #[must_use]
     pub const fn from_isize<const VALUE: isize>() -> Self
@@ -358,12 +358,6 @@ pub enum CsrConvError {
     I64(i64),
     ///
     Isize(isize),
-}
-
-// Satisfy grcov
-#[test]
-fn conv_error_impl_debug() {
-    format!("{:?}", CsrConvError::U8(32));
 }
 
 impl Display for CsrConvError {

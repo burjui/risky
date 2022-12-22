@@ -18,7 +18,7 @@ use risky::{
     registers::{X0, X30, X31},
 };
 use util::{
-    test_b, test_csr_imm, test_csr_reg, test_i, test_i_reg, test_j, test_r_imm, test_r_reg,
+    test_b, test_csr_imm, test_csr_reg, test_i, test_i_case, test_j, test_r_imm, test_r_reg,
     test_r_reg_spec, test_s, test_u,
 };
 
@@ -119,7 +119,7 @@ fn _addi() -> Result<(), Box<dyn Error>> {
 
 #[test]
 fn _mv() -> Result<(), DecodeError> {
-    test_i_reg(
+    test_i_case(
         mv(X30, X31),
         Instruction::Addi,
         Opcode::OP_IMM,
@@ -132,7 +132,7 @@ fn _mv() -> Result<(), DecodeError> {
 
 #[test]
 fn _nop() -> Result<(), DecodeError> {
-    test_i_reg(
+    test_i_case(
         nop(),
         Instruction::Addi,
         Opcode::OP_IMM,
@@ -155,7 +155,7 @@ fn _sltiu() -> Result<(), Box<dyn Error>> {
 
 #[test]
 fn _seqz() -> Result<(), Box<dyn Error>> {
-    test_i_reg(
+    test_i_case(
         seqz(X30, X31),
         Instruction::Sltiu,
         Opcode::OP_IMM,
@@ -174,7 +174,7 @@ fn _xori() -> Result<(), Box<dyn Error>> {
 
 #[test]
 fn _not() -> Result<(), Box<dyn Error>> {
-    test_i_reg(
+    test_i_case(
         not(X30, X31),
         Instruction::Xori,
         Opcode::OP_IMM,

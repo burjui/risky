@@ -101,7 +101,7 @@ pub(crate) fn test_i(
     funct3: Funct3,
 ) -> Result<(), Box<dyn Error>> {
     let imm: Imm12 = (i16::MIN >> 4).try_into()?;
-    test_i_reg(
+    test_i_case(
         encode(X30, X31, imm),
         variant,
         opcode,
@@ -112,7 +112,7 @@ pub(crate) fn test_i(
     )?;
 
     let imm = (i16::MAX >> 4).try_into()?;
-    test_i_reg(
+    test_i_case(
         encode(X30, X31, imm),
         variant,
         opcode,
@@ -124,7 +124,7 @@ pub(crate) fn test_i(
     Ok(())
 }
 
-pub(crate) fn test_i_reg(
+pub(crate) fn test_i_case(
     instruction: u32,
     variant: impl Fn(I) -> Instruction,
     opcode: Opcode,
@@ -138,7 +138,7 @@ pub(crate) fn test_i_reg(
         variant(I {
             opcode,
             rd,
-            rs1: RegOrUimm5::Register(rs1),
+            rs1,
             imm,
             funct3
         })

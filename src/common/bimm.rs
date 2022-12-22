@@ -406,12 +406,6 @@ pub enum BImmConvError {
     Usize(usize),
 }
 
-// Satisfy grcov
-#[test]
-fn conv_error_impl_debug() {
-    format!("{:?}", BImmConvError::I16(0));
-}
-
 impl Display for BImmConvError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "invalid {}-bit signed immediate: ", BImm::NBITS)?;
