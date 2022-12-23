@@ -9,7 +9,14 @@ use crate::{
         decode_bimm, decode_csr, decode_i_imm12, decode_jimm, decode_rd, decode_rs1_imm,
         decode_rs1_reg, decode_rs2_reg, decode_s_imm12, decode_shamt,
     },
+    m_ext::{div, divu, mul, mulh, mulhsu, mulhu, rem, remu},
     registers::Register,
+    rv32i::{
+        add, addi, and, andi, auipc, beq, bge, bgeu, blt, bltu, bne, ebreak, ecall, fence,
+        fence_tso, jal, jalr, lb, lbu, lh, lhu, lui, lw, or, ori, sb, sh, sll, slli, slt, slti,
+        sltiu, sltu, sra, srai, srl, srli, sub, sw, xor, xori,
+    },
+    zicsr_ext::{csrrc, csrrci, csrrs, csrrsi, csrrw, csrrwi},
 };
 
 /// RISC-V instruction
@@ -199,6 +206,70 @@ impl Display for Instruction {
             Instruction::Csrrwi(c) => write!(f, "csrrwi {c}"),
             Instruction::Csrrsi(c) => write!(f, "csrrsi {c}"),
             Instruction::Csrrci(c) => write!(f, "csrrci {c}"),
+        }
+    }
+}
+
+impl Instruction {
+    /// Encode the instruction
+    #[must_use]
+    pub const fn encode(self) -> u32 {
+        match self {
+            Instruction::Lui(u) => lui(u.rd, u.imm),
+            Instruction::Auipc(u) => auipc(u.rd, u.imm),
+            Instruction::Jal(j) => jal(j.rd, j.imm),
+            Instruction::Jalr(i) => jalr(i.rd, i.rs1, i.imm),
+            Instruction::Beq(b) => beq(b.imm, b.rs1, b.rs2),
+            Instruction::Bne(b) => bne(b.imm, b.rs1, b.rs2),
+            Instruction::Blt(b) => blt(b.imm, b.rs1, b.rs2),
+            Instruction::Bltu(b) => bltu(b.imm, b.rs1, b.rs2),
+            Instruction::Bge(b) => bge(b.imm, b.rs1, b.rs2),
+            Instruction::Bgeu(b) => bgeu(b.imm, b.rs1, b.rs2),
+            Instruction::Lb(i) => lb(i.rd, i.rs1, i.imm),
+            Instruction::Lbu(i) => lbu(i.rd, i.rs1, i.imm),
+            Instruction::Lh(i) => lh(i.rd, i.rs1, i.imm),
+            Instruction::Lhu(i) => lhu(i.rd, i.rs1, i.imm),
+            Instruction::Lw(i) => lw(i.rd, i.rs1, i.imm),
+            Instruction::Sb(s) => sb(s.rs1, s.imm, s.rs2),
+            Instruction::Sh(s) => sh(s.rs1, s.imm, s.rs2),
+            Instruction::Sw(s) => sw(s.rs1, s.imm, s.rs2),
+            Instruction::Addi(i) => addi(i.rd, i.rs1, i.imm),
+            Instruction::Slti(i) => slti(i.rd, i.rs1, i.imm),
+            Instruction::Sltiu(i) => sltiu(i.rd, i.rs1, i.imm),
+            Instruction::Xori(i) => xori(i.rd, i.rs1, i.imm),
+            Instruction::Ori(i) => ori(i.rd, i.rs1, i.imm),
+            Instruction::Andi(i) => andi(i.rd, i.rs1, i.imm),
+            Instruction::Slli(i) => slli(i.rd, i.rs1, i.shamt),
+            Instruction::Srli(i) => srli(i.rd, i.rs1, i.shamt),
+            Instruction::Srai(i) => srai(i.rd, i.rs1, i.shamt),
+            Instruction::Add(r) => add(r.rd, r.rs1, r.rs2),
+            Instruction::Sub(r) => sub(r.rd, r.rs1, r.rs2),
+            Instruction::Sll(r) => sll(r.rd, r.rs1, r.rs2),
+            Instruction::Srl(r) => srl(r.rd, r.rs1, r.rs2),
+            Instruction::Sra(r) => sra(r.rd, r.rs1, r.rs2),
+            Instruction::Slt(r) => slt(r.rd, r.rs1, r.rs2),
+            Instruction::Sltu(r) => sltu(r.rd, r.rs1, r.rs2),
+            Instruction::Xor(r) => xor(r.rd, r.rs1, r.rs2),
+            Instruction::Or(r) => or(r.rd, r.rs1, r.rs2),
+            Instruction::And(r) => and(r.rd, r.rs1, r.rs2),
+            Instruction::Fence { pred, succ } => fence(pred, succ),
+            Instruction::FenceTso => fence_tso(),
+            Instruction::Ecall => ecall(),
+            Instruction::Ebreak => ebreak(),
+            Instruction::Mul(r) => mul(r.rd, r.rs1, r.rs2),
+            Instruction::Mulh(r) => mulh(r.rd, r.rs1, r.rs2),
+            Instruction::Mulhsu(r) => mulhsu(r.rd, r.rs1, r.rs2),
+            Instruction::Mulhu(r) => mulhu(r.rd, r.rs1, r.rs2),
+            Instruction::Div(r) => div(r.rd, r.rs1, r.rs2),
+            Instruction::Divu(r) => divu(r.rd, r.rs1, r.rs2),
+            Instruction::Rem(r) => rem(r.rd, r.rs1, r.rs2),
+            Instruction::Remu(r) => remu(r.rd, r.rs1, r.rs2),
+            Instruction::Csrrw(c) => csrrw(c.rd, c.rs1, c.csr),
+            Instruction::Csrrs(c) => csrrs(c.rd, c.rs1, c.csr),
+            Instruction::Csrrc(c) => csrrc(c.rd, c.rs1, c.csr),
+            Instruction::Csrrwi(c) => csrrwi(c.rd, c.rs1, c.csr),
+            Instruction::Csrrsi(c) => csrrsi(c.rd, c.rs1, c.csr),
+            Instruction::Csrrci(c) => csrrci(c.rd, c.rs1, c.csr),
         }
     }
 }

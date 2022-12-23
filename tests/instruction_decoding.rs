@@ -7,14 +7,10 @@ use risky::{
     common::{fence_mask::FenceMask, imm12::Imm12},
     decoding::{decode, DecodeError},
     instruction::Instruction,
-    m_ext::{div, divu, mul, mulh, mulhsu, mulhu, rem, remu},
+    m_ext::*,
     registers::{X0, X30, X31},
-    rv32i::{
-        add, addi, and, andi, auipc, beq, bge, bgeu, blt, bltu, bne, ebreak, ecall, fence,
-        fence_tso, jal, jalr, lb, lbu, lh, lhu, lui, lw, mv, nop, not, or, ori, sb, seqz, sh, sll,
-        slli, slt, slti, sltiu, sltu, snez, sra, srai, srl, srli, sub, sw, xor, xori,
-    },
-    zicsr_ext::{csrc, csrci, csrr, csrrc, csrrci, csrrs, csrrsi, csrrw, csrrwi, csrs, csrsi},
+    rv32i::*,
+    zicsr_ext::*,
 };
 use util::{
     test_b, test_csr_imm, test_csr_reg, test_i, test_i_case, test_j, test_r_imm, test_r_reg,
