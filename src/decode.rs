@@ -192,81 +192,81 @@ fn decode_edge_cases() -> Result<(), Box<dyn Error>> {
 /// RISC-V instruction
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum Instruction {
-    ///
+    /// [`lui`](crate::instructions::rv32i::lui)
     Lui(U),
-    ///
+    /// [`auipc`](crate::instructions::rv32i::auipc)
     Auipc(U),
-    ///
+    /// [`jal`](crate::instructions::rv32i::jal)
     Jal(J),
-    ///
+    /// [`jalr`](crate::instructions::rv32i::jalr)
     Jalr(I),
-    ///
+    /// [`beq`](crate::instructions::rv32i::beq)
     Beq(B),
-    ///
+    /// [`bne`](crate::instructions::rv32i::bne)
     Bne(B),
-    ///
+    /// [`blt`](crate::instructions::rv32i::blt)
     Blt(B),
-    ///
+    /// [`bltu`](crate::instructions::rv32i::bltu)
     Bltu(B),
-    ///
+    /// [`bge`](crate::instructions::rv32i::bge)
     Bge(B),
-    ///
+    /// [`bgeu`](crate::instructions::rv32i::bgeu)
     Bgeu(B),
-    ///
+    /// [`lb`](crate::instructions::rv32i::lb)
     Lb(I),
-    ///
+    /// [`lbu`](crate::instructions::rv32i::lbu)
     Lbu(I),
-    ///
+    /// [`lh`](crate::instructions::rv32i::lh)
     Lh(I),
-    ///
+    /// [`lhu`](crate::instructions::rv32i::lhu)
     Lhu(I),
-    ///
+    /// [`lw`](crate::instructions::rv32i::lw)
     Lw(I),
-    ///
+    /// [`sb`](crate::instructions::rv32i::sb)
     Sb(S),
-    ///
+    /// [`sh`](crate::instructions::rv32i::sh)
     Sh(S),
-    ///
+    /// [`sw`](crate::instructions::rv32i::sw)
     Sw(S),
-    ///
+    /// [`addi`](crate::instructions::rv32i::addi)
     Addi(I),
-    ///
+    /// [`slti`](crate::instructions::rv32i::slti)
     Slti(I),
-    ///
+    /// [`sltiu`](crate::instructions::rv32i::sltiu)
     Sltiu(I),
-    ///
+    /// [`xori`](crate::instructions::rv32i::xori)
     Xori(I),
-    ///
+    /// [`ori`](crate::instructions::rv32i::ori)
     Ori(I),
-    ///
+    /// [`andi`](crate::instructions::rv32i::andi)
     Andi(I),
-    ///
+    /// [`slli`](crate::instructions::rv32i::slli)
     Slli(IShift),
-    ///
+    /// [`srli`](crate::instructions::rv32i::srli)
     Srli(IShift),
-    ///
+    /// [`srai`](crate::instructions::rv32i::srai)
     Srai(IShift),
-    ///
+    /// [`add`](crate::instructions::rv32i::add)
     Add(R),
-    ///
+    /// [`sub`](crate::instructions::rv32i::sub)
     Sub(R),
-    ///
+    /// [`sll`](crate::instructions::rv32i::sll)
     Sll(R),
-    ///
+    /// [`srl`](crate::instructions::rv32i::srl)
     Srl(R),
-    ///
+    /// [`sra`](crate::instructions::rv32i::sra)
     Sra(R),
-    ///
+    /// [`slt`](crate::instructions::rv32i::slt)
     Slt(R),
-    ///
+    /// [`sltu`](crate::instructions::rv32i::sltu)
     Sltu(R),
-    ///
+    /// [`xor`](crate::instructions::rv32i::xor)
     Xor(R),
-    ///
+    /// [`or`](crate::instructions::rv32i::or)
     Or(R),
-    ///
+    /// [`and`](crate::instructions::rv32i::and)
     And(R),
-    ///
+    /// [`fence`](crate::instructions::rv32i::fence)
     Fence {
         /// Predecessor set
         ///
@@ -277,39 +277,39 @@ pub enum Instruction {
         /// Refer to [`fence`](crate::instructions::rv32i::fence) instruction documentation for details
         succ: FenceMask,
     },
-    ///
+    /// [`fence_tso`](crate::instructions::rv32i::fence_tso)
     FenceTso,
-    ///
+    /// [`ecall`](crate::instructions::rv32i::ecall)
     Ecall,
-    ///
+    /// [`ebreak`](crate::instructions::rv32i::ebreak)
     Ebreak,
-    ///
+    /// [`mul`](crate::instructions::m_ext::mul)
     Mul(R),
-    ///
+    /// [`mulh`](crate::instructions::m_ext::mulh)
     Mulh(R),
-    ///
+    /// [`mulhsu`](crate::instructions::m_ext::mulhsu)
     Mulhsu(R),
-    ///
+    /// [`mulhu`](crate::instructions::m_ext::mulhu)
     Mulhu(R),
-    ///
+    /// [`div`](crate::instructions::m_ext::div)
     Div(R),
-    ///
+    /// [`divu`](crate::instructions::m_ext::divu)
     Divu(R),
-    ///
+    /// [`rem`](crate::instructions::m_ext::rem)
     Rem(R),
-    ///
+    /// [`remu`](crate::instructions::m_ext::remu)
     Remu(R),
-    ///
+    /// [`csrrw`](crate::instructions::zicsr_ext::csrrw)
     Csrrw(CsrReg),
-    ///
+    /// [`csrrs`](crate::instructions::zicsr_ext::csrrs)
     Csrrs(CsrReg),
-    ///
+    /// [`csrrc`](crate::instructions::zicsr_ext::csrrc)
     Csrrc(CsrReg),
-    ///
+    /// [`csrrwi`](crate::instructions::zicsr_ext::csrrwi)
     Csrrwi(CsrImm),
-    ///
+    /// [`csrrsi`](crate::instructions::zicsr_ext::csrrsi)
     Csrrsi(CsrImm),
-    ///
+    /// [`csrrci`](crate::instructions::zicsr_ext::csrrci)
     Csrrci(CsrImm),
 }
 
