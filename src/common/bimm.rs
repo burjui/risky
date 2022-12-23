@@ -19,6 +19,11 @@ pub struct BImm(pub(crate) i16);
 impl BImm {
     const NBITS: usize = 13;
 
+    /// The smallest value that can be represented by this integer type (−2¹²)
+    pub const MIN: Self = Self(-0b1_0000_0000_0000);
+    /// The largest value that can be represented by this integer type (2¹² - 2)
+    pub const MAX: Self = Self(0b1111_1111_1110);
+
     /// Creates an `BImm` from an [i8] constant
     #[must_use]
     pub const fn from_i8<const VALUE: i8>() -> Self {

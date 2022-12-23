@@ -4,6 +4,7 @@ use core::fmt;
 use std::{
     error::Error,
     fmt::{Debug, Display},
+    num::TryFromIntError,
     ops::Neg,
 };
 
@@ -18,6 +19,11 @@ pub struct JImm(pub(crate) i32);
 
 impl JImm {
     const NBITS: usize = 21;
+
+    /// The smallest value that can be represented by this integer type (−2²⁰)
+    pub const MIN: Self = Self(-0x10_0000);
+    /// The largest value that can be represented by this integer type (2²⁰ - 2)
+    pub const MAX: Self = Self(0xFFFFE);
 
     /// Creates an `JImm` from an [i8] constant
     #[must_use]
@@ -283,8 +289,84 @@ impl TryFrom<usize> for JImm {
     }
 }
 
+impl TryFrom<JImm> for i8 {
+    type Error = TryFromIntError;
+
+    fn try_from(value: JImm) -> Result<Self, Self::Error> {
+        value.0.try_into()
+    }
+}
+
+impl TryFrom<JImm> for i16 {
+    type Error = TryFromIntError;
+
+    fn try_from(value: JImm) -> Result<Self, Self::Error> {
+        value.0.try_into()
+    }
+}
+
+impl From<JImm> for i32 {
+    fn from(value: JImm) -> Self {
+        value.0
+    }
+}
+
+impl From<JImm> for i64 {
+    fn from(value: JImm) -> Self {
+        i64::from(value.0)
+    }
+}
+
+impl TryFrom<JImm> for isize {
+    type Error = TryFromIntError;
+
+    fn try_from(value: JImm) -> Result<Self, Self::Error> {
+        value.0.try_into()
+    }
+}
+
+impl TryFrom<JImm> for u8 {
+    type Error = TryFromIntError;
+
+    fn try_from(value: JImm) -> Result<Self, Self::Error> {
+        value.0.try_into()
+    }
+}
+
+impl TryFrom<JImm> for u16 {
+    type Error = TryFromIntError;
+
+    fn try_from(value: JImm) -> Result<Self, Self::Error> {
+        value.0.try_into()
+    }
+}
+
+impl TryFrom<JImm> for u32 {
+    type Error = TryFromIntError;
+
+    fn try_from(value: JImm) -> Result<Self, Self::Error> {
+        value.0.try_into()
+    }
+}
+
+impl TryFrom<JImm> for u64 {
+    type Error = TryFromIntError;
+
+    fn try_from(value: JImm) -> Result<Self, Self::Error> {
+        value.0.try_into()
+    }
+}
+
+impl TryFrom<JImm> for usize {
+    type Error = TryFromIntError;
+
+    fn try_from(value: JImm) -> Result<Self, Self::Error> {
+        value.0.try_into()
+    }
+}
+
 #[test]
-fn conversions() -> Result<(), JImmConvError> {
+fn conversions_from_integers() -> Result<(), JImmConvError> {
     assert_eq!(JImm::from(-128_i8), JImm(-128));
     assert_eq!(JImm::from(127_i8), JImm(126));
     assert_eq!(JImm::from(255_u8), JImm(254));
@@ -317,6 +399,47 @@ fn conversions() -> Result<(), JImmConvError> {
         JImm::try_from(1_048_576_i64),
         Err(JImmConvError::I64(1_048_576))
     ));
+
+    Ok(())
+}
+
+#[test]
+fn conversions_to_integers() -> Result<(), Box<dyn Error>> {
+    assert_eq!(i8::try_from(JImm::from(i8::MIN))?, i8::MIN);
+    assert_eq!(i8::try_from(JImm::from(i8::MAX))?, i8::MAX - 1);
+    assert!(i8::try_from(JImm::try_from(i16::from(i8::MIN) - 1)?).is_err());
+    assert!(i8::try_from(JImm::try_from(i16::from(i8::MAX) + 1)?).is_err());
+
+    assert_eq!(i16::try_from(JImm::from(i16::MIN))?, i16::MIN);
+    assert_eq!(i16::try_from(JImm::from(i16::MAX))?, i16::MAX - 1);
+    assert!(i16::try_from(JImm::try_from(i32::from(i16::MIN) - 1)?).is_err());
+    assert!(i16::try_from(JImm::try_from(i32::from(i16::MAX) + 1)?).is_err());
+
+    assert_eq!(i32::from(JImm::MIN), -0x100000);
+    assert_eq!(i32::from(JImm::MAX), 0xFFFFE);
+
+    assert_eq!(i64::from(JImm::MIN), -0x100000);
+    assert_eq!(i64::from(JImm::MAX), 0xFFFFE);
+
+    assert_eq!(isize::try_from(JImm::MIN)?, -0x100000);
+    assert_eq!(isize::try_from(JImm::MAX)?, 0xFFFFE);
+
+    assert_eq!(u8::try_from(JImm::from(u8::MAX))?, u8::MAX - 1);
+    assert!(u8::try_from(JImm::try_from(u16::from(u8::MAX) + 1)?).is_err());
+    assert!(u8::try_from(JImm::try_from(-1)?).is_err());
+
+    assert_eq!(u16::try_from(JImm::from(u16::MAX))?, u16::MAX - 1);
+    assert!(u16::try_from(JImm::try_from(u32::from(u16::MAX) + 1)?).is_err());
+    assert!(u16::try_from(JImm::try_from(-1)?).is_err());
+
+    assert_eq!(u32::try_from(JImm::MAX)?, 0xFFFFE);
+    assert!(u32::try_from(JImm::try_from(-1)?).is_err());
+
+    assert_eq!(u64::try_from(JImm::MAX)?, 0xFFFFE);
+    assert!(u64::try_from(JImm::try_from(-1)?).is_err());
+
+    assert_eq!(isize::try_from(JImm::MAX)?, 0xFFFFE);
+    assert!(usize::try_from(JImm::try_from(-1)?).is_err());
 
     Ok(())
 }

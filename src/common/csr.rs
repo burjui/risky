@@ -814,18 +814,18 @@ fn constructors() {
 
 #[test]
 fn into_u32() {
-    assert_eq!(Csr(0xFF).into_u32(), 0xFF);
+    assert_eq!(Csr(0xFFF).into_u32(), 0xFFF);
 }
 
 impl Display for Csr {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        Display::fmt(&self.0, f)
+        write!(f, "0x{:03x}", self.0)
     }
 }
 
 #[test]
 fn display() -> Result<(), CsrConvError> {
-    assert_eq!(Csr::try_from(0xFFF_u16)?.to_string(), "4095");
+    assert_eq!(Csr::try_from(0xFFF_u16)?.to_string(), "0xfff");
     Ok(())
 }
 

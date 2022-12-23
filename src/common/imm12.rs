@@ -15,6 +15,11 @@ pub struct Imm12(pub(crate) i16);
 impl Imm12 {
     const NBITS: usize = 12;
 
+    /// The smallest value that can be represented by this integer type (−2¹¹)
+    pub const MIN: Self = Self(-0b0111_1111_1111);
+    /// The largest value that can be represented by this integer type (2¹¹ - 1)
+    pub const MAX: Self = Self(0b0111_1111_1111);
+
     /// Zero
     pub const ZERO: Self = Self(0);
 

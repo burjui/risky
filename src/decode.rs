@@ -192,6 +192,7 @@ fn decode_edge_cases() -> Result<(), Box<dyn Error>> {
 /// RISC-V instruction
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum Instruction {
+    // --- RV32I ---
     /// [`lui`](crate::instructions::rv32i::lui)
     Lui(U),
     /// [`auipc`](crate::instructions::rv32i::auipc)
@@ -283,6 +284,8 @@ pub enum Instruction {
     Ecall,
     /// [`ebreak`](crate::instructions::rv32i::ebreak)
     Ebreak,
+
+    // --- M standard extension ---
     /// [`mul`](crate::instructions::m_ext::mul)
     Mul(R),
     /// [`mulh`](crate::instructions::m_ext::mulh)
@@ -299,6 +302,8 @@ pub enum Instruction {
     Rem(R),
     /// [`remu`](crate::instructions::m_ext::remu)
     Remu(R),
+
+    // --- Zicsr standard extension ---
     /// [`csrrw`](crate::instructions::zicsr_ext::csrrw)
     Csrrw(CsrReg),
     /// [`csrrs`](crate::instructions::zicsr_ext::csrrs)
@@ -311,6 +316,68 @@ pub enum Instruction {
     Csrrsi(CsrImm),
     /// [`csrrci`](crate::instructions::zicsr_ext::csrrci)
     Csrrci(CsrImm),
+}
+
+impl Display for Instruction {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Instruction::Lui(u) => write!(f, "lui {u}"),
+            Instruction::Auipc(u) => write!(f, "auipc {u}"),
+            Instruction::Jal(j) => write!(f, "jal {j}"),
+            Instruction::Jalr(i) => write!(f, "jalr {i}"),
+            Instruction::Beq(b) => write!(f, "beq {b}"),
+            Instruction::Bne(b) => write!(f, "bne {b}"),
+            Instruction::Blt(b) => write!(f, "blt {b}"),
+            Instruction::Bltu(b) => write!(f, "bltu {b}"),
+            Instruction::Bge(b) => write!(f, "bge {b}"),
+            Instruction::Bgeu(b) => write!(f, "bgeu {b}"),
+            Instruction::Lb(i) => write!(f, "lb {}", LoadDisplay(i)),
+            Instruction::Lbu(i) => write!(f, "lbu {}", LoadDisplay(i)),
+            Instruction::Lh(i) => write!(f, "lh {}", LoadDisplay(i)),
+            Instruction::Lhu(i) => write!(f, "lhu {}", LoadDisplay(i)),
+            Instruction::Lw(i) => write!(f, "lw {}", LoadDisplay(i)),
+            Instruction::Sb(s) => write!(f, "sb {s}"),
+            Instruction::Sh(s) => write!(f, "sh {s}"),
+            Instruction::Sw(s) => write!(f, "sw {s}"),
+            Instruction::Addi(i) => write!(f, "addi {i}"),
+            Instruction::Slti(i) => write!(f, "slti {i}"),
+            Instruction::Sltiu(i) => write!(f, "sltiu {i}"),
+            Instruction::Xori(i) => write!(f, "xori {i}"),
+            Instruction::Ori(i) => write!(f, "ori {i}"),
+            Instruction::Andi(i) => write!(f, "andi {i}"),
+            Instruction::Slli(i) => write!(f, "slli {i}"),
+            Instruction::Srli(i) => write!(f, "srli {i}"),
+            Instruction::Srai(i) => write!(f, "srai {i}"),
+            Instruction::Add(r) => write!(f, "add {r}"),
+            Instruction::Sub(r) => write!(f, "sub {r}"),
+            Instruction::Sll(r) => write!(f, "sll {r}"),
+            Instruction::Srl(r) => write!(f, "srl {r}"),
+            Instruction::Sra(r) => write!(f, "sra {r}"),
+            Instruction::Slt(r) => write!(f, "slt {r}"),
+            Instruction::Sltu(r) => write!(f, "sltu {r}"),
+            Instruction::Xor(r) => write!(f, "xor {r}"),
+            Instruction::Or(r) => write!(f, "or {r}"),
+            Instruction::And(r) => write!(f, "and {r}"),
+            Instruction::Fence { pred, succ } => write!(f, "fence {pred}, {succ}"),
+            Instruction::FenceTso => write!(f, "fence.tso"),
+            Instruction::Ecall => write!(f, "ecall"),
+            Instruction::Ebreak => write!(f, "ebreak"),
+            Instruction::Mul(r) => write!(f, "mul {r}"),
+            Instruction::Mulh(r) => write!(f, "mulh {r}"),
+            Instruction::Mulhsu(r) => write!(f, "mulhsu {r}"),
+            Instruction::Mulhu(r) => write!(f, "mulhu {r}"),
+            Instruction::Div(r) => write!(f, "div {r}"),
+            Instruction::Divu(r) => write!(f, "divu {r}"),
+            Instruction::Rem(r) => write!(f, "rem {r}"),
+            Instruction::Remu(r) => write!(f, "remu {r}"),
+            Instruction::Csrrw(c) => write!(f, "csrrw {c}"),
+            Instruction::Csrrs(c) => write!(f, "csrrs {c}"),
+            Instruction::Csrrc(c) => write!(f, "csrrc {c}"),
+            Instruction::Csrrwi(c) => write!(f, "csrrwi {c}"),
+            Instruction::Csrrsi(c) => write!(f, "csrrsi {c}"),
+            Instruction::Csrrci(c) => write!(f, "csrrci {c}"),
+        }
+    }
 }
 
 /// CSR instruction where the value argument is a register
@@ -331,6 +398,12 @@ impl CsrReg {
             rs1: rs1_reg(instruction),
             csr: csr(instruction),
         }
+    }
+}
+
+impl Display for CsrReg {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}, {}, {}", self.rd, self.rs1, self.csr)
     }
 }
 
@@ -355,6 +428,12 @@ impl CsrImm {
     }
 }
 
+impl Display for CsrImm {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}, {}, {}", self.rd, self.rs1, self.csr)
+    }
+}
+
 /// RISC-V U instruction format
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct U {
@@ -373,9 +452,15 @@ impl U {
     }
 }
 
+impl Display for U {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}, {}", self.rd, self.imm)
+    }
+}
+
 #[allow(clippy::cast_possible_wrap)]
 const fn u_imm(instruction: u32) -> i32 {
-    (instruction & 0xFFFF_F000) as i32
+    (instruction & !0xFFF) as i32
 }
 
 /// RISC-V J instruction format
@@ -393,6 +478,12 @@ impl J {
             rd: rd(instruction),
             imm: jimm(instruction),
         }
+    }
+}
+
+impl Display for J {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}, {}", self.rd, self.imm)
     }
 }
 
@@ -415,6 +506,20 @@ impl I {
             rs1: rs1_reg(instruction),
             imm: i_imm12(instruction),
         }
+    }
+}
+
+impl Display for I {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}, {}, {}", self.rd, self.rs1, self.imm)
+    }
+}
+
+struct LoadDisplay<'a>(&'a I);
+
+impl Display for LoadDisplay<'_> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}, {}[{}]", self.0.rd, self.0.rs1, self.0.imm)
     }
 }
 
@@ -444,6 +549,12 @@ impl IShift {
     }
 }
 
+impl Display for IShift {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}, {}, {}", self.rd, self.rs1, self.shamt)
+    }
+}
+
 /// RISC-V S instruction format
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct S {
@@ -463,6 +574,12 @@ impl S {
             imm: s_imm12(instruction),
             rs2: rs2_reg(instruction),
         }
+    }
+}
+
+impl Display for S {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}[{}], {}", self.rs1, self.imm, self.rs2)
     }
 }
 
@@ -488,6 +605,12 @@ impl R {
     }
 }
 
+impl Display for R {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}, {}, {}", self.rd, self.rs1, self.rs2)
+    }
+}
+
 /// RISC-V B instruction format
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct B {
@@ -507,6 +630,12 @@ impl B {
             rs1: rs1_reg(instruction),
             rs2: rs2_reg(instruction),
         }
+    }
+}
+
+impl Display for B {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}, {}, {}", self.imm, self.rs1, self.rs2)
     }
 }
 

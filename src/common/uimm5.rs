@@ -19,6 +19,11 @@ pub struct Uimm5(pub(crate) u8);
 impl Uimm5 {
     const NBITS: usize = 5;
 
+    /// The smallest value that can be represented by this integer type (0)
+    pub const MIN: Self = Self(0);
+    /// The largest value that can be represented by this integer type (2⁵ - 1)
+    pub const MAX: Self = Self(0x1F);
+
     #[doc = include_str!("../../doc/nightly_warning.html")]
     ///
     /// Creates an `Uimm5` from an [u8] constant
