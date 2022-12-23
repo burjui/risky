@@ -6,12 +6,12 @@ use super::encoding::{
 };
 pub use crate::registers::{X1, X5};
 use crate::{
-    bits::merge_bitfields,
     common::{
         bimm::BImm, fence_mask::FenceMask, fence_mode::FenceMode, funct3::Funct3, funct7::Funct7,
         imm12::Imm12, jimm::JImm, opcode::Opcode, reg_or_uimm5::RegOrUimm5, uimm5::Uimm5,
     },
     registers::{Register, X0},
+    util::bits::merge_bitfields,
 };
 
 /// "Load Upper Immediate" instruction is primarily used to build 32-bit constants. It places `imm`

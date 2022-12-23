@@ -5,11 +5,12 @@
 #![allow(clippy::module_name_repetitions)]
 
 pub mod abi;
-pub mod instructions;
-pub mod registers;
-
-pub(crate) mod bits;
-pub(crate) mod util;
-
 pub mod common;
-pub mod decode;
+pub mod decoding;
+pub(crate) mod encoding;
+pub mod instruction;
+pub mod m_ext;
+pub mod registers;
+pub mod rv32i;
+pub(crate) mod util;
+pub mod zicsr_ext;

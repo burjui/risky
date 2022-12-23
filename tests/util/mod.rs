@@ -2,7 +2,8 @@ use std::error::Error;
 
 use risky::{
     common::{bimm::BImm, csr::Csr, imm12::Imm12, jimm::JImm, uimm5::Uimm5},
-    decode::{decode, CsrImm, CsrReg, DecodeError, IShift, Instruction, B, I, J, R, S, U},
+    decoding::{decode, DecodeError},
+    instruction::{CsrImm, CsrReg, IShift, Instruction, B, I, J, R, S, U},
     registers::{Register, X1, X2, X29, X30, X31},
 };
 

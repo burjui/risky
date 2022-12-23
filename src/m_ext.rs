@@ -1,8 +1,8 @@
 //! M standard extension
 
-use super::encoding::r_instruction;
 use crate::{
     common::{funct3::Funct3, funct7::Funct7, opcode::Opcode, reg_or_uimm5::RegOrUimm5},
+    encoding::r_instruction,
     registers::Register,
 };
 

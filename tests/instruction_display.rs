@@ -2,17 +2,15 @@ use std::error::Error;
 
 use risky::{
     common::{bimm::BImm, csr::Csr, fence_mask::FenceMask, imm12::Imm12, jimm::JImm, uimm5::Uimm5},
-    decode::{decode, DecodeError},
-    instructions::{
-        m_ext::{div, divu, mul, mulh, mulhsu, mulhu, rem, remu},
-        rv32i::{
-            add, addi, and, andi, auipc, beq, bge, bgeu, blt, bltu, bne, ebreak, ecall, fence,
-            fence_tso, jal, jalr, lb, lbu, lh, lhu, lui, lw, or, ori, sb, sh, sll, slli, slt, slti,
-            sltiu, sltu, sra, srai, srl, srli, sub, sw, xor, xori,
-        },
-        zicsr_ext::{csrrc, csrrci, csrrs, csrrsi, csrrw, csrrwi},
-    },
+    decoding::{decode, DecodeError},
+    m_ext::{div, divu, mul, mulh, mulhsu, mulhu, rem, remu},
     registers::{Register, X29, X30, X31},
+    rv32i::{
+        add, addi, and, andi, auipc, beq, bge, bgeu, blt, bltu, bne, ebreak, ecall, fence,
+        fence_tso, jal, jalr, lb, lbu, lh, lhu, lui, lw, or, ori, sb, sh, sll, slli, slt, slti,
+        sltiu, sltu, sra, srai, srl, srli, sub, sw, xor, xori,
+    },
+    zicsr_ext::{csrrc, csrrci, csrrs, csrrsi, csrrw, csrrwi},
 };
 
 #[test]

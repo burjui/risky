@@ -1,3 +1,5 @@
+pub(crate) mod bits;
+
 use std::mem::size_of;
 #[cfg(test)]
 use std::panic::catch_unwind;

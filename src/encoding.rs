@@ -1,10 +1,10 @@
 use crate::{
-    bits::merge_bitfields,
     common::{
         bimm::BImm, csr::Csr, funct3::Funct3, funct7::Funct7, imm12::Imm12, jimm::JImm,
         opcode::Opcode, reg_or_uimm5::RegOrUimm5,
     },
     registers::Register,
+    util::bits::merge_bitfields,
 };
 
 pub(crate) const fn r_instruction(
