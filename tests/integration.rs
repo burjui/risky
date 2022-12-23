@@ -4,7 +4,7 @@ mod util;
 use std::error::Error;
 
 use risky::{
-    common::{fence_mask::FenceMask, funct3::Funct3, funct7::Funct7, imm12::Imm12, opcode::Opcode},
+    common::{fence_mask::FenceMask, imm12::Imm12},
     decode::{decode, DecodeError, Instruction},
     instructions::{
         m_ext::{div, divu, mul, mulh, mulhsu, mulhu, rem, remu},
@@ -19,17 +19,17 @@ use risky::{
 };
 use util::{
     test_b, test_csr_imm, test_csr_reg, test_i, test_i_case, test_j, test_r_imm, test_r_reg,
-    test_r_reg_spec, test_s, test_u,
+    test_r_reg_specific, test_s, test_u,
 };
 
 #[test]
 fn _lui() -> Result<(), DecodeError> {
-    test_u(lui, Instruction::Lui, Opcode::LUI)
+    test_u(lui, Instruction::Lui)
 }
 
 #[test]
 fn _auipc() -> Result<(), DecodeError> {
-    test_u(auipc, Instruction::Auipc, Opcode::AUIPC)
+    test_u(auipc, Instruction::Auipc)
 }
 
 #[test]
@@ -39,118 +39,102 @@ fn _jal() -> Result<(), Box<dyn Error>> {
 
 #[test]
 fn _jalr() -> Result<(), Box<dyn Error>> {
-    test_i(jalr, Instruction::Jalr, Opcode::JALR, Funct3::JALR)
+    test_i(jalr, Instruction::Jalr)
 }
 
 #[test]
 fn _beq() -> Result<(), Box<dyn Error>> {
-    test_b(beq, Instruction::Beq, Funct3::BEQ)
+    test_b(beq, Instruction::Beq)
 }
 
 #[test]
 fn _bne() -> Result<(), Box<dyn Error>> {
-    test_b(bne, Instruction::Bne, Funct3::BNE)
+    test_b(bne, Instruction::Bne)
 }
 
 #[test]
 fn _blt() -> Result<(), Box<dyn Error>> {
-    test_b(blt, Instruction::Blt, Funct3::BLT)
+    test_b(blt, Instruction::Blt)
 }
 
 #[test]
 fn _bltu() -> Result<(), Box<dyn Error>> {
-    test_b(bltu, Instruction::Bltu, Funct3::BLTU)
+    test_b(bltu, Instruction::Bltu)
 }
 
 #[test]
 fn _bge() -> Result<(), Box<dyn Error>> {
-    test_b(bge, Instruction::Bge, Funct3::BGE)
+    test_b(bge, Instruction::Bge)
 }
 
 #[test]
 fn _bgeu() -> Result<(), Box<dyn Error>> {
-    test_b(bgeu, Instruction::Bgeu, Funct3::BGEU)
+    test_b(bgeu, Instruction::Bgeu)
 }
 
 #[test]
 fn _lb() -> Result<(), Box<dyn Error>> {
-    test_i(lb, Instruction::Lb, Opcode::LOAD, Funct3::LB)
+    test_i(lb, Instruction::Lb)
 }
 
 #[test]
 fn _lu() -> Result<(), Box<dyn Error>> {
-    test_i(lbu, Instruction::Lbu, Opcode::LOAD, Funct3::LBU)
+    test_i(lbu, Instruction::Lbu)
 }
 
 #[test]
 fn _lh() -> Result<(), Box<dyn Error>> {
-    test_i(lh, Instruction::Lh, Opcode::LOAD, Funct3::LH)
+    test_i(lh, Instruction::Lh)
 }
 
 #[test]
 fn _lhu() -> Result<(), Box<dyn Error>> {
-    test_i(lhu, Instruction::Lhu, Opcode::LOAD, Funct3::LHU)
+    test_i(lhu, Instruction::Lhu)
 }
 
 #[test]
 fn _lw() -> Result<(), Box<dyn Error>> {
-    test_i(lw, Instruction::Lw, Opcode::LOAD, Funct3::LW)
+    test_i(lw, Instruction::Lw)
 }
 
 #[test]
 fn _sb() -> Result<(), Box<dyn Error>> {
-    test_s(sb, Instruction::Sb, Opcode::STORE, Funct3::SB)
+    test_s(sb, Instruction::Sb)
 }
 
 #[test]
 fn _sh() -> Result<(), Box<dyn Error>> {
-    test_s(sh, Instruction::Sh, Opcode::STORE, Funct3::SH)
+    test_s(sh, Instruction::Sh)
 }
 
 #[test]
 fn _sw() -> Result<(), Box<dyn Error>> {
-    test_s(sw, Instruction::Sw, Opcode::STORE, Funct3::SW)
+    test_s(sw, Instruction::Sw)
 }
 
 #[test]
 fn _addi() -> Result<(), Box<dyn Error>> {
-    test_i(addi, Instruction::Addi, Opcode::OP_IMM, Funct3::ADDI)
+    test_i(addi, Instruction::Addi)
 }
 
 #[test]
 fn _mv() -> Result<(), DecodeError> {
-    test_i_case(
-        mv(X30, X31),
-        Instruction::Addi,
-        Opcode::OP_IMM,
-        Funct3::ADDI,
-        X30,
-        X31,
-        Imm12::ZERO,
-    )
+    test_i_case(mv(X30, X31), Instruction::Addi, X30, X31, Imm12::ZERO)
 }
 
 #[test]
 fn _nop() -> Result<(), DecodeError> {
-    test_i_case(
-        nop(),
-        Instruction::Addi,
-        Opcode::OP_IMM,
-        Funct3::ADDI,
-        X0,
-        X0,
-        Imm12::ZERO,
-    )
+    test_i_case(nop(), Instruction::Addi, X0, X0, Imm12::ZERO)
 }
 
 #[test]
 fn _slti() -> Result<(), Box<dyn Error>> {
-    test_i(slti, Instruction::Slti, Opcode::OP_IMM, Funct3::SLTI)
+    test_i(slti, Instruction::Slti)
 }
 
 #[test]
 fn _sltiu() -> Result<(), Box<dyn Error>> {
-    test_i(sltiu, Instruction::Sltiu, Opcode::OP_IMM, Funct3::SLTIU)
+    test_i(sltiu, Instruction::Sltiu)
 }
 
 #[test]
@@ -158,8 +142,6 @@ fn _seqz() -> Result<(), Box<dyn Error>> {
     test_i_case(
         seqz(X30, X31),
         Instruction::Sltiu,
-        Opcode::OP_IMM,
-        Funct3::SLTIU,
         X30,
         X31,
         Imm12::try_from(1)?,
@@ -169,7 +151,7 @@ fn _seqz() -> Result<(), Box<dyn Error>> {
 
 #[test]
 fn _xori() -> Result<(), Box<dyn Error>> {
-    test_i(xori, Instruction::Xori, Opcode::OP_IMM, Funct3::XORI)
+    test_i(xori, Instruction::Xori)
 }
 
 #[test]
@@ -177,8 +159,6 @@ fn _not() -> Result<(), Box<dyn Error>> {
     test_i_case(
         not(X30, X31),
         Instruction::Xori,
-        Opcode::OP_IMM,
-        Funct3::XORI,
         X30,
         X31,
         Imm12::try_from(-1)?,
@@ -188,125 +168,93 @@ fn _not() -> Result<(), Box<dyn Error>> {
 
 #[test]
 fn _ori() -> Result<(), Box<dyn Error>> {
-    test_i(ori, Instruction::Ori, Opcode::OP_IMM, Funct3::ORI)
+    test_i(ori, Instruction::Ori)
 }
 
 #[test]
 fn _andi() -> Result<(), Box<dyn Error>> {
-    test_i(andi, Instruction::Andi, Opcode::OP_IMM, Funct3::ANDI)
+    test_i(andi, Instruction::Andi)
 }
 
 #[test]
 fn _slli() -> Result<(), Box<dyn Error>> {
-    test_r_imm(
-        slli,
-        Instruction::Slli,
-        Opcode::OP_IMM,
-        Funct3::SLLI,
-        Funct7::SLL,
-    )
+    test_r_imm(slli, Instruction::Slli)
 }
 
 #[test]
 fn _srli() -> Result<(), Box<dyn Error>> {
-    test_r_imm(
-        srli,
-        Instruction::Srli,
-        Opcode::OP_IMM,
-        Funct3::SRL,
-        Funct7::SRL,
-    )
+    test_r_imm(srli, Instruction::Srli)
 }
 
 #[test]
 fn _srai() -> Result<(), Box<dyn Error>> {
-    test_r_imm(
-        srai,
-        Instruction::Srai,
-        Opcode::OP_IMM,
-        Funct3::SRA,
-        Funct7::SRA,
-    )
+    test_r_imm(srai, Instruction::Srai)
 }
 
 #[test]
-fn _add() -> Result<(), Box<dyn Error>> {
-    test_r_reg(add, Instruction::Add, Opcode::OP, Funct3::ADD, Funct7::ADD)
+fn _add() -> Result<(), DecodeError> {
+    test_r_reg(add, Instruction::Add)
 }
 
 #[test]
-fn _sub() -> Result<(), Box<dyn Error>> {
-    test_r_reg(sub, Instruction::Sub, Opcode::OP, Funct3::SUB, Funct7::SUB)
+fn _sub() -> Result<(), DecodeError> {
+    test_r_reg(sub, Instruction::Sub)
 }
 
 #[test]
-fn _sll() -> Result<(), Box<dyn Error>> {
-    test_r_reg(sll, Instruction::Sll, Opcode::OP, Funct3::SLL, Funct7::SLL)
+fn _sll() -> Result<(), DecodeError> {
+    test_r_reg(sll, Instruction::Sll)
 }
 
 #[test]
-fn _srl() -> Result<(), Box<dyn Error>> {
-    test_r_reg(srl, Instruction::Srl, Opcode::OP, Funct3::SRL, Funct7::SRL)
+fn _srl() -> Result<(), DecodeError> {
+    test_r_reg(srl, Instruction::Srl)
 }
 
 #[test]
-fn _sra() -> Result<(), Box<dyn Error>> {
-    test_r_reg(sra, Instruction::Sra, Opcode::OP, Funct3::SRA, Funct7::SRA)
+fn _sra() -> Result<(), DecodeError> {
+    test_r_reg(sra, Instruction::Sra)
 }
 
 #[test]
-fn _slt() -> Result<(), Box<dyn Error>> {
-    test_r_reg(slt, Instruction::Slt, Opcode::OP, Funct3::SLT, Funct7::SLT)
+fn _slt() -> Result<(), DecodeError> {
+    test_r_reg(slt, Instruction::Slt)
 }
 
 #[test]
-fn _sltu() -> Result<(), Box<dyn Error>> {
-    test_r_reg(
-        sltu,
-        Instruction::Sltu,
-        Opcode::OP,
-        Funct3::SLTU,
-        Funct7::SLTU,
-    )
+fn _sltu() -> Result<(), DecodeError> {
+    test_r_reg(sltu, Instruction::Sltu)
 }
 
 #[test]
-fn _snez() -> Result<(), Box<dyn Error>> {
-    test_r_reg_spec(
-        |rd, _, rs2| snez(rd, rs2),
-        Instruction::Sltu,
-        Opcode::OP,
-        Funct3::SLTU,
-        Funct7::SLTU,
-        X30,
-        X0,
-        X31,
-    )
+fn _snez() -> Result<(), DecodeError> {
+    test_r_reg_specific(|rd, _, rs2| snez(rd, rs2), Instruction::Sltu, X30, X0, X31)
 }
 
 #[test]
-fn _xor() -> Result<(), Box<dyn Error>> {
-    test_r_reg(xor, Instruction::Xor, Opcode::OP, Funct3::XOR, Funct7::XOR)
+fn _xor() -> Result<(), DecodeError> {
+    test_r_reg(xor, Instruction::Xor)
 }
 
 #[test]
-fn _or() -> Result<(), Box<dyn Error>> {
-    test_r_reg(or, Instruction::Or, Opcode::OP, Funct3::OR, Funct7::OR)
+fn _or() -> Result<(), DecodeError> {
+    test_r_reg(or, Instruction::Or)
 }
 
 #[test]
-fn _and() -> Result<(), Box<dyn Error>> {
-    test_r_reg(and, Instruction::And, Opcode::OP, Funct3::AND, Funct7::AND)
+fn _and() -> Result<(), DecodeError> {
+    test_r_reg(and, Instruction::And)
 }
 
 #[test]
 fn _fence() -> Result<(), Box<dyn Error>> {
-    let fence_mask = FenceMask::try_from("iorw")?;
+    let pred = FenceMask::try_from("io")?;
+    let succ = FenceMask::try_from("rw")?;
     assert_eq!(
-        decode(fence(fence_mask, fence_mask))?,
+        decode(fence(pred, succ))?,
         Instruction::Fence {
-            pred: FenceMask::try_from(0b1111_u8)?,
-            succ: FenceMask::try_from(0b1111_u8)?,
+            pred: FenceMask::try_from(0b1100_u8)?,
+            succ: FenceMask::try_from(0b0011_u8)?,
         }
     );
     Ok(())
@@ -331,91 +279,43 @@ fn _ebreak() -> Result<(), DecodeError> {
 }
 
 #[test]
-fn _mul() -> Result<(), Box<dyn Error>> {
-    test_r_reg(
-        mul,
-        Instruction::Mul,
-        Opcode::OP,
-        Funct3::MUL,
-        Funct7::MULDIV,
-    )
+fn _mul() -> Result<(), DecodeError> {
+    test_r_reg(mul, Instruction::Mul)
 }
 
 #[test]
-fn _mulh() -> Result<(), Box<dyn Error>> {
-    test_r_reg(
-        mulh,
-        Instruction::Mulh,
-        Opcode::OP,
-        Funct3::MULH,
-        Funct7::MULDIV,
-    )
+fn _mulh() -> Result<(), DecodeError> {
+    test_r_reg(mulh, Instruction::Mulh)
 }
 
 #[test]
-fn _mulhsu() -> Result<(), Box<dyn Error>> {
-    test_r_reg(
-        mulhsu,
-        Instruction::Mulhsu,
-        Opcode::OP,
-        Funct3::MULHSU,
-        Funct7::MULDIV,
-    )
+fn _mulhsu() -> Result<(), DecodeError> {
+    test_r_reg(mulhsu, Instruction::Mulhsu)
 }
 
 #[test]
-fn _mulhu() -> Result<(), Box<dyn Error>> {
-    test_r_reg(
-        mulhu,
-        Instruction::Mulhu,
-        Opcode::OP,
-        Funct3::MULHU,
-        Funct7::MULDIV,
-    )
+fn _mulhu() -> Result<(), DecodeError> {
+    test_r_reg(mulhu, Instruction::Mulhu)
 }
 
 #[test]
-fn _div() -> Result<(), Box<dyn Error>> {
-    test_r_reg(
-        div,
-        Instruction::Div,
-        Opcode::OP,
-        Funct3::DIV,
-        Funct7::MULDIV,
-    )
+fn _div() -> Result<(), DecodeError> {
+    test_r_reg(div, Instruction::Div)
 }
 
 #[test]
-fn _divu() -> Result<(), Box<dyn Error>> {
-    test_r_reg(
-        divu,
-        Instruction::Divu,
-        Opcode::OP,
-        Funct3::DIVU,
-        Funct7::MULDIV,
-    )
+fn _divu() -> Result<(), DecodeError> {
+    test_r_reg(divu, Instruction::Divu)
 }
 
 #[test]
-fn _rem() -> Result<(), Box<dyn Error>> {
-    test_r_reg(
-        rem,
-        Instruction::Rem,
-        Opcode::OP,
-        Funct3::REM,
-        Funct7::MULDIV,
-    )
+fn _rem() -> Result<(), DecodeError> {
+    test_r_reg(rem, Instruction::Rem)
 }
 
 #[test]
-fn _remu() -> Result<(), Box<dyn Error>> {
-    test_r_reg(
-        remu,
-        Instruction::Remu,
-        Opcode::OP,
-        Funct3::REMU,
-        Funct7::MULDIV,
-    )
+fn _remu() -> Result<(), DecodeError> {
+    test_r_reg(remu, Instruction::Remu)
 }
 
 #[test]
