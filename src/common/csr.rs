@@ -995,10 +995,7 @@ fn conversions() -> Result<(), CsrConvError> {
 }
 
 /// Csr conversion error
-#[derive(Debug)]
 pub enum CsrConvError {
-    ///
-    U8(u8),
     ///
     U16(u16),
     ///
@@ -1019,20 +1016,76 @@ pub enum CsrConvError {
     Isize(isize),
 }
 
+impl Debug for CsrConvError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            CsrConvError::U16(value) => write!(f, "CsrConvError::U16({value})"),
+            CsrConvError::U32(value) => write!(f, "CsrConvError::U32({value})"),
+            CsrConvError::U64(value) => write!(f, "CsrConvError::U64({value})"),
+            CsrConvError::Usize(value) => write!(f, "CsrConvError::Usize({value})"),
+            CsrConvError::I8(value) => write!(f, "CsrConvError::I8({value})"),
+            CsrConvError::I16(value) => write!(f, "CsrConvError::I16({value})"),
+            CsrConvError::I32(value) => write!(f, "CsrConvError::I32({value})"),
+            CsrConvError::I64(value) => write!(f, "CsrConvError::I64({value})"),
+            CsrConvError::Isize(value) => write!(f, "CsrConvError::Isize({value})"),
+        }
+    }
+}
+
+#[test]
+fn conv_error_impl_debug() {
+    assert_eq!(
+        format!("{:?}", Csr::try_from(-1_i8).unwrap_err()),
+        "CsrConvError::I8(-1)"
+    );
+    assert_eq!(
+        format!("{:?}", Csr::try_from(-1_i16).unwrap_err()),
+        "CsrConvError::I16(-1)"
+    );
+    assert_eq!(
+        format!("{:?}", Csr::try_from(-1_i32).unwrap_err()),
+        "CsrConvError::I32(-1)"
+    );
+    assert_eq!(
+        format!("{:?}", Csr::try_from(-1_i64).unwrap_err()),
+        "CsrConvError::I64(-1)"
+    );
+    assert_eq!(
+        format!("{:?}", Csr::try_from(-1_isize).unwrap_err()),
+        "CsrConvError::Isize(-1)"
+    );
+
+    assert_eq!(
+        format!("{:?}", Csr::try_from(0x1000_u16).unwrap_err()),
+        "CsrConvError::U16(4096)"
+    );
+    assert_eq!(
+        format!("{:?}", Csr::try_from(0x1000_u32).unwrap_err()),
+        "CsrConvError::U32(4096)"
+    );
+    assert_eq!(
+        format!("{:?}", Csr::try_from(0x1000_u64).unwrap_err()),
+        "CsrConvError::U64(4096)"
+    );
+    assert_eq!(
+        format!("{:?}", Csr::try_from(0x1000_usize).unwrap_err()),
+        "CsrConvError::Usize(4096)"
+    );
+}
+
 impl Display for CsrConvError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "invalid {}-bit unsigned immediate: ", Csr::NBITS)?;
+        write!(f, "invalid CSR address: ")?;
         match self {
-            CsrConvError::U8(value) => write!(f, "{value} (0x{value:02x})"),
-            CsrConvError::U16(value) => write!(f, "{value} (0x{value:04x})"),
-            CsrConvError::U32(value) => write!(f, "{value} (0x{value:08x})"),
-            CsrConvError::U64(value) => write!(f, "{value} (0x{value:016x})"),
-            CsrConvError::Usize(value) => write!(f, "{value}"),
-            CsrConvError::I8(value) => write!(f, "{value} (0x{value:02x})"),
-            CsrConvError::I16(value) => write!(f, "{value} (0x{value:04x})"),
-            CsrConvError::I32(value) => write!(f, "{value} (0x{value:08x})"),
-            CsrConvError::I64(value) => write!(f, "{value} (0x{value:016x})"),
-            CsrConvError::Isize(value) => write!(f, "{value}"),
+            CsrConvError::U16(value) => write!(f, "0x{value:04x}"),
+            CsrConvError::U32(value) => write!(f, "0x{value:08x}"),
+            CsrConvError::U64(value) => write!(f, "0x{value:016x}"),
+            CsrConvError::Usize(value) => write!(f, "0x{value:0x}"),
+            CsrConvError::I8(value) => write!(f, "0x{value:02x}"),
+            CsrConvError::I16(value) => write!(f, "0x{value:04x}"),
+            CsrConvError::I32(value) => write!(f, "0x{value:08x}"),
+            CsrConvError::I64(value) => write!(f, "0x{value:016x}"),
+            CsrConvError::Isize(value) => write!(f, "0x{value:0x}"),
         }
     }
 }
@@ -1041,62 +1094,36 @@ impl Display for CsrConvError {
 fn conv_error_impl_display() {
     assert_eq!(
         Csr::try_from(-1_i8).unwrap_err().to_string(),
-        format!("invalid {}-bit unsigned immediate: -1 (0xff)", Csr::NBITS)
+        "invalid CSR address: 0xff"
     );
     assert_eq!(
         Csr::try_from(-1_i16).unwrap_err().to_string(),
-        format!("invalid {}-bit unsigned immediate: -1 (0xffff)", Csr::NBITS)
+        "invalid CSR address: 0xffff"
     );
     assert_eq!(
         Csr::try_from(-1_i32).unwrap_err().to_string(),
-        format!(
-            "invalid {}-bit unsigned immediate: -1 (0xffffffff)",
-            Csr::NBITS
-        )
+        "invalid CSR address: 0xffffffff"
     );
     assert_eq!(
         Csr::try_from(-1_i64).unwrap_err().to_string(),
-        format!(
-            "invalid {}-bit unsigned immediate: -1 (0xffffffffffffffff)",
-            Csr::NBITS
-        )
-    );
-    assert_eq!(
-        Csr::try_from(-1_isize).unwrap_err().to_string(),
-        format!("invalid {}-bit unsigned immediate: -1", Csr::NBITS)
+        "invalid CSR address: 0xffffffffffffffff"
     );
 
     assert_eq!(
         Csr::try_from(0x1000_u16).unwrap_err().to_string(),
-        format!(
-            "invalid {}-bit unsigned immediate: 4096 (0x1000)",
-            Csr::NBITS
-        )
+        "invalid CSR address: 0x1000"
     );
     assert_eq!(
         Csr::try_from(0x1000_u16).unwrap_err().to_string(),
-        format!(
-            "invalid {}-bit unsigned immediate: 4096 (0x1000)",
-            Csr::NBITS
-        )
+        "invalid CSR address: 0x1000"
     );
     assert_eq!(
         Csr::try_from(0x1000_u32).unwrap_err().to_string(),
-        format!(
-            "invalid {}-bit unsigned immediate: 4096 (0x00001000)",
-            Csr::NBITS
-        )
+        "invalid CSR address: 0x00001000"
     );
     assert_eq!(
         Csr::try_from(0x1000_u64).unwrap_err().to_string(),
-        format!(
-            "invalid {}-bit unsigned immediate: 4096 (0x0000000000001000)",
-            Csr::NBITS
-        )
-    );
-    assert_eq!(
-        Csr::try_from(0x1000_usize).unwrap_err().to_string(),
-        format!("invalid {}-bit unsigned immediate: 4096", Csr::NBITS)
+        "invalid CSR address: 0x0000000000001000"
     );
 }
 

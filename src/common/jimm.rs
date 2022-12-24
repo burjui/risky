@@ -445,7 +445,6 @@ fn conversions_to_integers() -> Result<(), Box<dyn Error>> {
 }
 
 /// [`JImm`] conversion error
-#[derive(Debug)]
 pub enum JImmConvError {
     ///
     I32(i32),
@@ -459,6 +458,60 @@ pub enum JImmConvError {
     U64(u64),
     ///
     Usize(usize),
+}
+
+impl Debug for JImmConvError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            JImmConvError::I32(value) => write!(f, "JImmConvError::I32({value})"),
+            JImmConvError::I64(value) => write!(f, "JImmConvError::I64({value})"),
+            JImmConvError::Isize(value) => write!(f, "JImmConvError::Isize({value})"),
+            JImmConvError::U32(value) => write!(f, "JImmConvError::U32({value})"),
+            JImmConvError::U64(value) => write!(f, "JImmConvError::U64({value})"),
+            JImmConvError::Usize(value) => write!(f, "JImmConvError::Usize({value})"),
+        }
+    }
+}
+
+#[test]
+fn conv_error_impl_debug() {
+    assert_eq!(
+        format!("{:?}", JImmConvError::I32(i32::from(JImm::MIN) - 1)),
+        "JImmConvError::I32(-1048577)"
+    );
+    assert_eq!(
+        format!("{:?}", JImmConvError::I64(i64::from(JImm::MIN) - 1)),
+        "JImmConvError::I64(-1048577)"
+    );
+    assert_eq!(
+        format!(
+            "{:?}",
+            JImmConvError::Isize(isize::try_from(JImm::MIN).unwrap() - 1)
+        ),
+        "JImmConvError::Isize(-1048577)"
+    );
+
+    assert_eq!(
+        format!(
+            "{:?}",
+            JImmConvError::U32(u32::try_from(JImm::MAX).unwrap() + 1)
+        ),
+        "JImmConvError::U32(1048575)"
+    );
+    assert_eq!(
+        format!(
+            "{:?}",
+            JImmConvError::U64(u64::try_from(JImm::MAX).unwrap() + 1)
+        ),
+        "JImmConvError::U64(1048575)"
+    );
+    assert_eq!(
+        format!(
+            "{:?}",
+            JImmConvError::Usize(usize::try_from(JImm::MAX).unwrap() + 1)
+        ),
+        "JImmConvError::Usize(1048575)"
+    );
 }
 
 impl Display for JImmConvError {

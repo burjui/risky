@@ -116,8 +116,13 @@ fn into_u32() {
 
 impl Debug for FenceMask {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "FenceMask(0b{:08b})", self.0)
+        write!(f, "FenceMask(0b{:04b})", self.0)
     }
+}
+
+#[test]
+fn debug() {
+    assert_eq!(format!("{:?}", FenceMask::RW), "FenceMask(0b0011)");
 }
 
 impl Display for FenceMask {

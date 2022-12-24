@@ -133,15 +133,14 @@ fn _sltiu() -> Result<(), Box<dyn Error>> {
 }
 
 #[test]
-fn _seqz() -> Result<(), Box<dyn Error>> {
+fn _seqz() -> Result<(), DecodeError> {
     test_i_case(
         seqz(X30, X31),
         Instruction::Sltiu,
         X30,
         X31,
-        Imm12::try_from(1)?,
-    )?;
-    Ok(())
+        Imm12::from(1_u8),
+    )
 }
 
 #[test]
@@ -150,15 +149,14 @@ fn _xori() -> Result<(), Box<dyn Error>> {
 }
 
 #[test]
-fn _not() -> Result<(), Box<dyn Error>> {
+fn _not() -> Result<(), DecodeError> {
     test_i_case(
         not(X30, X31),
         Instruction::Xori,
         X30,
         X31,
-        Imm12::try_from(-1)?,
-    )?;
-    Ok(())
+        Imm12::from(-1_i8),
+    )
 }
 
 #[test]
