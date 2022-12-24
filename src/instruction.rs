@@ -272,6 +272,68 @@ impl Instruction {
             Instruction::Csrrci(c) => csrrci(c.rd, c.rs1, c.csr),
         }
     }
+
+    /// Lenght of the encoded instruction in bytes
+    #[must_use]
+    pub const fn encoded_len(&self) -> usize {
+        match self {
+            Instruction::Lui(_)
+            | Instruction::Auipc(_)
+            | Instruction::Jal(_)
+            | Instruction::Jalr(_)
+            | Instruction::Beq(_)
+            | Instruction::Bne(_)
+            | Instruction::Blt(_)
+            | Instruction::Bltu(_)
+            | Instruction::Bge(_)
+            | Instruction::Bgeu(_)
+            | Instruction::Lb(_)
+            | Instruction::Lbu(_)
+            | Instruction::Lh(_)
+            | Instruction::Lhu(_)
+            | Instruction::Lw(_)
+            | Instruction::Sb(_)
+            | Instruction::Sh(_)
+            | Instruction::Sw(_)
+            | Instruction::Addi(_)
+            | Instruction::Slti(_)
+            | Instruction::Sltiu(_)
+            | Instruction::Xori(_)
+            | Instruction::Ori(_)
+            | Instruction::Andi(_)
+            | Instruction::Slli(_)
+            | Instruction::Srli(_)
+            | Instruction::Srai(_)
+            | Instruction::Add(_)
+            | Instruction::Sub(_)
+            | Instruction::Sll(_)
+            | Instruction::Srl(_)
+            | Instruction::Sra(_)
+            | Instruction::Slt(_)
+            | Instruction::Sltu(_)
+            | Instruction::Xor(_)
+            | Instruction::Or(_)
+            | Instruction::And(_)
+            | Instruction::Fence { .. }
+            | Instruction::FenceTso
+            | Instruction::Ecall
+            | Instruction::Ebreak
+            | Instruction::Mul(_)
+            | Instruction::Mulh(_)
+            | Instruction::Mulhsu(_)
+            | Instruction::Mulhu(_)
+            | Instruction::Div(_)
+            | Instruction::Divu(_)
+            | Instruction::Rem(_)
+            | Instruction::Remu(_)
+            | Instruction::Csrrw(_)
+            | Instruction::Csrrs(_)
+            | Instruction::Csrrc(_)
+            | Instruction::Csrrwi(_)
+            | Instruction::Csrrsi(_)
+            | Instruction::Csrrci(_) => 4,
+        }
+    }
 }
 
 /// RISC-V U instruction format
