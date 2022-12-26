@@ -7,7 +7,7 @@ use crate::{
     common::{bimm::BImm, csr::Csr, fence_mask::FenceMask, imm12::Imm12, jimm::JImm, uimm5::Uimm5},
     decoding::{
         decode_bimm, decode_csr, decode_i_imm12, decode_jimm, decode_rd, decode_rs1_imm,
-        decode_rs1_reg, decode_rs2_reg, decode_s_imm12, decode_shamt,
+        decode_rs1_reg, decode_rs2_reg, decode_s_imm12, decode_shamt, decode_u_imm,
     },
     m_ext::{div, divu, mul, mulh, mulhsu, mulhu, rem, remu},
     registers::Register,
@@ -287,7 +287,7 @@ impl U {
     pub(crate) const fn decode(instruction: u32) -> Self {
         Self {
             rd: decode_rd(instruction),
-            imm: u_imm(instruction),
+            imm: decode_u_imm(instruction),
         }
     }
 }
@@ -296,11 +296,6 @@ impl Display for U {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{}, {}", self.rd, self.imm)
     }
-}
-
-#[allow(clippy::cast_possible_wrap)]
-const fn u_imm(instruction: u32) -> i32 {
-    (instruction & !0xFFF) as i32
 }
 
 /// RISC-V J instruction format

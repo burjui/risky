@@ -330,6 +330,11 @@ pub(crate) const fn decode_rd(instruction: u32) -> Register {
     Register(bitfield::<7, 12>(instruction) as u8)
 }
 
+#[allow(clippy::cast_possible_wrap)]
+pub(crate) const fn decode_u_imm(instruction: u32) -> i32 {
+    (instruction & !0xFFF) as i32
+}
+
 #[allow(clippy::cast_possible_truncation)]
 const fn decode_funct3(instruction: u32) -> Funct3 {
     Funct3(bitfield::<12, 15>(instruction) as u8)
