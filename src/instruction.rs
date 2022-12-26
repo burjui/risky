@@ -213,125 +213,63 @@ impl Display for Instruction {
 impl Instruction {
     /// Encode the instruction
     #[must_use]
-    pub const fn encode(self) -> u32 {
+    pub const fn encode(self) -> EncodedInstruction {
         match self {
-            Instruction::Lui(u) => lui(u.rd, u.imm),
-            Instruction::Auipc(u) => auipc(u.rd, u.imm),
-            Instruction::Jal(j) => jal(j.rd, j.imm),
-            Instruction::Jalr(i) => jalr(i.rd, i.rs1, i.imm),
-            Instruction::Beq(b) => beq(b.imm, b.rs1, b.rs2),
-            Instruction::Bne(b) => bne(b.imm, b.rs1, b.rs2),
-            Instruction::Blt(b) => blt(b.imm, b.rs1, b.rs2),
-            Instruction::Bltu(b) => bltu(b.imm, b.rs1, b.rs2),
-            Instruction::Bge(b) => bge(b.imm, b.rs1, b.rs2),
-            Instruction::Bgeu(b) => bgeu(b.imm, b.rs1, b.rs2),
-            Instruction::Lb(i) => lb(i.rd, i.rs1, i.imm),
-            Instruction::Lbu(i) => lbu(i.rd, i.rs1, i.imm),
-            Instruction::Lh(i) => lh(i.rd, i.rs1, i.imm),
-            Instruction::Lhu(i) => lhu(i.rd, i.rs1, i.imm),
-            Instruction::Lw(i) => lw(i.rd, i.rs1, i.imm),
-            Instruction::Sb(s) => sb(s.rs1, s.imm, s.rs2),
-            Instruction::Sh(s) => sh(s.rs1, s.imm, s.rs2),
-            Instruction::Sw(s) => sw(s.rs1, s.imm, s.rs2),
-            Instruction::Addi(i) => addi(i.rd, i.rs1, i.imm),
-            Instruction::Slti(i) => slti(i.rd, i.rs1, i.imm),
-            Instruction::Sltiu(i) => sltiu(i.rd, i.rs1, i.imm),
-            Instruction::Xori(i) => xori(i.rd, i.rs1, i.imm),
-            Instruction::Ori(i) => ori(i.rd, i.rs1, i.imm),
-            Instruction::Andi(i) => andi(i.rd, i.rs1, i.imm),
-            Instruction::Slli(i) => slli(i.rd, i.rs1, i.shamt),
-            Instruction::Srli(i) => srli(i.rd, i.rs1, i.shamt),
-            Instruction::Srai(i) => srai(i.rd, i.rs1, i.shamt),
-            Instruction::Add(r) => add(r.rd, r.rs1, r.rs2),
-            Instruction::Sub(r) => sub(r.rd, r.rs1, r.rs2),
-            Instruction::Sll(r) => sll(r.rd, r.rs1, r.rs2),
-            Instruction::Srl(r) => srl(r.rd, r.rs1, r.rs2),
-            Instruction::Sra(r) => sra(r.rd, r.rs1, r.rs2),
-            Instruction::Slt(r) => slt(r.rd, r.rs1, r.rs2),
-            Instruction::Sltu(r) => sltu(r.rd, r.rs1, r.rs2),
-            Instruction::Xor(r) => xor(r.rd, r.rs1, r.rs2),
-            Instruction::Or(r) => or(r.rd, r.rs1, r.rs2),
-            Instruction::And(r) => and(r.rd, r.rs1, r.rs2),
-            Instruction::Fence { pred, succ } => fence(pred, succ),
-            Instruction::FenceTso => fence_tso(),
-            Instruction::Ecall => ecall(),
-            Instruction::Ebreak => ebreak(),
-            Instruction::Mul(r) => mul(r.rd, r.rs1, r.rs2),
-            Instruction::Mulh(r) => mulh(r.rd, r.rs1, r.rs2),
-            Instruction::Mulhsu(r) => mulhsu(r.rd, r.rs1, r.rs2),
-            Instruction::Mulhu(r) => mulhu(r.rd, r.rs1, r.rs2),
-            Instruction::Div(r) => div(r.rd, r.rs1, r.rs2),
-            Instruction::Divu(r) => divu(r.rd, r.rs1, r.rs2),
-            Instruction::Rem(r) => rem(r.rd, r.rs1, r.rs2),
-            Instruction::Remu(r) => remu(r.rd, r.rs1, r.rs2),
-            Instruction::Csrrw(c) => csrrw(c.rd, c.rs1, c.csr),
-            Instruction::Csrrs(c) => csrrs(c.rd, c.rs1, c.csr),
-            Instruction::Csrrc(c) => csrrc(c.rd, c.rs1, c.csr),
-            Instruction::Csrrwi(c) => csrrwi(c.rd, c.rs1, c.csr),
-            Instruction::Csrrsi(c) => csrrsi(c.rd, c.rs1, c.csr),
-            Instruction::Csrrci(c) => csrrci(c.rd, c.rs1, c.csr),
-        }
-    }
-
-    /// Lenght of the encoded instruction in bytes
-    #[must_use]
-    pub const fn encoded_len(&self) -> usize {
-        match self {
-            Instruction::Lui(_)
-            | Instruction::Auipc(_)
-            | Instruction::Jal(_)
-            | Instruction::Jalr(_)
-            | Instruction::Beq(_)
-            | Instruction::Bne(_)
-            | Instruction::Blt(_)
-            | Instruction::Bltu(_)
-            | Instruction::Bge(_)
-            | Instruction::Bgeu(_)
-            | Instruction::Lb(_)
-            | Instruction::Lbu(_)
-            | Instruction::Lh(_)
-            | Instruction::Lhu(_)
-            | Instruction::Lw(_)
-            | Instruction::Sb(_)
-            | Instruction::Sh(_)
-            | Instruction::Sw(_)
-            | Instruction::Addi(_)
-            | Instruction::Slti(_)
-            | Instruction::Sltiu(_)
-            | Instruction::Xori(_)
-            | Instruction::Ori(_)
-            | Instruction::Andi(_)
-            | Instruction::Slli(_)
-            | Instruction::Srli(_)
-            | Instruction::Srai(_)
-            | Instruction::Add(_)
-            | Instruction::Sub(_)
-            | Instruction::Sll(_)
-            | Instruction::Srl(_)
-            | Instruction::Sra(_)
-            | Instruction::Slt(_)
-            | Instruction::Sltu(_)
-            | Instruction::Xor(_)
-            | Instruction::Or(_)
-            | Instruction::And(_)
-            | Instruction::Fence { .. }
-            | Instruction::FenceTso
-            | Instruction::Ecall
-            | Instruction::Ebreak
-            | Instruction::Mul(_)
-            | Instruction::Mulh(_)
-            | Instruction::Mulhsu(_)
-            | Instruction::Mulhu(_)
-            | Instruction::Div(_)
-            | Instruction::Divu(_)
-            | Instruction::Rem(_)
-            | Instruction::Remu(_)
-            | Instruction::Csrrw(_)
-            | Instruction::Csrrs(_)
-            | Instruction::Csrrc(_)
-            | Instruction::Csrrwi(_)
-            | Instruction::Csrrsi(_)
-            | Instruction::Csrrci(_) => 4,
+            Instruction::Lui(u) => EncodedInstruction::Standard(lui(u.rd, u.imm)),
+            Instruction::Auipc(u) => EncodedInstruction::Standard(auipc(u.rd, u.imm)),
+            Instruction::Jal(j) => EncodedInstruction::Standard(jal(j.rd, j.imm)),
+            Instruction::Jalr(i) => EncodedInstruction::Standard(jalr(i.rd, i.rs1, i.imm)),
+            Instruction::Beq(b) => EncodedInstruction::Standard(beq(b.imm, b.rs1, b.rs2)),
+            Instruction::Bne(b) => EncodedInstruction::Standard(bne(b.imm, b.rs1, b.rs2)),
+            Instruction::Blt(b) => EncodedInstruction::Standard(blt(b.imm, b.rs1, b.rs2)),
+            Instruction::Bltu(b) => EncodedInstruction::Standard(bltu(b.imm, b.rs1, b.rs2)),
+            Instruction::Bge(b) => EncodedInstruction::Standard(bge(b.imm, b.rs1, b.rs2)),
+            Instruction::Bgeu(b) => EncodedInstruction::Standard(bgeu(b.imm, b.rs1, b.rs2)),
+            Instruction::Lb(i) => EncodedInstruction::Standard(lb(i.rd, i.rs1, i.imm)),
+            Instruction::Lbu(i) => EncodedInstruction::Standard(lbu(i.rd, i.rs1, i.imm)),
+            Instruction::Lh(i) => EncodedInstruction::Standard(lh(i.rd, i.rs1, i.imm)),
+            Instruction::Lhu(i) => EncodedInstruction::Standard(lhu(i.rd, i.rs1, i.imm)),
+            Instruction::Lw(i) => EncodedInstruction::Standard(lw(i.rd, i.rs1, i.imm)),
+            Instruction::Sb(s) => EncodedInstruction::Standard(sb(s.rs1, s.imm, s.rs2)),
+            Instruction::Sh(s) => EncodedInstruction::Standard(sh(s.rs1, s.imm, s.rs2)),
+            Instruction::Sw(s) => EncodedInstruction::Standard(sw(s.rs1, s.imm, s.rs2)),
+            Instruction::Addi(i) => EncodedInstruction::Standard(addi(i.rd, i.rs1, i.imm)),
+            Instruction::Slti(i) => EncodedInstruction::Standard(slti(i.rd, i.rs1, i.imm)),
+            Instruction::Sltiu(i) => EncodedInstruction::Standard(sltiu(i.rd, i.rs1, i.imm)),
+            Instruction::Xori(i) => EncodedInstruction::Standard(xori(i.rd, i.rs1, i.imm)),
+            Instruction::Ori(i) => EncodedInstruction::Standard(ori(i.rd, i.rs1, i.imm)),
+            Instruction::Andi(i) => EncodedInstruction::Standard(andi(i.rd, i.rs1, i.imm)),
+            Instruction::Slli(i) => EncodedInstruction::Standard(slli(i.rd, i.rs1, i.shamt)),
+            Instruction::Srli(i) => EncodedInstruction::Standard(srli(i.rd, i.rs1, i.shamt)),
+            Instruction::Srai(i) => EncodedInstruction::Standard(srai(i.rd, i.rs1, i.shamt)),
+            Instruction::Add(r) => EncodedInstruction::Standard(add(r.rd, r.rs1, r.rs2)),
+            Instruction::Sub(r) => EncodedInstruction::Standard(sub(r.rd, r.rs1, r.rs2)),
+            Instruction::Sll(r) => EncodedInstruction::Standard(sll(r.rd, r.rs1, r.rs2)),
+            Instruction::Srl(r) => EncodedInstruction::Standard(srl(r.rd, r.rs1, r.rs2)),
+            Instruction::Sra(r) => EncodedInstruction::Standard(sra(r.rd, r.rs1, r.rs2)),
+            Instruction::Slt(r) => EncodedInstruction::Standard(slt(r.rd, r.rs1, r.rs2)),
+            Instruction::Sltu(r) => EncodedInstruction::Standard(sltu(r.rd, r.rs1, r.rs2)),
+            Instruction::Xor(r) => EncodedInstruction::Standard(xor(r.rd, r.rs1, r.rs2)),
+            Instruction::Or(r) => EncodedInstruction::Standard(or(r.rd, r.rs1, r.rs2)),
+            Instruction::And(r) => EncodedInstruction::Standard(and(r.rd, r.rs1, r.rs2)),
+            Instruction::Fence { pred, succ } => EncodedInstruction::Standard(fence(pred, succ)),
+            Instruction::FenceTso => EncodedInstruction::Standard(fence_tso()),
+            Instruction::Ecall => EncodedInstruction::Standard(ecall()),
+            Instruction::Ebreak => EncodedInstruction::Standard(ebreak()),
+            Instruction::Mul(r) => EncodedInstruction::Standard(mul(r.rd, r.rs1, r.rs2)),
+            Instruction::Mulh(r) => EncodedInstruction::Standard(mulh(r.rd, r.rs1, r.rs2)),
+            Instruction::Mulhsu(r) => EncodedInstruction::Standard(mulhsu(r.rd, r.rs1, r.rs2)),
+            Instruction::Mulhu(r) => EncodedInstruction::Standard(mulhu(r.rd, r.rs1, r.rs2)),
+            Instruction::Div(r) => EncodedInstruction::Standard(div(r.rd, r.rs1, r.rs2)),
+            Instruction::Divu(r) => EncodedInstruction::Standard(divu(r.rd, r.rs1, r.rs2)),
+            Instruction::Rem(r) => EncodedInstruction::Standard(rem(r.rd, r.rs1, r.rs2)),
+            Instruction::Remu(r) => EncodedInstruction::Standard(remu(r.rd, r.rs1, r.rs2)),
+            Instruction::Csrrw(c) => EncodedInstruction::Standard(csrrw(c.rd, c.rs1, c.csr)),
+            Instruction::Csrrs(c) => EncodedInstruction::Standard(csrrs(c.rd, c.rs1, c.csr)),
+            Instruction::Csrrc(c) => EncodedInstruction::Standard(csrrc(c.rd, c.rs1, c.csr)),
+            Instruction::Csrrwi(c) => EncodedInstruction::Standard(csrrwi(c.rd, c.rs1, c.csr)),
+            Instruction::Csrrsi(c) => EncodedInstruction::Standard(csrrsi(c.rd, c.rs1, c.csr)),
+            Instruction::Csrrci(c) => EncodedInstruction::Standard(csrrci(c.rd, c.rs1, c.csr)),
         }
     }
 }
@@ -592,5 +530,26 @@ impl CsrImm {
 impl Display for CsrImm {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{}, {}, {}", self.rd, self.rs1, self.csr)
+    }
+}
+
+/// RISC-V instruction encoded in a little-endian value
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum EncodedInstruction {
+    /// Standard 32-bit instruction
+    Standard(u32),
+    /// Compressed 16-bit instruction (C standard extension)
+    Compressed(u16),
+}
+
+impl EncodedInstruction {
+    /// Length of the encoded instruction in bytes
+    #[allow(clippy::len_without_is_empty)]
+    #[must_use]
+    pub const fn len(&self) -> usize {
+        match self {
+            EncodedInstruction::Standard(_) => 4,
+            EncodedInstruction::Compressed(_) => 2,
+        }
     }
 }
