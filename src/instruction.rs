@@ -1,7 +1,10 @@
 //! RISC-V instruction definitions for decoding and encoding
 
 use core::fmt;
-use std::fmt::Display;
+use std::{
+    fmt::Display,
+    io::{self, Write},
+};
 
 use crate::{
     common::{bimm::BImm, csr::Csr, fence_mask::FenceMask, imm12::Imm12, jimm::JImm, uimm5::Uimm5},
@@ -271,6 +274,12 @@ impl Instruction {
             Instruction::Csrrsi(c) => EncodedInstruction::Standard(csrrsi(c.rd, c.rs1, c.csr)),
             Instruction::Csrrci(c) => EncodedInstruction::Standard(csrrci(c.rd, c.rs1, c.csr)),
         }
+    }
+
+    /// Write the instruction to the destination
+    #[allow(clippy::missing_errors_doc)]
+    pub fn write(&self, w: impl Write) -> io::Result<()> {
+        self.encode().write(w)
     }
 }
 
@@ -545,6 +554,15 @@ impl EncodedInstruction {
         match self {
             EncodedInstruction::Standard(_) => 4,
             EncodedInstruction::Compressed(_) => 2,
+        }
+    }
+
+    /// Write the instruction to the destination
+    #[allow(clippy::missing_errors_doc)]
+    pub fn write(&self, mut w: impl Write) -> io::Result<()> {
+        match self {
+            EncodedInstruction::Standard(i) => w.write_all(&i.to_le_bytes()),
+            EncodedInstruction::Compressed(i) => w.write_all(&i.to_le_bytes()),
         }
     }
 }
