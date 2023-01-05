@@ -1108,6 +1108,10 @@ fn conv_error_impl_display() {
         Csr::try_from(-1_i64).unwrap_err().to_string(),
         "invalid CSR address: 0xffffffffffffffff"
     );
+    assert_eq!(
+        Csr::try_from(0x1000_isize).unwrap_err().to_string(),
+        "invalid CSR address: 0x1000"
+    );
 
     assert_eq!(
         Csr::try_from(0x1000_u16).unwrap_err().to_string(),
@@ -1124,6 +1128,10 @@ fn conv_error_impl_display() {
     assert_eq!(
         Csr::try_from(0x1000_u64).unwrap_err().to_string(),
         "invalid CSR address: 0x0000000000001000"
+    );
+    assert_eq!(
+        Csr::try_from(0x1000_usize).unwrap_err().to_string(),
+        "invalid CSR address: 0x1000"
     );
 }
 
