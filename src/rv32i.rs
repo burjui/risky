@@ -11,7 +11,7 @@ use crate::{
         imm12::Imm12, jimm::JImm, opcode::Opcode, reg_or_uimm5::RegOrUimm5, uimm5::Uimm5,
     },
     registers::{Register, X0},
-    util::bits::merge_bitfields,
+    util::bits::combine_bitfields,
 };
 
 /// "Load Upper Immediate" instruction is primarily used to build 32-bit constants. It places `imm`
@@ -737,10 +737,10 @@ pub const fn fence_tso() -> u32 {
 /// ```
 #[allow(clippy::cast_possible_truncation)]
 const fn fence_instruction(fm: FenceMode, predecessor: FenceMask, successor: FenceMask) -> u32 {
-    let imm = merge_bitfields(&[
-        (0..4, predecessor.into_u32(), 0..4),
-        (4..8, successor.into_u32(), 0..4),
-        (8..12, fm.into_u32(), 0..4),
+    let imm = combine_bitfields(&[
+        (0..=3, predecessor.into_u32(), 0..=3),
+        (4..=7, successor.into_u32(), 0..=3),
+        (8..=11, fm.into_u32(), 0..=3),
     ]);
     i_instruction(
         Opcode::MISC_MEM,

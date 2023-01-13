@@ -4,7 +4,7 @@ use crate::{
         opcode::Opcode, reg_or_uimm5::RegOrUimm5,
     },
     registers::Register,
-    util::bits::merge_bitfields,
+    util::bits::combine_bitfields,
 };
 
 pub(crate) const fn r_instruction(
@@ -15,13 +15,13 @@ pub(crate) const fn r_instruction(
     rs2: RegOrUimm5,
     funct7: Funct7,
 ) -> u32 {
-    merge_bitfields(&[
-        (0..7, opcode.into_u32(), 0..7),
-        (7..12, rd.into_u32(), 0..5),
-        (12..15, funct3.into_u32(), 0..3),
-        (15..20, rs1.into_u32(), 0..5),
-        (20..25, rs2.into_u32(), 0..5),
-        (25..32, funct7.into_u32(), 0..7),
+    combine_bitfields(&[
+        (0..=6, opcode.into_u32(), 0..=6),
+        (7..=11, rd.into_u32(), 0..=4),
+        (12..=14, funct3.into_u32(), 0..=2),
+        (15..=19, rs1.into_u32(), 0..=4),
+        (20..=24, rs2.into_u32(), 0..=4),
+        (25..=31, funct7.into_u32(), 0..=6),
     ])
 }
 
@@ -46,12 +46,12 @@ pub(crate) const fn i_instruction(
     rs1: RegOrUimm5,
     imm: Imm12OrCsr,
 ) -> u32 {
-    merge_bitfields(&[
-        (0..7, opcode.into_u32(), 0..7),
-        (7..12, rd.into_u32(), 0..5),
-        (12..15, funct3.into_u32(), 0..3),
-        (15..20, rs1.into_u32(), 0..5),
-        (20..32, imm.into_u32(), 0..12),
+    combine_bitfields(&[
+        (0..=6, opcode.into_u32(), 0..=6),
+        (7..=11, rd.into_u32(), 0..=4),
+        (12..=14, funct3.into_u32(), 0..=2),
+        (15..=19, rs1.into_u32(), 0..=4),
+        (20..=31, imm.into_u32(), 0..=11),
     ])
 }
 
@@ -62,13 +62,13 @@ pub(crate) const fn s_instruction(
     rs1: Register,
     rs2: Register,
 ) -> u32 {
-    merge_bitfields(&[
-        (0..7, opcode.into_u32(), 0..7),
-        (7..12, imm.into_u32(), 0..5),
-        (12..15, funct3.into_u32(), 0..3),
-        (15..20, rs1.into_u32(), 0..5),
-        (20..25, rs2.into_u32(), 0..5),
-        (25..32, imm.into_u32(), 5..12),
+    combine_bitfields(&[
+        (0..=6, opcode.into_u32(), 0..=6),
+        (7..=11, imm.into_u32(), 0..=4),
+        (12..=14, funct3.into_u32(), 0..=2),
+        (15..=19, rs1.into_u32(), 0..=4),
+        (20..=24, rs2.into_u32(), 0..=4),
+        (25..=31, imm.into_u32(), 5..=11),
     ])
 }
 
@@ -80,35 +80,35 @@ pub(crate) const fn b_instruction(
     rs2: Register,
 ) -> u32 {
     let imm = imm.into_u32();
-    merge_bitfields(&[
-        (0..7, opcode.into_u32(), 0..7),
-        (7..8, imm, 11..12),
-        (8..12, imm, 1..5),
-        (12..15, funct3.into_u32(), 0..3),
-        (15..20, rs1.into_u32(), 0..5),
-        (20..25, rs2.into_u32(), 0..5),
-        (25..31, imm, 5..11),
-        (31..32, imm, 12..13),
+    combine_bitfields(&[
+        (0..=6, opcode.into_u32(), 0..=6),
+        (7..=7, imm, 11..=11),
+        (8..=11, imm, 1..=4),
+        (12..=14, funct3.into_u32(), 0..=2),
+        (15..=19, rs1.into_u32(), 0..=4),
+        (20..=24, rs2.into_u32(), 0..=4),
+        (25..=30, imm, 5..=10),
+        (31..=31, imm, 12..=12),
     ])
 }
 
 #[allow(clippy::cast_sign_loss)]
 pub(crate) const fn u_instruction(opcode: Opcode, rd: Register, imm: i32) -> u32 {
-    merge_bitfields(&[
-        (0..7, opcode.into_u32(), 0..7),
-        (7..12, rd.into_u32(), 0..5),
-        (12..32, imm as u32, 12..32),
+    combine_bitfields(&[
+        (0..=6, opcode.into_u32(), 0..=6),
+        (7..=11, rd.into_u32(), 0..=4),
+        (12..=31, imm as u32, 12..=31),
     ])
 }
 
 pub(crate) const fn j_instruction(opcode: Opcode, rd: Register, imm: JImm) -> u32 {
     let imm = imm.into_u32();
-    merge_bitfields(&[
-        (0..7, opcode.into_u32(), 0..7),
-        (7..12, rd.into_u32(), 0..5),
-        (12..20, imm, 12..20),
-        (20..21, imm, 11..12),
-        (21..31, imm, 1..11),
-        (31..32, imm, 20..21),
+    combine_bitfields(&[
+        (0..=6, opcode.into_u32(), 0..=6),
+        (7..=11, rd.into_u32(), 0..=4),
+        (12..=19, imm, 12..=19),
+        (20..=20, imm, 11..=11),
+        (21..=30, imm, 1..=10),
+        (31..=31, imm, 20..=20),
     ])
 }

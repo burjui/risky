@@ -13,7 +13,7 @@ use crate::{
     },
     instruction::{CsrImm, CsrReg, IShift, Instruction, B, I, J, R, S, U},
     registers::Register,
-    util::bits::{bitfield, merge_bitfields},
+    util::bits::{bitfield, combine_bitfields},
 };
 
 /// Decodes a RISC-V instruction
@@ -322,12 +322,12 @@ impl Error for DecodeError {}
 
 #[allow(clippy::cast_possible_truncation)]
 const fn decode_opcode(instruction: u32) -> Opcode {
-    Opcode(bitfield::<0, 7>(instruction) as u8)
+    Opcode(bitfield::<0, 6>(instruction) as u8)
 }
 
 #[allow(clippy::cast_possible_truncation)]
 pub(crate) const fn decode_rd(instruction: u32) -> Register {
-    Register(bitfield::<7, 12>(instruction) as u8)
+    Register(bitfield::<7, 11>(instruction) as u8)
 }
 
 #[allow(clippy::cast_possible_wrap)]
@@ -337,42 +337,42 @@ pub(crate) const fn decode_u_imm(instruction: u32) -> i32 {
 
 #[allow(clippy::cast_possible_truncation)]
 const fn decode_funct3(instruction: u32) -> Funct3 {
-    Funct3(bitfield::<12, 15>(instruction) as u8)
+    Funct3(bitfield::<12, 14>(instruction) as u8)
 }
 
 #[allow(clippy::cast_possible_truncation)]
 pub(crate) const fn decode_rs1_reg(instruction: u32) -> Register {
-    Register(bitfield::<15, 20>(instruction) as u8)
+    Register(bitfield::<15, 19>(instruction) as u8)
 }
 
 #[allow(clippy::cast_possible_truncation)]
 pub(crate) const fn decode_rs1_imm(instruction: u32) -> Uimm5 {
-    Uimm5(bitfield::<15, 20>(instruction) as u8)
+    Uimm5(bitfield::<15, 19>(instruction) as u8)
 }
 
 #[allow(clippy::cast_possible_truncation)]
 pub(crate) const fn decode_rs2_reg(instruction: u32) -> Register {
-    Register(bitfield::<20, 25>(instruction) as u8)
+    Register(bitfield::<20, 24>(instruction) as u8)
 }
 
 #[allow(clippy::cast_possible_truncation)]
 pub(crate) const fn decode_shamt(instruction: u32) -> Uimm5 {
-    Uimm5(bitfield::<20, 25>(instruction) as u8)
+    Uimm5(bitfield::<20, 24>(instruction) as u8)
 }
 
 #[allow(clippy::cast_possible_truncation, clippy::cast_possible_wrap)]
 pub(crate) const fn decode_i_imm12(instruction: u32) -> Imm12 {
-    Imm12((((bitfield::<20, 32>(instruction) as u16) << 4) as i16) >> 4) // sign-extend
+    Imm12((((bitfield::<20, 31>(instruction) as u16) << 4) as i16) >> 4) // sign-extend
 }
 
 #[allow(clippy::cast_possible_truncation)]
 pub(crate) const fn decode_csr(instruction: u32) -> Csr {
-    Csr(bitfield::<20, 32>(instruction) as u16)
+    Csr(bitfield::<20, 31>(instruction) as u16)
 }
 
 #[allow(clippy::cast_possible_truncation)]
 const fn decode_funct7(instruction: u32) -> Funct7 {
-    Funct7(bitfield::<25, 32>(instruction) as u8)
+    Funct7(bitfield::<25, 31>(instruction) as u8)
 }
 
 const SHIFT_MODE_SRLI: u8 = 0b00_0000;
@@ -380,36 +380,36 @@ const SHIFT_MODE_SRAI: u8 = 0b01_0000;
 
 #[allow(clippy::cast_possible_truncation)]
 const fn decode_shift_mode(instruction: u32) -> u8 {
-    bitfield::<26, 32>(instruction) as u8
+    bitfield::<26, 31>(instruction) as u8
 }
 
 #[allow(clippy::cast_possible_truncation)]
 const fn decode_funct12(instruction: u32) -> Funct12 {
-    Funct12(bitfield::<20, 32>(instruction) as u16)
+    Funct12(bitfield::<20, 31>(instruction) as u16)
 }
 
 #[allow(clippy::cast_possible_truncation)]
 const fn decode_fence_pred(instruction: u32) -> FenceMask {
-    FenceMask(bitfield::<20, 24>(instruction) as u8)
+    FenceMask(bitfield::<20, 23>(instruction) as u8)
 }
 
 #[allow(clippy::cast_possible_truncation)]
 const fn decode_fence_succ(instruction: u32) -> FenceMask {
-    FenceMask(bitfield::<24, 28>(instruction) as u8)
+    FenceMask(bitfield::<24, 27>(instruction) as u8)
 }
 
 #[allow(clippy::cast_possible_truncation)]
 const fn decode_fence_mode(instruction: u32) -> FenceMode {
-    FenceMode(bitfield::<28, 32>(instruction) as u8)
+    FenceMode(bitfield::<28, 31>(instruction) as u8)
 }
 
 #[allow(clippy::cast_possible_wrap)]
 pub(crate) const fn decode_bimm(instruction: u32) -> BImm {
-    let imm = merge_bitfields(&[
-        (11..12, instruction, 7..8),
-        (1..5, instruction, 8..12),
-        (5..11, instruction, 25..31),
-        (12..13, instruction, 31..32),
+    let imm = combine_bitfields(&[
+        (11..=11, instruction, 7..=7),
+        (1..=4, instruction, 8..=11),
+        (5..=10, instruction, 25..=30),
+        (12..=12, instruction, 31..=31),
     ]);
     BImm(((imm << 19) as i32 >> 19) as i16)
 }
@@ -417,17 +417,17 @@ pub(crate) const fn decode_bimm(instruction: u32) -> BImm {
 #[allow(clippy::cast_possible_wrap)]
 pub(crate) const fn decode_jimm(instruction: u32) -> JImm {
     #[allow(clippy::cast_possible_truncation)]
-    let imm = merge_bitfields(&[
-        (12..20, instruction, 12..20),
-        (11..12, instruction, 20..21),
-        (1..11, instruction, 21..31),
-        (20..21, instruction, 31..32),
+    let imm = combine_bitfields(&[
+        (12..=19, instruction, 12..=19),
+        (11..=11, instruction, 20..=20),
+        (1..=10, instruction, 21..=30),
+        (20..=20, instruction, 31..=31),
     ]);
     JImm((imm << 11) as i32 >> 11) // sign-extend
 }
 
 #[allow(clippy::cast_possible_wrap)]
 pub(crate) const fn decode_s_imm12(instruction: u32) -> Imm12 {
-    let imm = merge_bitfields(&[(0..5, instruction, 7..12), (5..12, instruction, 25..32)]);
+    let imm = combine_bitfields(&[(0..=4, instruction, 7..=11), (5..=11, instruction, 25..=31)]);
     Imm12(((imm << 20) as i32 >> 20) as i16)
 }
