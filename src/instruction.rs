@@ -26,128 +26,128 @@ use crate::{
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum Instruction {
     // --- RV32I ---
-    /// [`lui`](crate::rv32i::lui)
+    /// [`lui`]
     Lui(U),
-    /// [`auipc`](crate::rv32i::auipc)
+    /// [`auipc`]
     Auipc(U),
-    /// [`jal`](crate::rv32i::jal)
+    /// [`jal`]
     Jal(J),
-    /// [`jalr`](crate::rv32i::jalr)
+    /// [`jalr`]
     Jalr(I),
-    /// [`beq`](crate::rv32i::beq)
+    /// [`beq`]
     Beq(B),
-    /// [`bne`](crate::rv32i::bne)
+    /// [`bne`]
     Bne(B),
-    /// [`blt`](crate::rv32i::blt)
+    /// [`blt`]
     Blt(B),
-    /// [`bltu`](crate::rv32i::bltu)
+    /// [`bltu`]
     Bltu(B),
-    /// [`bge`](crate::rv32i::bge)
+    /// [`bge`]
     Bge(B),
-    /// [`bgeu`](crate::rv32i::bgeu)
+    /// [`bgeu`]
     Bgeu(B),
-    /// [`lb`](crate::rv32i::lb)
+    /// [`lb`]
     Lb(I),
-    /// [`lbu`](crate::rv32i::lbu)
+    /// [`lbu`]
     Lbu(I),
-    /// [`lh`](crate::rv32i::lh)
+    /// [`lh`]
     Lh(I),
-    /// [`lhu`](crate::rv32i::lhu)
+    /// [`lhu`]
     Lhu(I),
-    /// [`lw`](crate::rv32i::lw)
+    /// [`lw`]
     Lw(I),
-    /// [`sb`](crate::rv32i::sb)
+    /// [`sb`]
     Sb(S),
-    /// [`sh`](crate::rv32i::sh)
+    /// [`sh`]
     Sh(S),
-    /// [`sw`](crate::rv32i::sw)
+    /// [`sw`]
     Sw(S),
-    /// [`addi`](crate::rv32i::addi)
+    /// [`addi`]
     Addi(I),
-    /// [`slti`](crate::rv32i::slti)
+    /// [`slti`]
     Slti(I),
-    /// [`sltiu`](crate::rv32i::sltiu)
+    /// [`sltiu`]
     Sltiu(I),
-    /// [`xori`](crate::rv32i::xori)
+    /// [`xori`]
     Xori(I),
-    /// [`ori`](crate::rv32i::ori)
+    /// [`ori`]
     Ori(I),
-    /// [`andi`](crate::rv32i::andi)
+    /// [`andi`]
     Andi(I),
-    /// [`slli`](crate::rv32i::slli)
+    /// [`slli`]
     Slli(IShift),
-    /// [`srli`](crate::rv32i::srli)
+    /// [`srli`]
     Srli(IShift),
-    /// [`srai`](crate::rv32i::srai)
+    /// [`srai`]
     Srai(IShift),
-    /// [`add`](crate::rv32i::add)
+    /// [`add`]
     Add(R),
-    /// [`sub`](crate::rv32i::sub)
+    /// [`sub`]
     Sub(R),
-    /// [`sll`](crate::rv32i::sll)
+    /// [`sll`]
     Sll(R),
-    /// [`srl`](crate::rv32i::srl)
+    /// [`srl`]
     Srl(R),
-    /// [`sra`](crate::rv32i::sra)
+    /// [`sra`]
     Sra(R),
-    /// [`slt`](crate::rv32i::slt)
+    /// [`slt`]
     Slt(R),
-    /// [`sltu`](crate::rv32i::sltu)
+    /// [`sltu`]
     Sltu(R),
-    /// [`xor`](crate::rv32i::xor)
+    /// [`xor`]
     Xor(R),
-    /// [`or`](crate::rv32i::or)
+    /// [`or`]
     Or(R),
-    /// [`and`](crate::rv32i::and)
+    /// [`and`]
     And(R),
-    /// [`fence`](crate::rv32i::fence)
+    /// [`fence`]
     Fence {
         /// Predecessor set
         ///
-        /// Refer to [`fence`](crate::rv32i::fence) instruction documentation for details
+        /// Refer to [`fence`] instruction documentation for details
         pred: FenceMask,
         /// Successor set
         ///
-        /// Refer to [`fence`](crate::rv32i::fence) instruction documentation for details
+        /// Refer to [`fence`] instruction documentation for details
         succ: FenceMask,
     },
-    /// [`fence_tso`](crate::rv32i::fence_tso)
+    /// [`fence_tso`]
     FenceTso,
-    /// [`ecall`](crate::rv32i::ecall)
+    /// [`ecall`]
     Ecall,
-    /// [`ebreak`](crate::rv32i::ebreak)
+    /// [`ebreak`]
     Ebreak,
 
     // --- M standard extension ---
-    /// [`mul`](crate::m_ext::mul)
+    /// [`mul`]
     Mul(R),
-    /// [`mulh`](crate::m_ext::mulh)
+    /// [`mulh`]
     Mulh(R),
-    /// [`mulhsu`](crate::m_ext::mulhsu)
+    /// [`mulhsu`]
     Mulhsu(R),
-    /// [`mulhu`](crate::m_ext::mulhu)
+    /// [`mulhu`]
     Mulhu(R),
-    /// [`div`](crate::m_ext::div)
+    /// [`div`]
     Div(R),
-    /// [`divu`](crate::m_ext::divu)
+    /// [`divu`]
     Divu(R),
-    /// [`rem`](crate::m_ext::rem)
+    /// [`rem`]
     Rem(R),
-    /// [`remu`](crate::m_ext::remu)
+    /// [`remu`]
     Remu(R),
 
     // --- Zicsr standard extension ---
-    /// [`csrrw`](crate::zicsr_ext::csrrw)
+    /// [`csrrw`]
     Csrrw(CsrReg),
-    /// [`csrrs`](crate::zicsr_ext::csrrs)
+    /// [`csrrs`]
     Csrrs(CsrReg),
-    /// [`csrrc`](crate::zicsr_ext::csrrc)
+    /// [`csrrc`]
     Csrrc(CsrReg),
-    /// [`csrrwi`](crate::zicsr_ext::csrrwi)
+    /// [`csrrwi`]
     Csrrwi(CsrImm),
-    /// [`csrrsi`](crate::zicsr_ext::csrrsi)
+    /// [`csrrsi`]
     Csrrsi(CsrImm),
-    /// [`csrrci`](crate::zicsr_ext::csrrci)
+    /// [`csrrci`]
     Csrrci(CsrImm),
 }
 
@@ -424,9 +424,9 @@ impl Display for S {
 }
 
 /// RISC-V special I instruction format (
-/// [`slli`](crate::rv32i::slli),
-/// [`srli`](crate::rv32i::srli),
-/// [`srai`](crate::rv32i::srai)
+/// [`slli`],
+/// [`srli`],
+/// [`srai`]
 /// )
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct IShift {
