@@ -1,0 +1,11 @@
+#!/bin/sh
+cargo +nightly clippy -- -D clippy::pedantic
+
+cargo +stable rustdoc
+cargo +stable test
+
+cargo +nightly rustdoc --all-features
+cargo +nightly test --all-features
+
+cargo +nightly fmt
+cross +nightly test --target s390x-unknown-linux-gnu
